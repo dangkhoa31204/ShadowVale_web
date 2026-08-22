@@ -1,212 +1,263 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
 import { useChangePassword } from '../hooks/useChangePassword';
 
 export const ChangePasswordForm: React.FC = () => {
   const {
+    currentCipher,
+    setCurrentCipher,
     newCipher,
     setNewCipher,
     confirmCipher,
     setConfirmCipher,
+    showCurrentCipher,
+    setShowCurrentCipher,
     showNewCipher,
     setShowNewCipher,
     showConfirmCipher,
     setShowConfirmCipher,
     isLoading,
     errorMessage,
-    successMessage,
+    showToast,
+    setShowToast,
+    hasMinLength,
+    hasAlphanumeric,
+    hasSpecial,
     strength,
     handleSubmit,
+    handleCancel,
   } = useChangePassword();
 
   return (
-    <main className="w-full max-w-[440px] bg-surface border border-border-subtle z-10 flex flex-col relative rounded-sm">
-      {/* Header Section */}
-      <header className="bg-surface-bright border-b border-border-subtle p-stack-md flex flex-col gap-2">
-        <div className="flex items-center gap-2">
-          <span
-            className="material-symbols-outlined text-primary text-[20px]"
-            style={{ fontVariationSettings: "'FILL' 1" }}
-          >
-            terminal
-          </span>
-          <span className="font-title-sm text-title-sm text-primary tracking-widest uppercase">
-            ShadowVale Systems
-          </span>
-        </div>
-        <div>
-          <h1 className="font-headline-md text-headline-md text-on-surface tracking-tight uppercase">
-            Access Cipher Reset
-          </h1>
-          <p className="font-body-md text-body-md text-on-surface-variant mt-1">
-            Define a new access cipher for your operative profile. Synchronization required.
-          </p>
-        </div>
-      </header>
-
-      {/* Form Section */}
-      <form className="p-stack-md flex flex-col gap-stack-lg" id="cipher-form" noValidate onSubmit={handleSubmit}>
-        {/* Dynamic Status Messages */}
-        {(errorMessage || successMessage) && (
-          <div id="status-container">
-            {errorMessage && (
-              <div className="bg-error-container/10 border border-error/50 p-stack-sm rounded-sm flex items-start gap-3">
-                <span
-                  className="material-symbols-outlined text-error text-[20px] mt-0.5"
-                  style={{ fontVariationSettings: "'FILL' 1" }}
-                >
-                  warning
-                </span>
-                <div className="flex flex-col">
-                  <span className="font-label-caps text-label-caps text-error mb-1">Protocol Failure</span>
-                  <span className="font-body-md text-body-md text-on-surface-variant">{errorMessage}</span>
-                </div>
-              </div>
-            )}
-
-            {successMessage && (
-              <div className="bg-success/10 border border-success/50 p-stack-sm rounded-sm flex items-start gap-3">
-                <span
-                  className="material-symbols-outlined text-success text-[20px] mt-0.5"
-                  style={{ fontVariationSettings: "'FILL' 1" }}
-                >
-                  check_circle
-                </span>
-                <div className="flex flex-col">
-                  <span className="font-label-caps text-label-caps text-success mb-1">Authorization Updated</span>
-                  <span className="font-body-md text-body-md text-on-surface-variant">{successMessage}</span>
-                </div>
-              </div>
-            )}
+    <div className="w-full flex justify-center items-center py-stack-lg relative">
+      <div className="w-full max-w-md bg-surface border border-border-subtle rounded-lg flex flex-col relative overflow-hidden shadow-2xl">
+        {/* Header */}
+        <div className="bg-surface-bright border-b border-border-subtle px-stack-lg py-stack-md flex items-center gap-3">
+          <span className="material-symbols-outlined text-primary text-2xl">key</span>
+          <div>
+            <h2 className="font-headline-md text-headline-md text-on-surface">Update Access Cipher</h2>
+            <p className="font-body-md text-body-md text-on-surface-variant mt-1">
+              Modify your security credentials.
+            </p>
           </div>
-        )}
+        </div>
 
-        <div className="flex flex-col gap-stack-md">
-          {/* New Cipher Input */}
-          <div className="flex flex-col">
-            <label className="font-label-caps text-label-caps text-on-surface block mb-stack-sm uppercase" htmlFor="new-cipher">
-              New Access Cipher (Password)
-            </label>
-            <div className="relative">
-              <input
-                id="new-cipher"
-                type={showNewCipher ? 'text' : 'password'}
-                required
-                placeholder="••••••••••••"
-                value={newCipher}
-                onChange={(e) => setNewCipher(e.target.value)}
-                disabled={isLoading || !!successMessage}
-                className="w-full bg-surface-dim border border-border-subtle p-3 pr-12 font-data-mono text-data-mono text-on-surface focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors rounded-sm placeholder-on-surface-variant/40"
-              />
-              <button
-                type="button"
-                aria-label="Toggle password visibility"
-                onClick={() => setShowNewCipher(!showNewCipher)}
-                className={`toggle-vis absolute right-3 top-1/2 -translate-y-1/2 transition-colors focus:outline-none h-full flex items-center px-1 cursor-pointer ${
-                  showNewCipher ? 'text-primary' : 'text-on-surface-variant hover:text-primary'
-                }`}
-              >
-                <span className="material-symbols-outlined text-[20px]">
-                  {showNewCipher ? 'visibility_off' : 'visibility'}
-                </span>
-              </button>
+        {/* Form Body */}
+        <form onSubmit={handleSubmit} className="p-stack-lg flex flex-col gap-stack-lg">
+          {/* Alert Banner (Error State) */}
+          {errorMessage && (
+            <div className="bg-error-container/20 border border-error/30 rounded p-3 flex gap-3 items-start animate-fade-in">
+              <span className="material-symbols-outlined text-error text-sm mt-0.5">warning</span>
+              <div className="flex-1">
+                <p className="font-label-caps text-label-caps text-error">Protocol Failure</p>
+                <p className="font-body-md text-body-md text-on-surface-variant mt-1">{errorMessage}</p>
+              </div>
+            </div>
+          )}
+
+          <div className="flex flex-col gap-stack-md">
+            {/* Current Access Cipher */}
+            <div className="flex flex-col gap-1.5">
+              <label className="font-label-caps text-label-caps text-on-surface-variant">
+                Current Access Cipher
+              </label>
+              <div className="relative">
+                <input
+                  type={showCurrentCipher ? 'text' : 'password'}
+                  required
+                  placeholder="••••••••"
+                  value={currentCipher}
+                  onChange={(e) => setCurrentCipher(e.target.value)}
+                  className="w-full bg-surface-container border border-border-subtle rounded px-3 py-2 text-on-surface font-data-mono text-data-mono focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all placeholder:text-on-surface-variant/50"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowCurrentCipher(!showCurrentCipher)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-on-surface transition-colors cursor-pointer"
+                >
+                  <span className="material-symbols-outlined text-sm">
+                    {showCurrentCipher ? 'visibility_off' : 'visibility'}
+                  </span>
+                </button>
+              </div>
             </div>
 
-            {/* Tactical Strength Indicator */}
-            <div className="mt-stack-sm flex flex-col gap-1">
+            <div className="h-px w-full bg-border-subtle my-2"></div>
+
+            {/* New Access Cipher */}
+            <div className="flex flex-col gap-1.5">
+              <label className="font-label-caps text-label-caps text-on-surface-variant">
+                New Access Cipher
+              </label>
+              <div className="relative">
+                <input
+                  type={showNewCipher ? 'text' : 'password'}
+                  required
+                  placeholder="••••••••"
+                  value={newCipher}
+                  onChange={(e) => setNewCipher(e.target.value)}
+                  className="w-full bg-surface-container border border-border-subtle rounded px-3 py-2 text-on-surface font-data-mono text-data-mono focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all placeholder:text-on-surface-variant/50"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowNewCipher(!showNewCipher)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-on-surface transition-colors cursor-pointer"
+                >
+                  <span className="material-symbols-outlined text-sm">
+                    {showNewCipher ? 'visibility_off' : 'visibility'}
+                  </span>
+                </button>
+              </div>
+            </div>
+
+            {/* Strength Meter */}
+            <div className="flex flex-col gap-2 mt-1">
               <div className="flex gap-1 h-1.5 w-full">
                 <div
-                  className={`strength-segment flex-1 border rounded-sm transition-colors duration-300 ${
-                    strength.score >= 1 ? strength.barColor : 'bg-surface-variant border-border-subtle'
+                  className={`flex-1 rounded-full transition-colors duration-300 ${
+                    strength.score >= 1 ? strength.barColor : 'bg-surface-container-highest'
                   }`}
                 ></div>
                 <div
-                  className={`strength-segment flex-1 border rounded-sm transition-colors duration-300 ${
-                    strength.score >= 2 ? strength.barColor : 'bg-surface-variant border-border-subtle'
+                  className={`flex-1 rounded-full transition-colors duration-300 ${
+                    strength.score >= 2 ? strength.barColor : 'bg-surface-container-highest'
                   }`}
                 ></div>
                 <div
-                  className={`strength-segment flex-1 border rounded-sm transition-colors duration-300 ${
-                    strength.score >= 3 ? strength.barColor : 'bg-surface-variant border-border-subtle'
+                  className={`flex-1 rounded-full transition-colors duration-300 ${
+                    strength.score >= 3 ? strength.barColor : 'bg-surface-container-highest'
                   }`}
                 ></div>
                 <div
-                  className={`strength-segment flex-1 border rounded-sm transition-colors duration-300 ${
-                    strength.score >= 4 ? strength.barColor : 'bg-surface-variant border-border-subtle'
+                  className={`flex-1 rounded-full transition-colors duration-300 ${
+                    strength.score >= 4 ? strength.barColor : 'bg-surface-container-highest'
                   }`}
                 ></div>
               </div>
-              <div className="flex justify-between items-center mt-1">
-                <span className={`font-label-caps text-[10px] uppercase tracking-widest ${strength.colorClass}`}>
-                  {strength.label}
-                </span>
-                <span className="font-label-caps text-[10px] text-on-surface-variant tracking-widest">
-                  Alphanumeric + Symbol
-                </span>
+              <p className={`font-label-caps text-label-caps text-right ${strength.textClass}`}>
+                {strength.label}
+              </p>
+            </div>
+
+            {/* Requirements Box */}
+            <div className="bg-surface-container-lowest border border-border-subtle rounded p-3 mt-1">
+              <p className="font-label-caps text-label-caps text-on-surface-variant mb-2">
+                Protocol Requirements:
+              </p>
+              <ul className="flex flex-col gap-1.5">
+                <li
+                  className={`flex items-center gap-2 font-body-md text-body-md transition-colors ${
+                    hasMinLength ? 'text-success' : 'text-on-surface-variant'
+                  }`}
+                >
+                  <span
+                    className="material-symbols-outlined text-[16px]"
+                    style={{ fontVariationSettings: hasMinLength ? "'FILL' 1" : "'FILL' 0" }}
+                  >
+                    {hasMinLength ? 'check_circle' : 'radio_button_unchecked'}
+                  </span>
+                  Minimum 12 characters
+                </li>
+                <li
+                  className={`flex items-center gap-2 font-body-md text-body-md transition-colors ${
+                    hasAlphanumeric ? 'text-success' : 'text-on-surface-variant'
+                  }`}
+                >
+                  <span
+                    className="material-symbols-outlined text-[16px]"
+                    style={{ fontVariationSettings: hasAlphanumeric ? "'FILL' 1" : "'FILL' 0" }}
+                  >
+                    {hasAlphanumeric ? 'check_circle' : 'radio_button_unchecked'}
+                  </span>
+                  Alphanumeric combination
+                </li>
+                <li
+                  className={`flex items-center gap-2 font-body-md text-body-md transition-colors ${
+                    hasSpecial ? 'text-success' : 'text-on-surface-variant'
+                  }`}
+                >
+                  <span
+                    className="material-symbols-outlined text-[16px]"
+                    style={{ fontVariationSettings: hasSpecial ? "'FILL' 1" : "'FILL' 0" }}
+                  >
+                    {hasSpecial ? 'check_circle' : 'radio_button_unchecked'}
+                  </span>
+                  One special symbol (!@#$%)
+                </li>
+              </ul>
+            </div>
+
+            {/* Confirm New Cipher */}
+            <div className="flex flex-col gap-1.5 mt-2">
+              <label className="font-label-caps text-label-caps text-on-surface-variant">
+                Confirm New Cipher
+              </label>
+              <div className="relative">
+                <input
+                  type={showConfirmCipher ? 'text' : 'password'}
+                  required
+                  placeholder="••••••••"
+                  value={confirmCipher}
+                  onChange={(e) => setConfirmCipher(e.target.value)}
+                  className="w-full bg-surface-container border border-border-subtle rounded px-3 py-2 text-on-surface font-data-mono text-data-mono focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all placeholder:text-on-surface-variant/50"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmCipher(!showConfirmCipher)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-on-surface transition-colors cursor-pointer"
+                >
+                  <span className="material-symbols-outlined text-sm">
+                    {showConfirmCipher ? 'visibility_off' : 'visibility'}
+                  </span>
+                </button>
               </div>
             </div>
           </div>
 
-          {/* Confirm Cipher Input */}
-          <div className="flex flex-col">
-            <label className="font-label-caps text-label-caps text-on-surface block mb-stack-sm uppercase" htmlFor="confirm-cipher">
-              Confirm New Cipher
-            </label>
-            <div className="relative">
-              <input
-                id="confirm-cipher"
-                type={showConfirmCipher ? 'text' : 'password'}
-                required
-                placeholder="••••••••••••"
-                value={confirmCipher}
-                onChange={(e) => setConfirmCipher(e.target.value)}
-                disabled={isLoading || !!successMessage}
-                className="w-full bg-surface-dim border border-border-subtle p-3 pr-12 font-data-mono text-data-mono text-on-surface focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors rounded-sm placeholder-on-surface-variant/40"
-              />
-              <button
-                type="button"
-                aria-label="Toggle password visibility"
-                onClick={() => setShowConfirmCipher(!showConfirmCipher)}
-                className={`toggle-vis absolute right-3 top-1/2 -translate-y-1/2 transition-colors focus:outline-none h-full flex items-center px-1 cursor-pointer ${
-                  showConfirmCipher ? 'text-primary' : 'text-on-surface-variant hover:text-primary'
-                }`}
-              >
-                <span className="material-symbols-outlined text-[20px]">
-                  {showConfirmCipher ? 'visibility_off' : 'visibility'}
-                </span>
-              </button>
-            </div>
+          {/* Footer Actions */}
+          <div className="bg-surface-bright border-t border-border-subtle px-stack-lg py-stack-md flex justify-end gap-stack-md mt-auto -mx-stack-lg -mb-stack-lg">
+            <button
+              type="button"
+              onClick={handleCancel}
+              className="px-4 py-2 border border-border-subtle text-on-surface font-data-mono text-data-mono rounded hover:bg-surface-container-highest transition-colors cursor-pointer"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="px-4 py-2 bg-primary text-on-primary font-data-mono text-data-mono rounded hover:bg-primary-fixed-dim transition-colors flex items-center gap-2 cursor-pointer disabled:opacity-50"
+            >
+              {isLoading ? (
+                <span className="material-symbols-outlined text-sm loading-spinner">sync</span>
+              ) : (
+                'Update Cipher'
+              )}
+            </button>
           </div>
-        </div>
+        </form>
+      </div>
 
-        {/* Primary Action */}
-        <div className="pt-2">
+      {/* Floating Toast Notification */}
+      {showToast && (
+        <div className="fixed bottom-margin-page right-margin-page bg-surface-bright border border-border-subtle rounded shadow-lg p-4 flex items-start gap-3 transition-all duration-300 z-50 animate-bounce">
+          <span className="material-symbols-outlined text-success" style={{ fontVariationSettings: "'FILL' 1" }}>
+            check_circle
+          </span>
+          <div>
+            <p className="font-label-caps text-label-caps text-success">Protocol Updated</p>
+            <p className="font-body-md text-body-md text-on-surface-variant mt-1">
+              Access Cipher updated successfully.
+            </p>
+          </div>
           <button
-            type="submit"
-            disabled={isLoading || !!successMessage}
-            className="w-full bg-primary text-on-primary font-data-mono text-body-md py-3 px-4 rounded-sm hover:bg-primary-container hover:text-on-primary-container transition-all flex items-center justify-center gap-2 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-surface cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            type="button"
+            onClick={() => setShowToast(false)}
+            className="text-on-surface-variant hover:text-on-surface ml-4 cursor-pointer"
           >
-            {isLoading ? (
-              <span className="material-symbols-outlined text-[18px] loading-spinner">sync</span>
-            ) : (
-              <>
-                <span className="material-symbols-outlined text-[18px]">lock_reset</span>
-                RESET PASSWORD
-              </>
-            )}
+            <span className="material-symbols-outlined text-sm">close</span>
           </button>
         </div>
-
-        <div className="text-center mt-2">
-          <Link
-            to="/login"
-            className="font-label-caps text-label-caps text-on-surface-variant hover:text-primary transition-colors uppercase tracking-widest inline-flex items-center justify-center gap-1"
-          >
-            <span className="material-symbols-outlined text-[14px]">arrow_back</span>
-            Abort Sequence
-          </Link>
-        </div>
-      </form>
-    </main>
+      )}
+    </div>
   );
 };

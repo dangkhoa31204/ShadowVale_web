@@ -1,15 +1,14 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { SlidersHeader } from './components/SlidersHeader';
+import { SlidersToolbar } from './components/SlidersToolbar';
+import { SlidersGrid } from './components/SlidersGrid';
 
 export const SlidersPage: React.FC = () => {
   return (
-    <div className="space-y-4">
-      <h1 className="font-display-lg text-2xl text-primary font-bold">Marketing Sliders List</h1>
-      <div className="bg-surface border border-border-subtle p-4 rounded">
-        <Link to="/marketing/sliders/1" className="font-data-mono text-sm text-on-surface hover:text-primary">
-          Homepage Main Hero Banner Slider #1
-        </Link>
-      </div>
+    <div className="flex-1 w-full max-w-container-max mx-auto p-margin-page flex flex-col gap-stack-lg">
+      <SlidersHeader />
+      <SlidersToolbar />
+      <SlidersGrid />
     </div>
   );
 };

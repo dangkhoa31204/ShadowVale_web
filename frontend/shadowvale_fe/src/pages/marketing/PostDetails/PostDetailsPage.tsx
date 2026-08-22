@@ -1,11 +1,16 @@
 import React from 'react';
-import { useParams } from 'react-router-dom';
+import { PostHeader } from './components/PostHeader';
+import { PostEditor } from './components/PostEditor';
 
 export const PostDetailsPage: React.FC = () => {
-  const { id } = useParams();
   return (
-    <div className="bg-surface border border-border-subtle p-6 rounded">
-      <h1 className="font-display-lg text-xl text-primary font-bold">Marketing Post Details #{id}</h1>
+    <div className="flex-1 w-full max-w-container-max mx-auto p-margin-page flex flex-col relative">
+      <PostHeader />
+      
+      {/* Two Column Layout (HTML only provided left column, so we use max-w to constrain it) */}
+      <div className="flex flex-col xl:flex-row gap-gutter flex-1 items-start">
+        <PostEditor />
+      </div>
     </div>
   );
 };

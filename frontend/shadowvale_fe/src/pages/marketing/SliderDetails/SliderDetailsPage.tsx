@@ -1,11 +1,18 @@
 import React from 'react';
-import { useParams } from 'react-router-dom';
+import { SliderHeader } from './components/SliderHeader';
+import { SliderForm } from './components/SliderForm';
+import { SliderPreview } from './components/SliderPreview';
 
 export const SliderDetailsPage: React.FC = () => {
-  const { id } = useParams();
   return (
-    <div className="bg-surface border border-border-subtle p-6 rounded">
-      <h1 className="font-display-lg text-xl text-primary font-bold">Slider Details #{id}</h1>
+    <div className="flex-1 overflow-y-auto p-gutter bg-background relative z-0">
+      <SliderHeader />
+      
+      {/* Bento Grid Layout */}
+      <div className="grid grid-cols-1 xl:grid-cols-12 gap-gutter items-start">
+        <SliderForm />
+        <SliderPreview />
+      </div>
     </div>
   );
 };

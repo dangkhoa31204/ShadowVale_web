@@ -1,16 +1,31 @@
 import React from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { UserDetailsHeader } from './components/UserDetailsHeader';
+import { UserProfileHeader } from './components/UserProfileHeader';
+import { UserAccountInfo } from './components/UserAccountInfo';
+import { UserRolePermissions } from './components/UserRolePermissions';
+import { UserAccountActions } from './components/UserAccountActions';
+import { UserAuditLog } from './components/UserAuditLog';
 
 export const UserDetailsPage: React.FC = () => {
-  const { id } = useParams();
-
   return (
-    <div className="bg-surface border border-border-subtle p-6 rounded space-y-4">
-      <Link to="/admin/users" className="font-data-mono text-xs text-primary flex items-center gap-1 hover:underline">
-        <span className="material-symbols-outlined text-sm">arrow_back</span> Back to Users List
-      </Link>
-      <h1 className="font-display-lg text-2xl text-tertiary font-bold">User Details ID: {id}</h1>
-      <p className="font-data-mono text-xs text-on-surface-variant">Administrative audit record and clearance controls for user {id}.</p>
+    <div className="flex-1 w-full max-w-container-max mx-auto p-gutter space-y-stack-lg">
+      <UserDetailsHeader />
+      <UserProfileHeader />
+      
+      {/* Grid Layout for Content */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-gutter">
+        {/* Left Column (7 cols) */}
+        <div className="lg:col-span-7 flex flex-col gap-gutter">
+          <UserAccountInfo />
+          <UserRolePermissions />
+        </div>
+        
+        {/* Right Column (5 cols) */}
+        <div className="lg:col-span-5 flex flex-col gap-gutter">
+          <UserAccountActions />
+          <UserAuditLog />
+        </div>
+      </div>
     </div>
   );
 };
