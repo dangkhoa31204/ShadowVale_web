@@ -1,15 +1,14 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { PostsHeader } from './components/PostsHeader';
+import { PostsToolbar } from './components/PostsToolbar';
+import { PostsTable } from './components/PostsTable';
 
 export const PostsPage: React.FC = () => {
   return (
-    <div className="space-y-4">
-      <h1 className="font-display-lg text-2xl text-primary font-bold">Marketing Posts List</h1>
-      <div className="bg-surface border border-border-subtle p-4 rounded">
-        <Link to="/marketing/posts/1" className="font-data-mono text-sm text-on-surface hover:text-primary">
-          Marketing Campaign Post #1
-        </Link>
-      </div>
+    <div className="flex-1 w-full max-w-container-max mx-auto flex flex-col gap-stack-lg p-margin-page">
+      <PostsHeader />
+      <PostsToolbar />
+      <PostsTable />
     </div>
   );
 };
