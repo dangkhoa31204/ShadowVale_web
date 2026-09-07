@@ -7,6 +7,8 @@ import { ResetPasswordPage } from '../pages/common/ResetPassword/ResetPasswordPa
 import { AuthorizationPage } from '../pages/common/Authorization/AuthorizationPage';
 import { ProfilePage } from '../pages/common/Profile/ProfilePage';
 import { ChangePasswordPage } from '../pages/common/ChangePassword/ChangePasswordPage';
+import { NotFoundPage } from '../pages/common/NotFound/NotFoundPage';
+import { ProtectedRoute } from './guards/ProtectedRoute';
 
 export const commonRoutes: RouteObject = {
   element: <CommonLayout />,
@@ -16,7 +18,14 @@ export const commonRoutes: RouteObject = {
     { path: '/register', element: <RegisterPage /> },
     { path: '/reset-password', element: <ResetPasswordPage /> },
     { path: '/authorization', element: <AuthorizationPage /> },
-    { path: '/profile', element: <ProfilePage /> },
-    { path: '/change-password', element: <ChangePasswordPage /> },
+    {
+      element: <ProtectedRoute />,
+      children: [
+        { path: '/profile', element: <ProfilePage /> },
+        { path: '/change-password', element: <ChangePasswordPage /> },
+      ],
+    },
+    { path: '*', element: <NotFoundPage /> },
   ],
 };
+
