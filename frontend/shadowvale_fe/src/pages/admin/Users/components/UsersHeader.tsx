@@ -1,6 +1,10 @@
 import React from 'react';
 
-export const UsersHeader: React.FC = () => {
+interface UsersHeaderProps {
+  onProvisionClick?: () => void;
+}
+
+export const UsersHeader: React.FC<UsersHeaderProps> = ({ onProvisionClick }) => {
   return (
     <div className="mb-stack-lg flex flex-col md:flex-row md:items-end justify-between gap-4">
       <div>
@@ -15,7 +19,10 @@ export const UsersHeader: React.FC = () => {
           <span className="material-symbols-outlined text-[16px]">download</span>
           EXPORT ROSTER
         </button>
-        <button className="h-9 px-4 flex items-center gap-2 rounded bg-primary text-on-primary font-label-caps text-label-caps hover:bg-primary-container hover:text-on-primary-container transition-colors font-bold">
+        <button 
+          onClick={onProvisionClick}
+          className="h-9 px-4 flex items-center gap-2 rounded bg-primary text-on-primary font-label-caps text-label-caps hover:bg-primary-container hover:text-on-primary-container transition-colors font-bold cursor-pointer"
+        >
           <span className="material-symbols-outlined text-[16px]">person_add</span>
           PROVISION NEW
         </button>

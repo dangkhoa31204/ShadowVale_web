@@ -4,10 +4,12 @@ import { UsersMetrics } from './components/UsersMetrics';
 import { UsersFilter } from './components/UsersFilter';
 import { UsersTable } from './components/UsersTable';
 import { UserDeleteModal } from './components/UserDeleteModal';
+import { UserCreateModal } from './components/UserCreateModal';
 
 export const UsersPage: React.FC = () => {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState<any>(null);
+  const [createModalOpen, setCreateModalOpen] = useState(false);
 
   const handleDeleteClick = (user: any) => {
     setUserToDelete(user);
@@ -16,7 +18,7 @@ export const UsersPage: React.FC = () => {
 
   return (
     <div className="w-full flex-1">
-      <UsersHeader />
+      <UsersHeader onProvisionClick={() => setCreateModalOpen(true)} />
       <UsersMetrics />
       <UsersFilter />
       <UsersTable onDeleteClick={handleDeleteClick} />
@@ -28,6 +30,11 @@ export const UsersPage: React.FC = () => {
           setUserToDelete(null);
         }} 
         user={userToDelete} 
+      />
+
+      <UserCreateModal
+        isOpen={createModalOpen}
+        onClose={() => setCreateModalOpen(false)}
       />
     </div>
   );
