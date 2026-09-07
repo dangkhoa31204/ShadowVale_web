@@ -1,10 +1,11 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../../../hooks/useAuth';
 
 export const useLogin = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
@@ -58,10 +59,17 @@ export const useLogin = () => {
     setIsLoading(true);
 
     try {
-      await login({ callsign: identifier.trim(), password, rememberMe });
+      const loggedUser = await login({ callsign: identifier.trim(), password, rememberMe });
       setTimeout(() => {
         setIsLoading(false);
-        navigate('/authorization');
+        const redirectParam = searchParams.get('redirect');
+        if (redirectParam) {
+          navigate(redirectParam);
+        } else if (loggedUser.role === 'admin') {
+          navigate('/admin/dashboard');
+        } else {
+          navigate('/authorization');
+        }
       }, 1200);
     } catch (err: any) {
       setIsLoading(false);
