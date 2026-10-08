@@ -94,7 +94,7 @@ export const EntityEditorPage: React.FC = () => {
 
   const selectedEntity = entities.find((e) => e.id === selectedEntityId) || entities[0];
 
-  const handleStatChange = (field: keyof GameEntity, value: any) => {
+  const handleStatChange = (field: keyof GameEntity, value: GameEntity[keyof GameEntity]) => {
     setEntities((prev) =>
       prev.map((e) => (e.id === selectedEntity.id ? { ...e, [field]: value } : e))
     );

@@ -1,8 +1,10 @@
+export type Role = 'designer' | 'analyst' | 'admin';
+
 export interface User {
   id: string;
   callsign: string;
   email: string;
-  role: 'operative' | 'admin' | 'commander';
+  role: Role;
   tier: string;
   clearanceLevel: string;
   avatarUrl?: string;

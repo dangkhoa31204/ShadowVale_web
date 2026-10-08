@@ -1,19 +1,14 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 
 interface UserDeleteModalProps {
   isOpen: boolean;
   onClose: () => void;
-  user: any;
+  user: { name: string } | null;
 }
 
 export const UserDeleteModal: React.FC<UserDeleteModalProps> = ({ isOpen, onClose, user }) => {
   const [confirmText, setConfirmText] = useState('');
   
-  // Reset input when modal opens/closes
-  useEffect(() => {
-    if (!isOpen) setConfirmText('');
-  }, [isOpen]);
-
   if (!isOpen || !user) return null;
 
   return (

@@ -5,7 +5,7 @@ import { Input } from '../../../../components/ui/Input';
 interface PostCreateModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onPostCreated?: (post: any) => void;
+  onPostCreated?: (post: Record<string, string | boolean | number>) => void;
 }
 
 export const PostCreateModal: React.FC<PostCreateModalProps> = ({

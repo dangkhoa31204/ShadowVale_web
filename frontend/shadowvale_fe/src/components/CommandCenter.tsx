@@ -6,6 +6,7 @@ interface CommandCenterProps {
 }
 
 export const CommandCenter: React.FC<CommandCenterProps> = ({ callsign, onLogout }) => {
+  const terminalId = React.useId();
   return (
     <div className="w-full max-w-[800px] relative z-10 p-4">
       {/* Top Header Card */}
@@ -28,7 +29,7 @@ export const CommandCenter: React.FC<CommandCenterProps> = ({ callsign, onLogout
                 WELCOME, <span className="text-primary">{callsign.toUpperCase()}</span>
               </h2>
               <p className="font-label-caps text-xs text-on-surface-variant">
-                OPERATIVE TERMINAL ID: SV-TRM-{Math.floor(1000 + Math.random() * 9000)}
+                OPERATIVE TERMINAL ID: SV-TRM-{terminalId}
               </p>
             </div>
           </div>

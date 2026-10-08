@@ -1,10 +1,10 @@
 import axios from 'axios';
 import { storageService } from '../storage/storageService';
-
-const baseURL = import.meta.env.VITE_API_BASE_URL || '/api';
+import { apiBaseURL } from '../../config/environment';
 
 export const axiosClient = axios.create({
-  baseURL,
+  baseURL: apiBaseURL,
+  timeout: 15000,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -27,6 +27,8 @@ axiosClient.interceptors.response.use(
     if (error.response?.status === 401) {
       storageService.clearAuth();
     }
+    const message = error.response?.data?.detail || error.response?.data?.message;
+    if (typeof message === 'string') error.message = message;
     return Promise.reject(error);
   }
 );

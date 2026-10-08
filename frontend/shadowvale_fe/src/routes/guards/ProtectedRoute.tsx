@@ -1,9 +1,10 @@
 import React from 'react';
 import { Navigate, useLocation, Outlet } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
+import type { Role } from '../../types/user';
 
 interface ProtectedRouteProps {
-  allowedRoles?: Array<'operative' | 'admin' | 'commander'>;
+  allowedRoles?: readonly Role[];
   children?: React.ReactNode;
 }
 
@@ -19,7 +20,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
       <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-4 text-on-surface">
         <div className="w-10 h-10 border-2 border-primary border-t-transparent rounded-full animate-spin" />
         <p className="font-data-mono text-xs text-primary tracking-widest uppercase animate-pulse">
-          VERIFYING TACTICAL CREDENTIALS...
+          Validating your session…
         </p>
       </div>
     );
@@ -30,7 +31,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   }
 
   if (allowedRoles && allowedRoles.length > 0 && !allowedRoles.includes(user.role)) {
-    return <Navigate to="/authorization" replace />;
+    return <Navigate to="/forbidden" replace />;
   }
 
   return children ? <>{children}</> : <Outlet />;

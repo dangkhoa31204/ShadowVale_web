@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 
 
 interface UsersTableProps {
-  onDeleteClick: (user: any) => void;
+  onDeleteClick: (user: { name: string }) => void;
 }
 
 export const UsersTable: React.FC<UsersTableProps> = ({ onDeleteClick }) => {

@@ -8,10 +8,10 @@ import { UserCreateModal } from './components/UserCreateModal';
 
 export const UsersPage: React.FC = () => {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-  const [userToDelete, setUserToDelete] = useState<any>(null);
+  const [userToDelete, setUserToDelete] = useState<{ name: string } | null>(null);
   const [createModalOpen, setCreateModalOpen] = useState(false);
 
-  const handleDeleteClick = (user: any) => {
+  const handleDeleteClick = (user: { name: string }) => {
     setUserToDelete(user);
     setDeleteModalOpen(true);
   };
@@ -24,6 +24,7 @@ export const UsersPage: React.FC = () => {
       <UsersTable onDeleteClick={handleDeleteClick} />
       
       <UserDeleteModal 
+        key={String(deleteModalOpen)}
         isOpen={deleteModalOpen} 
         onClose={() => {
           setDeleteModalOpen(false);
