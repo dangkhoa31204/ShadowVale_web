@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/tests/">
+    <Project Path="tests/ShadowVale.BLL.Tests/ShadowVale.BLL.Tests.csproj" />
+  </Folder>
+  <Project Path="ShadowVale.API/ShadowVale.API.csproj" Id="546ee8d7-bd31-4901-b809-cf47779f5e4f" />
+  <Project Path="ShadowVale.BLL/ShadowVale.BLL.csproj" Id="29cb8849-0584-4335-9724-077af9b1bd4f" />
+  <Project Path="ShadowVale.Contracts/ShadowVale.Contracts.csproj" Id="174c46fd-e912-49ed-81d8-90230e33fefd" />
+  <Project Path="ShadowVale.DAL/ShadowVale.DAL.csproj" Id="e56583d4-5e8e-4927-88f2-fad549a1315f" />
+</Solution>
