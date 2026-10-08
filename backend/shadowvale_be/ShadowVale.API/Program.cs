@@ -1,6 +1,7 @@
 using System.Text;
 using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
@@ -75,6 +76,15 @@ builder.Services.AddCors(options => options.AddPolicy(FrontendCorsPolicy, policy
     .AllowAnyHeader()
     .AllowAnyMethod()));
 
+// Behind Render's proxy: take the real client IP/scheme from X-Forwarded-*, otherwise the rate limiter
+// sees every user as the proxy's IP. The proxy's address isn't fixed, so trust any forwarder.
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+    options.KnownIPNetworks.Clear();
+    options.KnownProxies.Clear();
+});
+
 var app = builder.Build();
 
 // Create the first Admin if SeedAdmin is configured and none exists yet.
@@ -89,7 +99,10 @@ catch (Exception ex)
     app.Logger.LogError(ex, "Seeding the initial admin failed");
 }
 
-// First in the pipeline so it catches exceptions from everything after it
+// Runs first so every later middleware (rate limiter, HTTPS redirect, logging) sees the real client IP and scheme
+app.UseForwardedHeaders();
+
+// Catches exceptions from everything after it
 app.UseExceptionHandler();
 app.UseStatusCodePages(); // bare 401/403/404/429 from the framework also get a ProblemDetails body
 

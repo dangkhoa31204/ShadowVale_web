@@ -112,9 +112,29 @@ dotnet ef database update --project ShadowVale.DAL --startup-project ShadowVale.
 
 Bảng được tạo trong schema `shadowvale`, không dùng `public`, vì Supabase tự mở schema `public` qua REST API bằng anon key.
 
-## Deploy
+## Deploy (Render, Docker)
 
-Đặt biến môi trường `ConnectionStrings__Default` và `Jwt__Key`. Thêm domain frontend vào `Cors:AllowedOrigins`.
+API chạy trong container (`Dockerfile`, build context là thư mục `backend/shadowvale_be`), lắng nghe HTTP cổng 8080.
+Render lo HTTPS ở proxy phía trước.
 
-Khi chạy sau reverse proxy (Railway/Render), cần bật `ForwardedHeaders`. Nếu không, rate limit sẽ thấy mọi request
-đến từ cùng một IP của proxy và chặn chung tất cả người dùng.
+Tạo Web Service trên Render:
+
+- **Runtime:** Docker. **Root Directory:** `backend/shadowvale_be`. **Health Check Path:** `/health`.
+- **Environment** (dấu `__` thay cho `:` trong cấu hình):
+
+| Biến | Giá trị |
+|---|---|
+| `PORT` | `8080` |
+| `ConnectionStrings__Default` | Chuỗi **Session pooler** của Supabase, thêm `;Maximum Pool Size=10` ở cuối (gói Free giới hạn số kết nối) |
+| `Jwt__Key` | Chuỗi ngẫu nhiên dài ≥ 32 ký tự, **khác** key ở máy dev |
+| `Cors__AllowedOrigins__0` | Domain frontend, ví dụ `https://shadowvale.vercel.app` (thêm `__1`, `__2`... nếu nhiều domain) |
+| `SeedAdmin__Username`, `SeedAdmin__Email`, `SeedAdmin__Password` | Chỉ đặt ở lần deploy đầu để tạo Admin, tạo xong thì xóa |
+
+Migration **không** tự chạy khi API khởi động. Mỗi khi có migration mới, chạy `dotnet ef database update` từ máy
+(trỏ tới Supabase) **trước** khi deploy code mới.
+
+API đã bật `ForwardedHeaders` để rate limit thấy IP thật của người dùng thay vì IP của proxy Render.
+Ở môi trường Production, trang Scalar (`/scalar`) bị ẩn; `/health` vẫn mở để Render kiểm tra.
+
+Gói Free của Render tắt service khi không có request, request đầu tiên sau đó mất vài chục giây: game cần
+timeout hợp lý và dùng bundle đã lưu khi không kết nối được.
