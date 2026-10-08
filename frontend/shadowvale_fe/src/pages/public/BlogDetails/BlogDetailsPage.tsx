@@ -93,10 +93,10 @@ export const BlogDetailsPage: React.FC = () => {
             <div className="bg-surface p-4 rounded-lg border border-outline-variant my-4 font-data-mono text-data-mono text-on-surface-variant overflow-x-auto">
               <span className="text-tertiary"># Pathfinding heuristic weight calculation</span><br />
               <span className="text-info">def</span> calculate_node_weight(node, target_last_known):<br />
-                  base_cost = distance(node, target_last_known)<br />
-                  cover_bonus = node.get_cover_value() * <span className="text-warning">1.5</span><br />
-                  light_penalty = node.get_illumination() * <span className="text-error">2.0</span><br />
-                  <span className="text-info">return</span> base_cost - cover_bonus + light_penalty
+                  base_cost = distance(node, target_last_known)<br />
+                  cover_bonus = node.get_cover_value() * <span className="text-warning">1.5</span><br />
+                  light_penalty = node.get_illumination() * <span className="text-error">2.0</span><br />
+                  <span className="text-info">return</span> base_cost - cover_bonus + light_penalty
             </div>
 
             <h2 className="font-title-sm text-title-sm text-on-surface mt-8 pt-4 border-t border-border-subtle">Conclusion</h2>

@@ -21,9 +21,9 @@ export const useResetPassword = () => {
       await authService.resetPassword({ email: email.trim() });
       setIsLoading(false);
       setIsSuccess(true);
-    } catch (err: any) {
+    } catch (err: unknown) {
       setIsLoading(false);
-      setError(err.message || 'Failed to send reset link. Try again.');
+      setError(err instanceof Error ? err.message : 'Failed to send reset link. Try again.');
     }
   };
 

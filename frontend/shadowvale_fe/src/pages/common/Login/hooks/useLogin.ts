@@ -71,9 +71,9 @@ export const useLogin = () => {
           navigate('/authorization');
         }
       }, 1200);
-    } catch (err: any) {
+    } catch (err: unknown) {
       setIsLoading(false);
-      setAuthError(err.message || 'Authentication failed. Access denied.');
+      setAuthError(err instanceof Error ? err.message : 'Authentication failed. Access denied.');
     }
   };
 

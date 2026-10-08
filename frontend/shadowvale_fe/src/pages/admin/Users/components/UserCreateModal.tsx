@@ -4,7 +4,7 @@ import { Input } from '../../../../components/ui/Input';
 interface UserCreateModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onUserCreated?: (user: any) => void;
+  onUserCreated?: (user: Record<string, string>) => void;
 }
 
 export const UserCreateModal: React.FC<UserCreateModalProps> = ({

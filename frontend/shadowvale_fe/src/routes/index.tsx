@@ -1,15 +1,6 @@
-import { useRoutes } from 'react-router-dom';
+import { Suspense } from 'react';
+import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import { commonRoutes } from './commonRoutes';
-import { publicRoutes } from './publicRoutes';
-import { marketingRoutes } from './marketingRoutes';
 import { adminRoutes } from './adminRoutes';
-
-export const AppRoutes = () => {
-  const routes = useRoutes([
-    commonRoutes,
-    publicRoutes,
-    marketingRoutes,
-    adminRoutes,
-  ]);
-  return routes;
-};
+const router = createBrowserRouter([adminRoutes, commonRoutes]);
+export const AppRoutes = () => <Suspense fallback={<div className="portal-state" role="status">Loading workspace…</div>}><RouterProvider router={router} /></Suspense>;

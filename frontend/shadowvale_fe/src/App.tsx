@@ -1,18 +1,18 @@
-import { BrowserRouter } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { ToastProvider, ToastContainer } from './components/ui/Toast';
 import { AppRoutes } from './routes';
+import './internal.css';
+import './original-theme.css';
+import './features/gameDelivery/gameDelivery.css';
 
 export function App() {
   return (
-    <BrowserRouter>
-      <AuthProvider>
-        <ToastProvider>
-          <AppRoutes />
-          <ToastContainer />
-        </ToastProvider>
-      </AuthProvider>
-    </BrowserRouter>
+    <AuthProvider>
+      <ToastProvider>
+        <AppRoutes />
+        <ToastContainer />
+      </ToastProvider>
+    </AuthProvider>
   );
 }
 
