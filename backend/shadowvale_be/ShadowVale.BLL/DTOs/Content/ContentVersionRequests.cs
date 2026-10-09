@@ -31,6 +31,11 @@ public sealed record ValidateContentVersionRequest
     [Required, Range(0, long.MaxValue)] public long? Revision { get; init; }
 }
 
+public sealed record SubmitContentVersionRequest
+{
+    [Required, Range(0, long.MaxValue)] public long? Revision { get; init; }
+}
+
 public sealed record DeleteContentVersionRequest
 {
     [Required, Range(0, long.MaxValue)] public long? Revision { get; init; }

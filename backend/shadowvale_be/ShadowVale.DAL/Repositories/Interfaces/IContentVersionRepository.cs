@@ -8,4 +8,7 @@ public interface IContentVersionRepository : IGenericRepository<ContentVersion>
         int page, int pageSize, CancellationToken ct = default);
     Task<ContentVersion?> GetSnapshotAsync(Guid id, CancellationToken ct = default);
     void AddContent(IEnumerable<BaseEntity> entities);
+    Task PublishAsync(ContentVersion version, Guid actorId, string reason, DateTime publishedAt, CancellationToken ct = default);
+    Task<(List<ContentPublicationHistory> Items, int Total)> SearchPublicationsAsync(Guid? versionId,
+        int page, int pageSize, CancellationToken ct = default);
 }

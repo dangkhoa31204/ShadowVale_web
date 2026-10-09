@@ -298,6 +298,15 @@ public class ContentVersionServiceTests
         (await _service.SearchAsync(new ContentVersionQuery { Status = status })).Error.ShouldNotBeNull().Kind.ShouldBe(ServiceErrorKind.Validation);
 
     [Fact]
+    public void Canonical_numbers_ignore_database_decimal_scale()
+    {
+        ContentVersionService.CanonicalJson(JsonNode.Parse("{\"damage\":30.00,\"weight\":0.0200}"))
+            .ShouldBe(ContentVersionService.CanonicalJson(JsonNode.Parse("{\"weight\":0.02,\"damage\":30}")));
+        ContentVersionService.CanonicalJson(new JsonObject { ["damage"] = 30.00m })
+            .ShouldBe("{\"damage\":30}");
+    }
+
+    [Fact]
     public void Canonical_json_is_independent_of_object_key_order() =>
         ContentVersionService.CanonicalJson(JsonNode.Parse("{\"z\":1,\"a\":{\"y\":2,\"x\":3}}"))
             .ShouldBe(ContentVersionService.CanonicalJson(JsonNode.Parse("{\"a\":{\"x\":3,\"y\":2},\"z\":1}")));

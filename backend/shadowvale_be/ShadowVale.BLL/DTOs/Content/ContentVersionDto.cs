@@ -5,7 +5,9 @@ namespace ShadowVale.BLL.DTOs.Content;
 public sealed record ContentVersionDto(Guid Id, long VersionNo, string Label, string? Changelog,
     Guid? ParentVersionId, string Status, long Revision, string SchemaVersion, Guid AuthoredById,
     DateTime CreatedAt, DateTime UpdatedAt, DateTime? ValidatedAt, string? BundleChecksum,
-    IReadOnlyList<ContentValidationIssue> ValidationErrors);
+    IReadOnlyList<ContentValidationIssue> ValidationErrors,
+    DateTime? SubmittedAt = null, Guid? ReviewedById = null, DateTime? ReviewedAt = null,
+    string? ReviewNote = null, Guid? PublishedById = null, DateTime? PublishedAt = null);
 
 public sealed record ContentVersionDetailsDto(ContentVersionDto Version, JsonElement Bundle);
 public sealed record ContentValidationIssue(string Path, string Message);

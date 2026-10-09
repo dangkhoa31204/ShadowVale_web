@@ -2,6 +2,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using System.Globalization;
 using Microsoft.EntityFrameworkCore;
 using ShadowVale.BLL.DTOs.Common;
 using ShadowVale.BLL.DTOs.Content;
@@ -14,6 +15,118 @@ namespace ShadowVale.BLL.Services;
 public class ContentVersionService(IContentVersionRepository versions, IContentBundleValidator validator,
     TimeProvider time) : IContentVersionService
 {
+    public async Task<ServiceResult<ContentVersionDto>> SubmitAsync(Guid id, SubmitContentVersionRequest request,
+        CancellationToken ct = default)
+    {
+        var editable = await FindEditableAsync(id, request.Revision, ct);
+        if (editable.Error is not null) return editable.Error;
+        var version = editable.Data!;
+        // Recheck the validated snapshot rather than trusting a client-supplied status or bundle.
+        var error = await CheckReviewBundleAsync(version, ct);
+        if (error is not null) return error;
+        version.Status = ContentStatus.InReview;
+        version.SubmittedAt = time.GetUtcNow().UtcDateTime;
+        version.ReviewedById = null;
+        version.ReviewedAt = null;
+        version.ReviewNote = null;
+        version.Revision++;
+        var saveError = await SaveAsync(ct);
+        return saveError is not null ? saveError : ToDto(version);
+    }
+
+    public Task<ServiceResult<ContentVersionDto>> ApproveAsync(Guid id, ReviewContentVersionRequest request,
+        Guid actorId, CancellationToken ct = default) => ReviewAsync(id, request, actorId, true, ct);
+
+    public Task<ServiceResult<ContentVersionDto>> RejectAsync(Guid id, ReviewContentVersionRequest request,
+        Guid actorId, CancellationToken ct = default) => ReviewAsync(id, request, actorId, false, ct);
+
+    private async Task<ServiceResult<ContentVersionDto>> ReviewAsync(Guid id, ReviewContentVersionRequest request,
+        Guid actorId, bool approve, CancellationToken ct)
+    {
+        if (request.ReviewNote?.Length > 2000 || (!approve && string.IsNullOrWhiteSpace(request.ReviewNote)))
+            return Invalid("ReviewNote", "Reject requires a review note; notes must not exceed 2000 characters.");
+        var result = await FindInStatusAsync(id, request.Revision, ContentStatus.InReview, ct);
+        if (result.Error is not null) return result.Error;
+        var version = result.Data!;
+        if (approve)
+        {
+            var error = await CheckReviewBundleAsync(version, ct);
+            if (error is not null) return error;
+        }
+        version.Status = approve ? ContentStatus.Approved : ContentStatus.Rejected;
+        version.ReviewedById = actorId;
+        version.ReviewedAt = time.GetUtcNow().UtcDateTime;
+        version.ReviewNote = request.ReviewNote?.Trim();
+        version.Revision++;
+        var saveError = await SaveAsync(ct);
+        return saveError is not null ? saveError : ToDto(version);
+    }
+
+    public async Task<ServiceResult<ContentVersionDto>> PublishAsync(Guid id, PublishContentVersionRequest request,
+        Guid actorId, CancellationToken ct = default)
+    {
+        if (string.IsNullOrWhiteSpace(request.Reason) || request.Reason.Length > 500)
+            return Invalid("Reason", "A publication reason of 1-500 characters is required.");
+        var result = await FindInStatusAsync(id, request.Revision, ContentStatus.Approved, ct);
+        if (result.Error is not null) return result.Error;
+        var version = result.Data!;
+        var error = await CheckReviewBundleAsync(version, ct);
+        if (error is not null) return error;
+        if (version.ReviewedById is null || version.ReviewedAt is null)
+            return new ServiceError(ServiceErrorKind.Conflict, "CONTENT_VERSION_NOT_REVIEWED", "An Admin approval is required before publishing.");
+        try
+        {
+            await versions.PublishAsync(version, actorId, request.Reason.Trim(), time.GetUtcNow().UtcDateTime, ct);
+        }
+        catch (DbUpdateConcurrencyException) { return Changed(); }
+        return ToDto(version);
+    }
+
+    public async Task<ServiceResult<PagedResult<ContentPublicationDto>>> SearchPublicationsAsync(
+        ContentPublicationQuery query, CancellationToken ct = default)
+    {
+        if (query.Page is < 1 or > 1000000 || query.PageSize is < 1 or > 100)
+            return Invalid("Page", "Invalid pagination.");
+        var (items, total) = await versions.SearchPublicationsAsync(query.ContentVersionId, query.Page, query.PageSize, ct);
+        return new PagedResult<ContentPublicationDto>(items.Select(h => new ContentPublicationDto(h.Id,
+            h.ContentVersionId, h.PreviousVersionId, h.Action.ToString(), h.ActorId, h.Reason, h.CreatedAt)).ToArray(),
+            query.Page, query.PageSize, total);
+    }
+
+    private async Task<ServiceResult<ContentVersion>> FindInStatusAsync(Guid id, long? revision,
+        ContentStatus expected, CancellationToken ct)
+    {
+        if (revision is null or < 0) return Invalid("Revision", "Revision is required and cannot be negative.");
+        var version = await versions.GetByIdAsync(id, ct);
+        if (version is null) return Missing(id);
+        if (version.Revision != revision || version.Revision == long.MaxValue) return Changed();
+        if (version.Status != expected)
+            return new ServiceError(ServiceErrorKind.Conflict, "CONTENT_VERSION_INVALID_STATUS", $"This action requires status {expected}.");
+        return version;
+    }
+
+    private async Task<ServiceError?> CheckReviewBundleAsync(ContentVersion version, CancellationToken ct)
+    {
+        var snapshot = await versions.GetSnapshotAsync(version.Id, ct);
+        if (snapshot is null) return Missing(version.Id);
+        if (snapshot.Revision != version.Revision || snapshot.Status != version.Status) return Changed();
+        if (version.ValidatedAt is null || version.Bundle is null || version.BundleChecksum is null)
+            return Invalid("Bundle", "A validated bundle and checksum are required.");
+        JsonObject? bundle;
+        try { bundle = JsonNode.Parse(version.Bundle) as JsonObject; }
+        catch (JsonException) { return Invalid("Bundle", "The stored bundle is not valid JSON."); }
+        if (bundle is null) return Invalid("Bundle", "The stored bundle must be a JSON object.");
+        // jsonb changes formatting/key order when read: hash the canonical JSON, as validation does.
+        var canonical = CanonicalJson(bundle);
+        var checksum = Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(canonical)));
+        if (checksum != version.BundleChecksum || canonical != CanonicalJson(ContentBundleBuilder.Build(snapshot)))
+            return Invalid("Bundle", "The bundle no longer matches the validated content. Validate and submit it again.");
+        var errors = validator.Validate(bundle).Concat(ReferenceErrors(snapshot)).Distinct().ToArray();
+        return errors.Length == 0 ? null : new ServiceError(ServiceErrorKind.Validation, "CONTENT_BUNDLE_INVALID",
+            "The content bundle failed validation.", errors.GroupBy(e => e.Path)
+                .ToDictionary(g => g.Key, g => g.Select(e => e.Message).ToArray()));
+    }
+
     public async Task<ServiceResult<PagedResult<ContentVersionDto>>> SearchAsync(ContentVersionQuery query, CancellationToken ct = default)
     {
         ContentStatus? status = null;
@@ -180,7 +293,8 @@ public class ContentVersionService(IContentVersionRepository versions, IContentB
     private static ContentVersionDto ToDto(ContentVersion v) => new(v.Id, v.VersionNo, v.Label, v.Changelog,
         v.ParentVersionId, v.Status.ToString(), v.Revision, v.SchemaVersion, v.AuthoredById,
         v.CreatedAt, v.UpdatedAt, v.ValidatedAt, v.BundleChecksum,
-        v.ValidationErrors == null ? [] : JsonSerializer.Deserialize<ContentValidationIssue[]>(v.ValidationErrors, JsonSerializerOptions.Web) ?? []);
+        v.ValidationErrors == null ? [] : JsonSerializer.Deserialize<ContentValidationIssue[]>(v.ValidationErrors, JsonSerializerOptions.Web) ?? [],
+        v.SubmittedAt, v.ReviewedById, v.ReviewedAt, v.ReviewNote, v.PublishedById, v.PublishedAt);
 
     // Copy scalar content, generate new identities and remap every FK into the new snapshot.
     // Navigation properties are reconstructed by EF relationship fixup when the rows are added.
@@ -219,6 +333,8 @@ public class ContentVersionService(IContentVersionRepository versions, IContentB
             .Select(p => JsonSerializer.Serialize(p.Key) + ":" + CanonicalJson(p.Value))) + "}",
         JsonArray array => "[" + string.Join(",", array.Select(CanonicalJson)) + "]",
         null => "null",
+        JsonValue value when JsonSerializer.SerializeToElement(value) is { ValueKind: JsonValueKind.Number } number
+            && number.TryGetDecimal(out var numeric) => numeric.ToString("G29", CultureInfo.InvariantCulture),
         _ => node.ToJsonString()
     };
 }

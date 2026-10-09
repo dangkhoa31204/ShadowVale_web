@@ -30,7 +30,9 @@ public class ContentVersionRepository(ShadowValeDbContext context)
                 ParentVersionId = v.ParentVersionId, Status = v.Status, Revision = v.Revision,
                 SchemaVersion = v.SchemaVersion, AuthoredById = v.AuthoredById,
                 CreatedAt = v.CreatedAt, UpdatedAt = v.UpdatedAt, ValidatedAt = v.ValidatedAt,
-                BundleChecksum = v.BundleChecksum, ValidationErrors = v.ValidationErrors
+                BundleChecksum = v.BundleChecksum, ValidationErrors = v.ValidationErrors,
+                SubmittedAt = v.SubmittedAt, ReviewedById = v.ReviewedById, ReviewedAt = v.ReviewedAt,
+                ReviewNote = v.ReviewNote, PublishedById = v.PublishedById, PublishedAt = v.PublishedAt
             }).ToListAsync(ct);
         return (items, total);
     }
@@ -55,4 +57,45 @@ public class ContentVersionRepository(ShadowValeDbContext context)
     }
 
     public void AddContent(IEnumerable<BaseEntity> entities) => Context.AddRange(entities);
+
+    public async Task PublishAsync(ContentVersion version, Guid actorId, string reason, DateTime publishedAt,
+        CancellationToken ct = default)
+    {
+        await using var transaction = await Context.Database.BeginTransactionAsync(ct);
+        // Serialize publication operations, including the first publication with no existing row to lock.
+        await Context.Database.ExecuteSqlRawAsync("SELECT pg_advisory_xact_lock(734021986)", ct);
+        var previous = await DbSet.SingleOrDefaultAsync(v => v.Status == ContentStatus.Published, ct);
+        if (previous is not null)
+        {
+            if (previous.Revision == long.MaxValue)
+                throw new DbUpdateConcurrencyException("The published version revision cannot be incremented.");
+            previous.Status = ContentStatus.Archived;
+            previous.ArchivedAt = publishedAt;
+            previous.Revision = checked(previous.Revision + 1);
+            // Release the partial unique index before promotion, within the same transaction.
+            await Context.SaveChangesAsync(ct);
+        }
+        version.Status = ContentStatus.Published;
+        version.PublishedById = actorId;
+        version.PublishedAt = publishedAt;
+        version.Revision = checked(version.Revision + 1);
+        Context.ContentPublicationHistory.Add(new ContentPublicationHistory
+        {
+            ContentVersionId = version.Id, PreviousVersionId = previous?.Id,
+            Action = PublishAction.Publish, ActorId = actorId, Reason = reason
+        });
+        await Context.SaveChangesAsync(ct);
+        await transaction.CommitAsync(ct);
+    }
+
+    public async Task<(List<ContentPublicationHistory> Items, int Total)> SearchPublicationsAsync(
+        Guid? versionId, int page, int pageSize, CancellationToken ct = default)
+    {
+        var query = Context.ContentPublicationHistory.AsNoTracking();
+        if (versionId.HasValue) query = query.Where(h => h.ContentVersionId == versionId.Value);
+        var total = await query.CountAsync(ct);
+        var items = await query.OrderByDescending(h => h.CreatedAt).ThenByDescending(h => h.Id)
+            .Skip((page - 1) * pageSize).Take(pageSize).ToListAsync(ct);
+        return (items, total);
+    }
 }
