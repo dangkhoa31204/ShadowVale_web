@@ -17,4 +17,8 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <EmbeddedResource Include="Schemas\content-bundle-1.0.schema.json" />
+  </ItemGroup>
+
 </Project>

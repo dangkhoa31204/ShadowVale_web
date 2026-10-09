@@ -1,4 +1,6 @@
 using Microsoft.IdentityModel.JsonWebTokens;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 using ShadowVale.BLL.Services;
 using ShadowVale.DAL.Entities;
 using Shouldly;
@@ -38,5 +40,38 @@ public class TokenServiceTests
     public void CreateRefreshToken_IsDifferentEveryTime()
     {
         _sut.CreateRefreshToken().Token.ShouldNotBe(_sut.CreateRefreshToken().Token);
+    }
+
+    [Theory]
+    [InlineData("valid", true)]
+    [InlineData("wrong-key", false)]
+    [InlineData("wrong-issuer", false)]
+    [InlineData("wrong-audience", false)]
+    [InlineData("expired", false)]
+    [InlineData("tampered", false)]
+    public async Task Access_token_signature_identity_and_lifetime_are_validated(string scenario, bool expected)
+    {
+        var options = TestHelpers.JwtOptions();
+        var (token, _) = _sut.CreateAccessToken(TestHelpers.User());
+        if (scenario == "tampered")
+        {
+            var parts = token.Split('.');
+            parts[1] = Convert.ToBase64String(Encoding.UTF8.GetBytes("{\"sub\":\"changed\"}"))
+                .TrimEnd('=').Replace('+', '-').Replace('/', '_');
+            token = string.Join('.', parts);
+        }
+        var checkTime = scenario == "expired" ? TestHelpers.Now.AddMinutes(16) : TestHelpers.Now;
+        var result = await new JsonWebTokenHandler().ValidateTokenAsync(token, new TokenValidationParameters
+        {
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(
+                scenario == "wrong-key" ? "another-signing-key-at-least-32-chars" : options.Key)),
+            ValidateIssuer = true, ValidIssuer = scenario == "wrong-issuer" ? "other" : options.Issuer,
+            ValidateAudience = true, ValidAudience = scenario == "wrong-audience" ? "other" : options.Audience,
+            ValidateLifetime = true, RequireExpirationTime = true,
+            LifetimeValidator = (notBefore, expires, _, _) =>
+                notBefore <= checkTime && expires > checkTime
+        });
+        result.IsValid.ShouldBe(expected);
     }
 }

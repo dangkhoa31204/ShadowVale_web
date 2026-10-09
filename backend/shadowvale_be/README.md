@@ -58,6 +58,39 @@ tài khoản. Game không đăng nhập (telemetry ẩn danh).
 
 Admin không tự hạ role hay tự khóa tài khoản của chính mình được (tránh trường hợp không còn ai quản lý user).
 
+## Content versions (Admin / Designer)
+
+API này dùng JWT, cho phép role `Admin` và `Designer`:
+
+- `GET /api/content-versions?search=&status=Draft&page=1&pageSize=20`: danh sách metadata, không tải toàn bộ bundle.
+- `GET /api/content-versions/{id}`: `{ version, bundle }`, bundle dựng từ các bảng của đúng phiên bản.
+- `POST /api/content-versions`: `{ label, changelog?, schemaVersion: "1.0", parentVersionId? }`.
+  Bỏ `parentVersionId` để tạo bản nháp trống; truyền ID để sao chép nội dung của một phiên bản.
+  Backend cấp version number, tạo ID mới và remap các quan hệ; không sao chép trạng thái duyệt/phát hành.
+- `PUT /api/content-versions/{id}`: `{ label, changelog?, schemaVersion: "1.0", revision }`.
+  Hiện cập nhật metadata; CRUD từng bảng nội dung là bước tiếp theo.
+- `POST /api/content-versions/{id}/validate`: `{ revision }`.
+- `GET /api/content-versions/{id}/compare?targetId={guid}`: thay đổi từ phiên bản nguồn sang phiên bản đích,
+  kèm revision của cả hai. So sánh theo code/khóa ghép; enemy placements so sánh nội dung, bỏ ID được tạo lại khi clone.
+
+Chỉ `Draft` được cập nhật/validate. `revision` bắt buộc và phải khớp phiên bản hiện tại;
+request thiếu revision trả 400, phiên bản đã thay đổi hoặc không còn Draft trả 409.
+Cập nhật metadata tăng revision và xóa kết quả validation/checksum cũ.
+Validation cũng tăng revision để tránh ghi đè kết quả của request khác; client phải dùng revision trả về cho lần ghi tiếp theo.
+
+Bundle v1.0 dùng snake_case và tham chiếu bằng code, dựa trên contract content editor hiện có ở frontend.
+Schema nằm trong `ShadowVale.BLL/Schemas/content-bundle-1.0.schema.json`, được nhúng vào assembly.
+Backend kiểm tra JSON Schema, danh tính trùng, loại item/tham chiếu cùng phiên bản,
+đúng một Safe Camp, khoảng loot, subtype weapon/consumable, melee, skill level và vòng lặp quest.
+Draft trống tạo được nhưng không validate thành công cho tới khi có Safe Camp và dữ liệu hợp lệ.
+JSONB được xuất thành object/array, không thành chuỗi JSON.
+
+Validation trả 200 với `{ id, revision, isValid, validatedAt, bundleChecksum, errors: [{ path, message }] }`.
+Bundle hợp lệ được lưu cùng SHA-256 của chính chuỗi JSON có thứ tự key ổn định;
+bundle không hợp lệ xóa bundle/checksum cũ và lưu lỗi. Đây chưa phải thao tác publish.
+Không có endpoint sửa status, duyệt, publish hay rollback trong giai đoạn này.
+Mọi API chỉnh sửa nội dung bổ sung sau này phải cập nhật revision của content version trong cùng transaction.
+
 ## Test
 
 xUnit + NSubstitute (mock) + Shouldly (assert): `dotnet test`
@@ -103,6 +136,16 @@ dotnet run --project ShadowVale.API
 
 ## Migration
 
+Model DAL hiện ánh xạ toàn bộ 23 bảng nghiệp vụ trong schema `shadowvale`, gồm auth,
+content/versioning, solver và telemetry. Model, enum, configuration và migration
+`20261008175804_ContentAndTelemetry` được khôi phục từ commit `ab33ea5`, là bản migration
+đã được ghi nhận trên database dùng chung. Không cần chạy lại migration này trên database đó.
+
+Test `Data/SchemaMappingTests.cs` đối chiếu cột, kiểu dữ liệu, nullable, identity,
+khóa ngoại, check constraint và index với metadata database chụp ngày 09/10/2026
+trong `Data/database-schema.json`; test không kết nối database và fixture không chứa
+dữ liệu nghiệp vụ hay mật khẩu. Model cũng được kiểm tra khớp migration snapshot.
+
 `dotnet-ef` là local tool (khai báo trong `dotnet-tools.json`), cài một lần sau khi clone: `dotnet tool restore`
 
 ```bash
@@ -118,3 +161,9 @@ Bảng được tạo trong schema `shadowvale`, không dùng `public`, vì Supa
 
 Khi chạy sau reverse proxy (Railway/Render), cần bật `ForwardedHeaders`. Nếu không, rate limit sẽ thấy mọi request
 đến từ cùng một IP của proxy và chặn chung tất cả người dùng.
+
+ContentVersion soft delete: `DELETE /api/content-versions/{id}` with JSON body `{ "revision": 2 }` (Admin/Designer). Only Draft versions can be deleted; success returns 204. This archives the version (Status=Archived, ArchivedAt=UTC, Revision incremented), preserving all content and bundle data. Default searches exclude Archived; use `?status=Archived` to list them. Detail/compare/clone remain available for archived snapshots. Missing versions return 404; stale revisions, concurrent changes, and non-Draft versions return 409; missing/negative revision returns 400. No schema migration is required.
+
+Authentication error responses retain ProblemDetails fields and now include `code`, `message`, and `traceId`. Login returns 401/INVALID_CREDENTIALS for unknown identifiers or wrong passwords, 403/ACCOUNT_DEACTIVATED after correct credentials for disabled accounts, 400/VALIDATION_FAILED with `errors` for invalid input, and 429/AUTH_RATE_LIMITED when throttled. Frontend can display `message` and handle `code`; internal server/database exception text is never sent to clients.
+
+ContentVersion expected business errors use `ServiceResult<T>` rather than throwing exceptions. Controllers return ProblemDetails JSON directly with `code`, `message`, `traceId`, and optional field `errors`: 400/VALIDATION_FAILED, 404/CONTENT_VERSION_NOT_FOUND, 409/CONTENT_VERSION_CHANGED or CONTENT_VERSION_NOT_DRAFT. Successful response bodies and validation reports are unchanged. EF concurrency failures are caught and converted to conflict results; unexpected infrastructure exceptions still use the global exception handler.

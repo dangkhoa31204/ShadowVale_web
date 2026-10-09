@@ -1,0 +1,34 @@
+namespace ShadowVale.DAL.Entities;
+
+// One in-game squad re-plan solved as a QUBO problem: feeds the classical vs quantum-inspired comparison
+public class CoordinationResult : BaseEntity
+{
+    public Guid SessionId { get; set; }
+    public GameSession Session { get; set; } = null!;
+
+    public Guid SolverConfigurationId { get; set; }
+    public SolverConfiguration SolverConfiguration { get; set; } = null!;
+
+    public string? MapCode { get; set; }
+    public string? SquadTag { get; set; }
+    public CoordinationTask TaskType { get; set; }
+    public int NumAgents { get; set; }
+    public int NumNodes { get; set; }
+    public int? NumQuboVars { get; set; }
+
+    public double? ObjectiveValue { get; set; }
+    public double SolveLatencyMs { get; set; }
+    public bool WithinBudget { get; set; }
+
+    // Cached / greedy plan used because the solver missed its budget
+    public bool UsedFallback { get; set; }
+
+    // Agent -> route / cover point / flank angle (jsonb)
+    public string? Assignment { get; set; }
+    public double? CoordinationScore { get; set; }
+
+    // Capture rate and escape time are computed from these
+    public EncounterOutcome? EncounterOutcome { get; set; }
+    public double? EscapeTimeMs { get; set; }
+    public DateTime TriggeredAt { get; set; }
+}

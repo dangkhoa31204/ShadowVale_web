@@ -12,6 +12,31 @@ public class ShadowValeDbContext(DbContextOptions<ShadowValeDbContext> options) 
     public DbSet<User> Users => Set<User>();
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
 
+    // Content & balancing platform (one snapshot per ContentVersion)
+    public DbSet<ContentVersion> ContentVersions => Set<ContentVersion>();
+    public DbSet<ContentPublicationHistory> ContentPublicationHistory => Set<ContentPublicationHistory>();
+    public DbSet<Item> Items => Set<Item>();
+    public DbSet<Weapon> Weapons => Set<Weapon>();
+    public DbSet<Consumable> Consumables => Set<Consumable>();
+    public DbSet<Skill> Skills => Set<Skill>();
+    public DbSet<LootTable> LootTables => Set<LootTable>();
+    public DbSet<LootTableEntry> LootTableEntries => Set<LootTableEntry>();
+    public DbSet<EnemyType> EnemyTypes => Set<EnemyType>();
+    public DbSet<Map> Maps => Set<Map>();
+    public DbSet<MapLootTable> MapLootTables => Set<MapLootTable>();
+    public DbSet<EnemyPlacement> EnemyPlacements => Set<EnemyPlacement>();
+    public DbSet<CraftingRecipe> CraftingRecipes => Set<CraftingRecipe>();
+    public DbSet<CraftingRecipeIngredient> CraftingRecipeIngredients => Set<CraftingRecipeIngredient>();
+    public DbSet<Quest> Quests => Set<Quest>();
+    public DbSet<QuestReward> QuestRewards => Set<QuestReward>();
+
+    // Telemetry & solver comparison
+    public DbSet<Player> Players => Set<Player>();
+    public DbSet<SolverConfiguration> SolverConfigurations => Set<SolverConfiguration>();
+    public DbSet<GameSession> GameSessions => Set<GameSession>();
+    public DbSet<TelemetryEvent> TelemetryEvents => Set<TelemetryEvent>();
+    public DbSet<CoordinationResult> CoordinationResults => Set<CoordinationResult>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.HasDefaultSchema(Schema);

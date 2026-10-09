@@ -24,4 +24,9 @@
     <ProjectReference Include="..\..\ShadowVale.BLL\ShadowVale.BLL.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="Data\database-schema.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Update="Content\demo-bundle.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
 </Project>

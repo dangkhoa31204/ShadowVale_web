@@ -29,8 +29,43 @@ builder.Services.AddOptions<JwtOptions>()
 builder.Services.AddOptions<SeedAdminOptions>()
     .BindConfiguration(SeedAdminOptions.SectionName);
 
-builder.Services.AddControllers();
-builder.Services.AddProblemDetails();
+builder.Services.AddControllers().ConfigureApiBehaviorOptions(options =>
+{
+    options.InvalidModelStateResponseFactory = context =>
+    {
+        var problem = new Microsoft.AspNetCore.Mvc.ValidationProblemDetails(context.ModelState)
+        {
+            Status = 400, Title = "Validation failed", Detail = "Please check the submitted fields.",
+            Instance = context.HttpContext.Request.Path
+        };
+        problem.Extensions["code"] = "VALIDATION_FAILED";
+        problem.Extensions["message"] = problem.Detail;
+        problem.Extensions["traceId"] = context.HttpContext.TraceIdentifier;
+        var response = new Microsoft.AspNetCore.Mvc.BadRequestObjectResult(problem);
+        response.ContentTypes.Add("application/problem+json");
+        return response;
+    };
+});
+builder.Services.AddProblemDetails(options => options.CustomizeProblemDetails = context =>
+{
+    var problem = context.ProblemDetails;
+    var (code, message) = problem.Status switch
+    {
+        400 => ("VALIDATION_FAILED", "Please check the submitted fields."),
+        401 => ("UNAUTHORIZED", "Authentication is required or the access token is invalid or expired."),
+        403 => ("FORBIDDEN", "You do not have permission to perform this action."),
+        404 => ("NOT_FOUND", "The requested resource was not found."),
+        409 => ("CONFLICT", "The request conflicts with the current resource state."),
+        429 => ("AUTH_RATE_LIMITED", "Too many requests. Please wait before trying again."),
+        _ => ("INTERNAL_ERROR", "An unexpected error occurred. Please try again later.")
+    };
+    problem.Extensions.TryAdd("code", code);
+    // Never send internal exception messages (including database errors) to clients.
+    problem.Extensions["message"] = problem.Status >= 500 ? message : problem.Detail ?? message;
+    if (problem.Status >= 500) problem.Detail = message;
+    else problem.Detail ??= message;
+    problem.Extensions["traceId"] = context.HttpContext.TraceIdentifier;
+});
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi(options => options.AddDocumentTransformer<BearerSecuritySchemeTransformer>());

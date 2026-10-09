@@ -17,27 +17,26 @@ public class AuthService(
     TimeProvider time) : IAuthService
 {
     // Same message for unknown user and wrong password, so the API does not reveal which usernames exist
-    private const string InvalidCredentials = "Invalid username or password.";
     private const string InvalidRefreshToken = "Invalid or expired refresh token.";
 
-    public async Task<AuthResponse> LoginAsync(LoginRequest request, CancellationToken ct = default)
+    public async Task<LoginResult> LoginAsync(LoginRequest request, CancellationToken ct = default)
     {
-        var user = await users.GetByUsernameOrEmailAsync(UserMappings.NormalizeIdentifier(request.UsernameOrEmail), ct)
-            ?? throw new UnauthorizedException(InvalidCredentials);
+        var user = await users.GetByUsernameOrEmailAsync(UserMappings.NormalizeIdentifier(request.UsernameOrEmail), ct);
+        if (user is null) return new(null, LoginFailure.InvalidCredentials);
 
         var result = passwordHasher.VerifyHashedPassword(user, user.PasswordHash, request.Password);
         if (result == PasswordVerificationResult.Failed)
-            throw new UnauthorizedException(InvalidCredentials);
+            return new(null, LoginFailure.InvalidCredentials);
 
         if (!user.IsActive)
-            throw new ForbiddenException("This account has been deactivated.");
+            return new(null, LoginFailure.AccountDeactivated);
 
         // Hash was made with older hasher settings: upgrade it while we have the plain password
         if (result == PasswordVerificationResult.SuccessRehashNeeded)
             user.PasswordHash = passwordHasher.HashPassword(user, request.Password);
 
         user.LastLoginAt = Now;
-        return await IssueTokensAsync(user, ct);
+        return new(await IssueTokensAsync(user, ct));
     }
 
     public async Task<AuthResponse> RefreshAsync(string refreshToken, CancellationToken ct = default)

@@ -22,6 +22,8 @@ public static class DependencyInjection
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<IUserService, UserService>();
         services.AddScoped<IAdminSeeder, AdminSeeder>();
+        services.AddScoped<IContentVersionService, ContentVersionService>();
+        services.AddSingleton<IContentBundleValidator, ContentBundleValidator>();
 
         return services;
     }
