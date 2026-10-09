@@ -29,6 +29,9 @@ public sealed class GlobalExceptionHandler(
             ForbiddenException => (StatusCodes.Status403Forbidden, "Forbidden"),
             NotFoundException => (StatusCodes.Status404NotFound, "Not found"),
             ConflictException => (StatusCodes.Status409Conflict, "Conflict"),
+            // Malformed request or body over the size limit (413): the client must not resend it as is
+            BadHttpRequestException badRequest => (badRequest.StatusCode,
+                badRequest.StatusCode == StatusCodes.Status413PayloadTooLarge ? "Payload too large" : "Bad request"),
             _ => (StatusCodes.Status500InternalServerError, "Internal server error")
         };
 
@@ -43,7 +46,7 @@ public sealed class GlobalExceptionHandler(
             Status = status,
             Title = title,
             // Business messages are safe to show; internal errors only reveal details in Development
-            Detail = exception is AppException || environment.IsDevelopment() ? exception.Message : null,
+            Detail = exception is AppException or BadHttpRequestException || environment.IsDevelopment() ? exception.Message : null,
             Instance = httpContext.Request.Path
         };
 

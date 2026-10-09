@@ -1,6 +1,7 @@
 <Solution>
   <Folder Name="/tests/">
     <Project Path="tests/ShadowVale.BLL.Tests/ShadowVale.BLL.Tests.csproj" />
+    <Project Path="tests/ShadowVale.IntegrationTests/ShadowVale.IntegrationTests.csproj" />
   </Folder>
   <Project Path="ShadowVale.API/ShadowVale.API.csproj" Id="546ee8d7-bd31-4901-b809-cf47779f5e4f" />
   <Project Path="ShadowVale.BLL/ShadowVale.BLL.csproj" Id="29cb8849-0584-4335-9724-077af9b1bd4f" />

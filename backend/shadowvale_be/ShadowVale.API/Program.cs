@@ -1,14 +1,18 @@
 using System.Text;
 using System.Threading.RateLimiting;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.HttpOverrides;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
 using Scalar.AspNetCore;
+using ShadowVale.API.Authentication;
 using ShadowVale.API.Controllers;
 using ShadowVale.API.Middlewares;
 using ShadowVale.API.OpenApi;
+using ShadowVale.API.Options;
 using ShadowVale.BLL;
 using ShadowVale.BLL.Interfaces;
 using ShadowVale.BLL.Options;
@@ -29,14 +33,30 @@ builder.Services.AddOptions<JwtOptions>()
     .ValidateOnStart();
 builder.Services.AddOptions<SeedAdminOptions>()
     .BindConfiguration(SeedAdminOptions.SectionName);
+builder.Services.AddOptions<GameOptions>()
+    .BindConfiguration(GameOptions.SectionName)
+    .Validate(o => o.IsValid(), $"Game:ApiKeys needs at least one key, each at least {GameOptions.MinKeyLength} characters (see backend README).")
+    .ValidateOnStart();
+builder.Services.AddOptions<RateLimitOptions>()
+    .BindConfiguration(RateLimitOptions.SectionName)
+    .ValidateDataAnnotations()
+    .ValidateOnStart();
 
 builder.Services.AddControllers();
 builder.Services.AddProblemDetails();
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddOpenApi(options => options.AddDocumentTransformer<BearerSecuritySchemeTransformer>());
+builder.Services.AddOpenApi(options =>
+{
+    options.AddDocumentTransformer<BearerSecuritySchemeTransformer>();
+    options.AddDocumentTransformer<GameKeySecurityTransformer>();
+    options.AddOperationTransformer<GameKeySecurityTransformer>();
+});
 
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer();
+// JWT is the default scheme (web users); the game key scheme is only used by the Game policy
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer()
+    .AddScheme<AuthenticationSchemeOptions, GameKeyAuthenticationHandler>(GameKeyAuthenticationHandler.SchemeName, null);
 builder.Services.AddOptions<JwtBearerOptions>(JwtBearerDefaults.AuthenticationScheme)
     .Configure<IOptions<JwtOptions>>((bearer, jwtOptions) =>
     {
@@ -58,16 +78,15 @@ builder.Services.AddOptions<JwtBearerOptions>(JwtBearerDefaults.AuthenticationSc
             RoleClaimType = TokenService.RoleClaim
         };
     });
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorization(options => options.AddPolicy(AuthPolicies.Game, policy => policy
+    .AddAuthenticationSchemes(GameKeyAuthenticationHandler.SchemeName)
+    .RequireAuthenticatedUser()));
 
-// Brute-force protection on login/refresh: 10 requests per minute per client IP
+// Fixed window per client IP; limits come from RateLimits (auth: brute-force protection on login/refresh)
 builder.Services.AddRateLimiter(options =>
 {
     options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
-    options.AddPolicy(AuthController.RateLimitPolicy, httpContext =>
-        RateLimitPartition.GetFixedWindowLimiter(
-            httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
-            _ => new FixedWindowRateLimiterOptions { PermitLimit = 10, Window = TimeSpan.FromMinutes(1) }));
+    AddPerIpPolicy(options, AuthController.RateLimitPolicy, limits => limits.Auth);
 });
 
 const string FrontendCorsPolicy = "Frontend";
@@ -124,3 +143,12 @@ app.MapControllers();
 app.MapHealthChecks("/health");
 
 await app.RunAsync();
+
+static void AddPerIpPolicy(RateLimiterOptions options, string policyName, Func<RateLimitOptions, RateLimitOptions.FixedWindow> select) =>
+    options.AddPolicy(policyName, httpContext =>
+    {
+        var window = select(httpContext.RequestServices.GetRequiredService<IOptions<RateLimitOptions>>().Value);
+        return RateLimitPartition.GetFixedWindowLimiter(
+            httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            _ => new FixedWindowRateLimiterOptions { PermitLimit = window.PermitLimit, Window = TimeSpan.FromSeconds(window.WindowSeconds) });
+    });

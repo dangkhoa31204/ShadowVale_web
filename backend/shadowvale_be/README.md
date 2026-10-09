@@ -7,7 +7,8 @@ ShadowVale.API         Presentation: Controllers, Middlewares, Program.cs
 ShadowVale.BLL         Business: Services, Interfaces, Validators, Exceptions, DTOs (chỉ web dùng: Auth, Common...)
 ShadowVale.DAL         Data: DbContext, Entities, Configurations, Repositories, Migrations
 ShadowVale.Contracts   Chỉ những gì Unity dùng: Content (bundle), Telemetry (netstandard2.1, C# 9)
-tests/ShadowVale.BLL.Tests
+tests/ShadowVale.BLL.Tests           Unit test (mock repository)
+tests/ShadowVale.IntegrationTests    Test qua HTTP với PostgreSQL thật
 ```
 
 Tham chiếu: `API → BLL → DAL`; API và BLL → `Contracts`. API chỉ gọi `AddBll(...)` và **không `using` được DAL**
@@ -28,7 +29,12 @@ Controller **không viết try/catch**. Service trong BLL ném exception ở `BL
 | `ForbiddenException` | 403 |
 | `NotFoundException` | 404 |
 | `ConflictException` | 409 |
+| `BadHttpRequestException` | mã của chính nó, ví dụ 413 khi body vượt giới hạn |
 | exception khác | 500. Chỉ môi trường Development mới hiện `detail`. |
+
+Lỗi DB do chính dữ liệu gửi lên gây ra được BLL đổi qua `DatabaseErrors`: trùng khóa / sai khóa ngoại → 409,
+vi phạm ràng buộc hoặc giá trị sai kiểu → 400. Những lỗi này không bao giờ thành 5xx, vì game hiểu 5xx là "gửi lại sau"
+và sẽ gửi lại mãi.
 
 ## Auth & role
 
@@ -40,7 +46,7 @@ tài khoản. Game không đăng nhập (telemetry ẩn danh).
 - **Refresh token**: chuỗi ngẫu nhiên, sống 7 ngày. DB chỉ lưu hash SHA-256 của nó. **Mỗi refresh token dùng được đúng một lần**
   (rotation). Nếu một token đã dùng rồi lại bị gửi lên, mọi phiên của user đó bị thu hồi (coi như token bị lộ).
 - Khi đổi mật khẩu, Admin reset mật khẩu, đổi role hoặc khóa tài khoản: mọi refresh token của user bị thu hồi.
-- `login` và `refresh` bị giới hạn 10 request/phút/IP, vượt quá trả 429.
+- `login` và `refresh` bị giới hạn 10 request/phút/IP, vượt quá trả 429 (đổi được trong `RateLimits:Auth`).
 - Phân quyền trong controller: `[Authorize(Roles = AppRoles.Admin)]` (hằng số ở `BLL/Constants/AppRoles.cs`).
 
 | Endpoint | Quyền | Ghi chú |
@@ -58,9 +64,24 @@ tài khoản. Game không đăng nhập (telemetry ẩn danh).
 
 Admin không tự hạ role hay tự khóa tài khoản của chính mình được (tránh trường hợp không còn ai quản lý user).
 
+## Game
+
+Game không đăng nhập. Mỗi bản build gửi header `X-Game-Key`; key nằm trong `Game:ApiKeys` (mảng, mỗi key ≥ 32 ký tự,
+cho phép nhiều key để đổi key mà không gián đoạn). Thiếu key thì API **không khởi động**. Key này chỉ để chặn spam
+(key nằm trong bản build nên có thể bị lấy ra), vì vậy endpoint game còn bị giới hạn 120 request/phút/IP (`RateLimits:Game`).
+
 ## Test
 
 xUnit + NSubstitute (mock) + Shouldly (assert): `dotnet test`
+
+- `ShadowVale.BLL.Tests`: unit test, không cần DB.
+- `ShadowVale.IntegrationTests`: gọi API thật qua `WebApplicationFactory` trên một PostgreSQL **dùng để test**
+  (mọi bảng bị `TRUNCATE` trước mỗi test). Đặt biến môi trường `SHADOWVALE_TEST_DB`, ví dụ
+  `Host=localhost;Port=5432;Database=shadowvale_test;Username=postgres;Password=<mật khẩu>`.
+  **Không bao giờ trỏ biến này vào Supabase.** Không đặt thì các test này bị skip ở máy dev; trên CI thì báo fail.
+
+CI (`.github/workflows/backend.yml` ở gốc repo) chạy build + toàn bộ test với một container `postgres:17` mỗi khi
+có thay đổi trong `backend/**`, và lưu kết quả test (`.trx`) cùng coverage làm artifact `backend-test-results`.
 
 ## Cài đặt lần đầu
 
@@ -70,6 +91,7 @@ Secret không commit lên git, mỗi người tự đặt bằng user-secrets:
 cd backend/shadowvale_be
 dotnet user-secrets set "ConnectionStrings:Default" "Host=aws-0-<region>.pooler.supabase.com;Port=5432;Database=postgres;Username=postgres.<project-ref>;Password=<db-password>;SSL Mode=Require" --project ShadowVale.API
 dotnet user-secrets set "Jwt:Key" "<chuỗi ngẫu nhiên dài ít nhất 32 ký tự>" --project ShadowVale.API
+dotnet user-secrets set "Game:ApiKeys:0" "<chuỗi ngẫu nhiên dài ít nhất 32 ký tự>" --project ShadowVale.API
 ```
 
 Lấy connection string trên Supabase tại **Connect → Session pooler**:
@@ -112,6 +134,13 @@ dotnet ef database update --project ShadowVale.DAL --startup-project ShadowVale.
 
 Bảng được tạo trong schema `shadowvale`, không dùng `public`, vì Supabase tự mở schema `public` qua REST API bằng anon key.
 
+Quy ước khi nhiều người cùng thêm migration: **ai merge sau thì xóa migration của mình rồi chạy lại `migrations add`**
+trên code mới nhất. Không sửa tay `ShadowValeDbContextModelSnapshot.cs`.
+
+Trước khi chạy `database update` lên Supabase: xem trước SQL bằng
+`dotnet ef migrations script <migration trước> --project ShadowVale.DAL --startup-project ShadowVale.API`.
+Mỗi migration chạy trong một transaction, lỗi giữa chừng thì tự rollback.
+
 ## Deploy (Render, Docker)
 
 API chạy trong container (`Dockerfile`, build context là thư mục `backend/shadowvale_be`), lắng nghe HTTP cổng 8080.
@@ -127,6 +156,7 @@ Tạo Web Service trên Render:
 | `PORT` | `8080` |
 | `ConnectionStrings__Default` | Chuỗi **Session pooler** của Supabase, thêm `;Maximum Pool Size=10` ở cuối (gói Free giới hạn số kết nối) |
 | `Jwt__Key` | Chuỗi ngẫu nhiên dài ≥ 32 ký tự, **khác** key ở máy dev |
+| `Game__ApiKeys__0` | Key của bản build game, ≥ 32 ký tự, khác key ở máy dev (thêm `__1` khi cần đổi key) |
 | `Cors__AllowedOrigins__0` | Domain frontend, ví dụ `https://shadowvale.vercel.app` (thêm `__1`, `__2`... nếu nhiều domain) |
 | `SeedAdmin__Username`, `SeedAdmin__Email`, `SeedAdmin__Password` | Chỉ đặt ở lần deploy đầu để tạo Admin, tạo xong thì xóa |
 
