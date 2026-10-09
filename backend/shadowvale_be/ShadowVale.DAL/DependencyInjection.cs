@@ -21,6 +21,7 @@ public static class DependencyInjection
         services.AddScoped<ISolverConfigurationRepository, SolverConfigurationRepository>();
         services.AddScoped<IGameContentRepository, GameContentRepository>();
         services.AddScoped<IGameSessionRepository, GameSessionRepository>();
+        services.AddScoped<IAnalyticsRepository, AnalyticsRepository>();
 
         return services;
     }

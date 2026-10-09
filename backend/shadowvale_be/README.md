@@ -123,6 +123,36 @@ mà phần publish lưu.
 - `contentVersionId` lạ (ví dụ bundle dự phòng trong game) được lưu là `null`.
 - Phiên chưa từng gọi `POST sessions` vẫn được lưu, nhưng không có solver được giao nên không tính vào so sánh solver.
 
+## Analytics (`/api/analytics`)
+
+Cả 3 role xem được dashboard; chỉ Admin và Analyst được export.
+
+Bộ lọc chung (query string): `source`, `contentVersionId`, `mapCode`, `from`, `to` (thời điểm bắt đầu phiên, tối đa 366 ngày),
+`solverConfigurationId`, `family`. **`source` mặc định là `human`; riêng `ai/comparison` và `ai/scalability` bắt buộc chọn
+`human` hoặc `replay`**, vì người thật và bot không bao giờ được trộn chung.
+
+| Endpoint | Nội dung |
+|---|---|
+| `GET overview` | Số phiên, số player, số phiên chưa kết thúc, thời lượng trung bình / trung vị, tỉ lệ outcome, số phiên theo ngày |
+| `GET heatmap` | `mapCode` bắt buộc, `eventTypes` (mặc định `player_death`, `player_spotted`), `cellSize` 1–50 m → `{ x, y, count }` |
+| `GET funnel` | Phiên bắt đầu → `objective_completed` theo `index` → `mission_result` có `result = "completed"` |
+| `GET weapons` | Từ `stats`: số phát bắn, kill, kill/phát bắn, tỉ lệ phiên có dùng |
+| `GET playstyle` | Tỉ lệ lén lút = takedowns / (takedowns + weaponKills), `timesDetected`, histogram 10 khoảng |
+| `GET versions/compare?a=&b=` | `overview`, `funnel`, `weapons` của 2 content version |
+| `GET ai/comparison` | `groupBy=configuration\|family`, tách theo content version, nhóm theo solver được giao cho phiên |
+| `GET ai/scalability` | Độ trễ p50 / p95 và objective theo số agent và số node (khoảng 20), từng cấu hình |
+| `GET export/{sessions\|events\|encounters\|coordination-results}` | CSV UTF-8 có BOM; `events` bắt buộc có `from`, `to` cách nhau ≤ 92 ngày |
+
+Công thức:
+- **Capture rate** = số trận `PlayerCaptured` / số trận có outcome khác `Aborted` (lấy từ `stats.encounters`, nên tính cả
+  trận không có lần re-plan nào).
+- **Escape time** = `endedAt − startedAt` của các trận `PlayerEscaped`.
+- **Coordination score**, độ trễ, tỉ lệ trong ngân sách, tỉ lệ fallback: trên từng lần re-plan (`coordination_results`).
+- Vũ khí và lối chơi đọc từ `stats` của phiên đã kết thúc, không đếm event (event `shot_fired` bị game giới hạn tần suất).
+
+CSV: số dùng dấu chấm thập phân, thời gian UTC ISO 8601. Ô **chữ** bắt đầu bằng `= + - @` được thêm `'` để Excel không chạy
+như công thức; cột số giữ nguyên (ví dụ `-12.5`).
+
 ## Test
 
 xUnit + NSubstitute (mock) + Shouldly (assert): `dotnet test`

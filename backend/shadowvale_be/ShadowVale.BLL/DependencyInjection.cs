@@ -26,6 +26,7 @@ public static class DependencyInjection
         services.AddScoped<ISolverConfigurationSeeder, SolverConfigurationSeeder>();
         services.AddScoped<IGameContentService, GameContentService>();
         services.AddScoped<IGameSessionService, GameSessionService>();
+        services.AddScoped<IAnalyticsService, AnalyticsService>();
 
         return services;
     }
