@@ -2,6 +2,7 @@ import type { User } from '../../types/user';
 import type { Command, ContentBundle, Draft, Workspace } from './types';
 import { can } from '../auth/access.ts';
 import { sealBundle } from './validation.ts';
+import { validateChangeReport } from '../changeReports/reportValidation.ts';
 
 /** Local demo workflow. API mode sends commands to the backend instead. */
 export async function applyCommand(state: Workspace, command: Command, actor: User, validate: (bundle: unknown) => string[]): Promise<Workspace> {
@@ -17,6 +18,10 @@ export async function applyCommand(state: Workspace, command: Command, actor: Us
   const authorOnly = (draft: Draft) => {
     requirePermission('author');
     if (draft.authorId !== actor.id) throw new Error('Only the author can edit this content version.');
+  };
+  const assertReportValid = (draft: Draft) => {
+    const errors = validateChangeReport(draft.changeReport);
+    if (errors.length) throw new Error('Change report: ' + errors.slice(0, 3).join('; '));
   };
   const archiveActive = () => {
     const active = next.releases.find(release => release.id === next.activeReleaseId);
@@ -51,17 +56,18 @@ export async function applyCommand(state: Workspace, command: Command, actor: Us
         draft.bundle = structuredClone(command.bundle);
         draft.bundle.label = label; draft.bundle.changelog = draft.changelog;
         delete draft.bundle.checksum; delete draft.bundle.published_at;
+        if (command.changeReport !== undefined) draft.changeReport = structuredClone(command.changeReport);
         draft.note = ''; delete draft.reviewedBy; delete draft.reviewedAt;
         draft.validation_errors = validate(draft.bundle); delete draft.validated_at; delete draft.bundle_checksum;
         draft.revision++;
       } else {
-        assertValid(draft.bundle); draft.status = 'in_review'; draft.note = ''; draft.submitted_at = at;
+        assertValid(draft.bundle); assertReportValid(draft); draft.status = 'in_review'; draft.note = ''; draft.submitted_at = at;
         draft.validation_errors = []; draft.validated_at = at;
       }
     } else if (command.type === 'reviewDraft') {
       requirePermission('review');
       if (draft.status !== 'in_review') throw new Error('This content version is not awaiting review.');
-      if (command.approve) assertValid(draft.bundle);
+      if (command.approve) { assertValid(draft.bundle); assertReportValid(draft); }
       else if (!command.note.trim()) throw new Error('Explain the changes required before rejecting the content.');
       draft.status = command.approve ? 'approved' : 'rejected';
       draft.note = command.note.trim(); draft.reviewedBy = actor.callsign; draft.reviewedAt = at;
@@ -70,10 +76,11 @@ export async function applyCommand(state: Workspace, command: Command, actor: Us
       if (draft.status !== 'approved') throw new Error('Only approved content can be published.');
       if (!command.reason.trim()) throw new Error('A publication reason is required.');
       assertValid(draft.bundle);
+      assertReportValid(draft);
       if (next.releases.some(release => release.version_no === draft.version_no)) throw new Error('This content version is already published.');
       const bundle = await sealBundle(draft.bundle, at);
       const previous = archiveActive();
-      const release = { id: draft.id, version_no: draft.version_no, label: draft.label, changelog: draft.changelog, status: 'published' as const, version: String(draft.version_no), publishedAt: at, publishedBy: actor.callsign, bundle, sourceDraftId: draft.id };
+      const release = { id: draft.id, version_no: draft.version_no, label: draft.label, changelog: draft.changelog, status: 'published' as const, version: String(draft.version_no), publishedAt: at, publishedBy: actor.callsign, bundle, sourceDraftId: draft.id, revision: draft.revision, ...(draft.changeReport ? { changeReport: structuredClone(draft.changeReport) } : {}) };
       next.releases.unshift(release); next.activeReleaseId = release.id;
       draft.status = 'published'; draft.bundle = bundle; draft.bundle_checksum = bundle.checksum;
       draft.published_by = actor.id; draft.published_at = at;

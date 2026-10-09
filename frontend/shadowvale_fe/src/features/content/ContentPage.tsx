@@ -8,6 +8,7 @@ import { collectionIdentity, createContentRecord, recordIdentity, recordLabel, s
 import { validateBundle } from './workspaceService';
 import { Empty, Icon, PageHeading, Status } from '../shared/ui';
 import { NumericControl } from '../shared/NumericControl';
+import { validateChangeReport } from '../changeReports/reportValidation';
 import './editor.css';
 
 function referenceOptions(field: FieldDefinition, bundle: ContentBundle) {
@@ -65,7 +66,16 @@ function DraftEditor({ draft }: { draft: Draft }) {
   const [category, setCategory] = useState<CollectionKey>('weapons'), [selected, setSelected] = useState(0);
   const [dirty, setDirty] = useState(false), [parseError, setParseError] = useState(''), [search, setSearch] = useState('');
   const blocker = useBlocker(({ currentLocation, nextLocation }) => (dirty || !!parseError) && currentLocation.pathname !== nextLocation.pathname);
-  const errors = validateBundle(bundle);
+  const errors = [...(!label.trim() ? ['Enter a version label.'] : []), ...validateBundle(bundle), ...validateChangeReport(draft.changeReport)];
+  const submitErrors = [...(parseError ? [parseError] : []), ...errors];
+  const [showValidation, setShowValidation] = useState(false);
+  const validationRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (showValidation) {
+      validationRef.current?.focus({ preventScroll: true });
+      validationRef.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    }
+  }, [showValidation]);
   const owner = user?.role === 'designer' && draft.authorId === user.id;
   const editable = draft.status === 'draft' && owner;
   const record = bundle[category][selected];
@@ -89,6 +99,12 @@ function DraftEditor({ draft }: { draft: Draft }) {
     } catch (error) { toast.error(error instanceof Error ? error.message : 'Could not add record.'); }
   }
   async function save(submit = false) {
+    if (busy) return;
+    if (submit && submitErrors.length) {
+      setShowValidation(true);
+      validationRef.current?.focus();
+      return;
+    }
     if (parseError) { toast.error(parseError); return; }
     if (!label.trim()) { toast.error('Enter a version label.'); return; }
     try {
@@ -104,9 +120,11 @@ function DraftEditor({ draft }: { draft: Draft }) {
   return <div className="sv-editor">
     {blocker.state === 'blocked' && <div className="sv-modal-backdrop"><section className="sv-modal" role="dialog" aria-modal="true" aria-labelledby="unsaved-title"><h2 id="unsaved-title">Leave unsaved changes?</h2><p>Save this version or discard your changes.</p><div><button className="sv-button" onClick={() => blocker.reset()}>Keep editing</button><button className="sv-button sv-button-danger" onClick={() => blocker.proceed()}>Discard & leave</button></div></section></div>}
     <div className="sv-editor-toolbar"><div><Status value={draft.status} /><span className="sv-mono">Revision {draft.revision}</span>{dirty && <span className="sv-unsaved">Unsaved changes</span>}</div><div>
+      <Link className="sv-button" to={'/admin/change-reports/' + draft.id}><Icon name="description" />Change report</Link>
       {draft.status === 'rejected' && owner && <button className="sv-button sv-button-primary" disabled={busy} onClick={() => { void execute({ type: 'editRejectedDraft', id: draft.id, revision: draft.revision }).catch(() => {}); }}><Icon name="edit" />Resume draft</button>}
-      {editable && <><button className="sv-button" disabled={busy || !dirty || !!parseError || !label.trim()} onClick={() => save()}><Icon name="save" />Save draft</button><button className="sv-button sv-button-primary" disabled={busy || errors.length > 0 || !!parseError || !label.trim()} onClick={() => save(true)}><Icon name="send" />Submit for review</button></>}
+      {editable && <><button className="sv-button" disabled={busy || !dirty || !!parseError || !label.trim()} onClick={() => save()}><Icon name="save" />Save draft</button><button className="sv-button sv-button-primary" disabled={busy} aria-describedby={showValidation && submitErrors.length ? 'content-submit-errors' : undefined} onClick={() => save(true)}><Icon name="send" />Submit for review</button></>}
     </div></div>
+    {editable && showValidation && submitErrors.length > 0 && <div ref={validationRef} id="content-submit-errors" className="sv-alert sv-alert-error" role="alert" tabIndex={-1}><strong>Check this content before sending</strong><ul style={{ listStyle: 'disc', paddingLeft: 20, marginTop: 8 }}>{submitErrors.map((error, index) => <li key={index}>{error}</li>)}</ul>{validateChangeReport(draft.changeReport).length > 0 && <Link to={'/admin/change-reports/' + draft.id}>Complete change report</Link>}</div>}
     {draft.note && <div className="sv-alert"><strong>Review note</strong><p>{draft.note}</p></div>}
     {!editable && <div className="sv-alert">{draft.status === 'rejected' && owner ? 'Resume this draft to make the requested changes.' : 'This content version is read-only.'}</div>}
     <div className="sv-editor-meta sv-form">
