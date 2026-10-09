@@ -1,0 +1,35 @@
+.sv-editor-meta.sv-form { grid-template-columns: minmax(220px, 2fr) minmax(100px, .6fr) minmax(100px, .6fr); gap: 20px 24px; }
+.sv-editor-meta .sv-changelog { grid-column: 1 / -1; }
+.sv-editor-meta .sv-changelog textarea { resize: vertical; min-height: 64px; }
+.sv-editor-meta .sv-version-number strong { font-size: 20px; }
+.sv-content-tabs { scrollbar-width: thin; }
+.sv-records-heading button { padding: 5px; border: 1px solid var(--sv-border); border-radius: 6px; display: grid; place-items: center; }
+.sv-record-detail .sv-field-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 23px 28px; }
+.sv-record-detail .sv-field-grid label { text-transform: none; }
+.sv-record-title h2 { overflow-wrap: anywhere; }
+.sv-record-title > .sv-mono { max-width: 40%; overflow-wrap: anywhere; text-align: right; }
+.sv-record-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 20px; }
+.sv-field-help { display: block; font-size: 10px; font-weight: 400; color: var(--sv-muted); margin-top: 5px; }
+.sv-numeric-control { min-width: 0; }
+.sv-numeric-heading { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 8px; }
+.sv-numeric-heading label { margin: 0; }
+.sv-numeric-heading > span { font-size: 10px; color: var(--sv-muted); }
+.sv-numeric-inputs { display: flex; align-items: center; gap: 13px; }
+.sv-form .sv-numeric-value { flex: 0 0 92px; width: 92px; margin: 0; text-align: right; font-variant-numeric: tabular-nums; padding: 10px; }
+.sv-form .sv-range { appearance: none; width: 100%; min-width: 0; margin: 0; height: 5px; border: 0; border-radius: 10px; padding: 0; background: var(--sv-border); cursor: pointer; accent-color: var(--sv-accent); }
+.sv-range::-webkit-slider-thumb { appearance: none; width: 14px; height: 14px; border-radius: 50%; background: var(--sv-accent); border: 2px solid var(--sv-surface); box-shadow: 0 0 0 1px var(--sv-accent); }
+.sv-range::-moz-range-thumb { width: 11px; height: 11px; border-radius: 50%; background: var(--sv-accent); border: 2px solid var(--sv-surface); }
+.sv-form .sv-range:focus-visible { outline: 2px solid var(--sv-accent); outline-offset: 6px; box-shadow: none; }
+.sv-form .sv-range:disabled { cursor: default; opacity: .45; }
+.sv-numeric-help { min-height: 16px; margin-top: 5px; display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: 9px; font-weight: 400; color: var(--sv-muted); }
+.sv-numeric-help [role="alert"] { color: var(--sv-error); font-size: 10px; }
+.sv-numeric-control.has-error .sv-numeric-value { border-color: var(--sv-error); }
+@media (max-width: 900px) {
+  .sv-record-detail .sv-field-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 620px) {
+  .sv-editor-meta.sv-form { grid-template-columns: 1fr 1fr; gap: 16px; }
+  .sv-editor-meta > label:first-child { grid-column: 1 / -1; }
+  .sv-editor-meta > div { grid-column: auto; }
+  .sv-record-detail .sv-field-grid { gap: 19px; }
+}

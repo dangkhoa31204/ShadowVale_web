@@ -10,6 +10,8 @@ export default {
   theme: {
     extend: {
       colors: {
+        brand: { 50: '#ecf3ff', 400: '#7592ff', 500: '#465fff', 600: '#3641f5' },
+        'blue-light': { 50: '#f0f9ff', 500: '#0ba5ec' },
         'on-primary-fixed-variant': '#2b4963',
         'surface-tint': '#abcae8',
         'on-primary-fixed': '#001d31',
@@ -17,7 +19,7 @@ export default {
         'on-surface-variant': '#c3c7cd',
         'tertiary': '#eabf8a',
         'primary-fixed': '#cce5ff',
-        'error': '#F87171',
+        'error': { DEFAULT: '#F87171', 50: '#fef3f2', 500: '#f04438', 600: '#d92d20' },
         'secondary-container': '#454749',
         'on-secondary-container': '#b4b5b7',
         'inverse-primary': '#43617c',
@@ -50,10 +52,10 @@ export default {
         'primary': '#abcae8',
         'surface-container-low': '#1a1c1d',
         'secondary-fixed': '#e2e2e5',
-        'warning': '#FACC15',
+        'warning': { DEFAULT: '#FACC15', 50: '#fffaeb', 500: '#f79009', 600: '#dc6803' },
         'on-tertiary-fixed-variant': '#5e4118',
         'on-tertiary-container': '#f5c993',
-        'success': '#4ADE80',
+        'success': { DEFAULT: '#4ADE80', 50: '#ecfdf3', 500: '#12b76a', 600: '#039855' },
         'secondary-fixed-dim': '#c6c6c9',
         'outline': '#8d9197',
         'surface-dim': '#121315',
@@ -85,6 +87,7 @@ export default {
         'label-caps': ['"JetBrains Mono"', 'monospace']
       },
       fontSize: {
+        'theme-xs': ['12px', { lineHeight: '18px' }],
         'headline-md': ['24px', { lineHeight: '32px', fontWeight: '600' }],
         'title-sm': ['18px', { lineHeight: '24px', fontWeight: '600' }],
         'body-md': ['14px', { lineHeight: '20px', fontWeight: '400' }],

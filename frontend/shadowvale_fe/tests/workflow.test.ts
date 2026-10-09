@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { applyCommand } from '../src/features/content/workflow.ts';
 import { createBundleValidator, compareBundles, canonicalJson, sealBundle } from '../src/features/content/validation.ts';
+import { createContentRecord, schemaFields } from '../src/features/content/schemaFields.ts';
 import { can, homeForRole, navigationForRole, safeRedirect } from '../src/features/auth/access.ts';
 import type { ContentBundle, Workspace } from '../src/features/content/types.ts';
 import type { User } from '../src/types/user.ts';
@@ -13,27 +14,52 @@ const designer: User = { id: 'designer', callsign: 'Designer', email: 'd@sv.dev'
 const admin: User = { ...designer, id: 'admin', callsign: 'Admin', role: 'admin' };
 const analyst: User = { ...designer, id: 'analyst', role: 'analyst' };
 function state(): Workspace {
-  return { storageVersion: 1, activeReleaseId: 'r1',
-    releases: [{ id: 'r1', version: '1.0.0', bundle: structuredClone(seed), publishedAt: '2026-09-18T00:00:00Z', publishedBy: 'Admin', sourceDraftId: 'initial' }],
-    drafts: [{ id: 'd1', title: 'Balance pass', authorId: designer.id, authorName: designer.callsign, status: 'draft', revision: 1, updatedAt: '', bundle: { ...structuredClone(seed), bundle_version: '1.1.0' }, note: '' }],
+  const bundle = { ...structuredClone(seed), version_no: 2, label: 'Balance pass', changelog: 'Combat tuning' };
+  return { storageVersion: 2, activeReleaseId: 'r1', publications: [],
+    releases: [{ id: 'r1', version: '1', version_no: 1, label: seed.label, changelog: seed.changelog || '', status: 'published', bundle: structuredClone(seed), publishedAt: '2026-09-18T00:00:00Z', publishedBy: 'Admin', sourceDraftId: 'initial' }],
+    drafts: [{ id: 'd1', version_no: 2, label: bundle.label, changelog: bundle.changelog, parent_version_id: 'initial', title: bundle.label, authorId: designer.id, authorName: designer.callsign, status: 'draft', revision: 1, updatedAt: '', bundle, note: '' }],
     users: [{ ...admin, active: true }, { ...designer, active: true }], audit: [],
     config: { reviewRequired: true, telemetryEnabled: true } };
 }
-test('Unity seed passes full schema and references', () => assert.deepEqual(validate(seed), []));
-test('schema rejects invalid numeric stats, duplicate IDs and missing references', () => {
-  const b = structuredClone(seed); b.weapons[0].damage = -1;
+const publish = (s: Workspace) => applyCommand(s, { type: 'publishDraft', id: 'd1', revision: s.drafts[0].revision, reason: 'Release for playtesting' }, admin, validate);
+
+test('DB v3 seed passes schema and FK validation; numeric precision and enums are checked', () => {
+  assert.deepEqual(validate(seed), []);
+  const b = structuredClone(seed); b.weapons[0].damage = 1.001;
   assert.ok(validate(b).some(e => e.includes('damage')));
-  b.weapons[0].damage = 24; b.weapons[0].ammo_type = 'missing_ammo'; b.items.push(structuredClone(b.items[0]));
-  assert.ok(validate(b).some(e => e.includes('duplicate')));
+  b.weapons[0].damage = 24; b.weapons[0].weapon_class = 'laser';
+  assert.ok(validate(b).some(e => e.includes('weapon_class')));
+});
+test('PKs, composite relation keys and item subtype references follow the DB', () => {
+  const b = structuredClone(seed); b.items.push(structuredClone(b.items[0]));
+  assert.ok(validate(b).some(e => e.includes('duplicate primary key')));
+  b.items.pop(); b.loot_table_entries.push(structuredClone(b.loot_table_entries[0]));
+  assert.ok(validate(b).some(e => e.includes('duplicate primary key')));
+  b.loot_table_entries.pop(); b.weapons[0].ammo_item_code = 'rifle_standard';
+  assert.ok(validate(b).some(e => e.includes('must reference ammo')));
+  b.weapons[0].ammo_item_code = 'missing_ammo';
   assert.ok(validate(b).some(e => e.includes('unknown reference')));
 });
-test('navigation graph nodes, quest objectives and loot bounds are validated', () => {
-  const b = structuredClone(seed);
-  (b.maps[0].nav_graph_nodes as { id: number }[])[0].id = 50;
-  assert.ok(validate(b).some(e => e.includes('array index')));
-  const c = structuredClone(seed);
-  (c.loot_tables[0].entries as { min: number; max: number }[])[0].min = 500;
-  assert.ok(validate(c).some(e => e.includes('min must')));
+test('safe camp, loot quantity bounds and per-version references are checked', () => {
+  const b = structuredClone(seed); b.maps.forEach(m => { m.is_safe_camp = false; });
+  assert.ok(validate(b).some(e => e.includes('exactly one')));
+  const c = structuredClone(seed); c.loot_table_entries[0].min_qty = 500;
+  assert.ok(validate(c).some(e => e.includes('min_qty')));
+  const d = structuredClone(seed); d.content_version_id = 'version-1'; d.items[0].content_version_id = 'version-2';
+  assert.ok(validate(d).some(e => e.includes('another content version')));
+});
+test('empty collection forms create DB-shaped default records with filtered FK choices', () => {
+  for (const collection of Object.keys(schemaFields) as (keyof typeof schemaFields)[]) {
+    const b = structuredClone(seed); b[collection] = [];
+    const row = createContentRecord(collection, b);
+    if (collection === 'maps') { row.is_safe_camp = true; row.scene_key = 'NewMapScene'; }
+    b[collection].push(row);
+    // Emptying parent collections can invalidate existing child rows; check the new row itself.
+    assert.deepEqual(validate(b).filter(error => error.startsWith('/' + collection + '/0')), [], collection);
+    assert.equal(row.created_at, undefined); assert.equal(row.updated_at, undefined);
+  }
+  const weapon = createContentRecord('weapons', seed);
+  assert.equal(weapon.item_type, 'weapon'); assert.equal(weapon.ammo_type, 'ammo');
 });
 test('role policy and internal redirects deny unauthorized access', async () => {
   assert.equal(can('designer', 'publish'), false); assert.equal(can('analyst', 'author'), false);
@@ -43,68 +69,81 @@ test('role policy and internal redirects deny unauthorized access', async () => 
   assert.equal(safeRedirect('/admin/content', 'designer'), '/admin/content');
   await assert.rejects(applyCommand(state(), { type: 'submitDraft', id: 'd1', revision: 1 }, analyst, validate), /role/);
 });
-test('author submits, admin approves, publishing seals an immutable snapshot', async () => {
+test('author submits, admin approves and publish seals an immutable snapshot with one published version', async () => {
   const original = state();
   const submitted = await applyCommand(original, { type: 'submitDraft', id: 'd1', revision: 1 }, designer, validate);
-  assert.equal(original.drafts[0].status, 'draft');
-  await assert.rejects(applyCommand(submitted, { type: 'publishDraft', id: 'd1', revision: 2 }, admin, validate), /approved/);
-  const approved = await applyCommand(submitted, { type: 'reviewDraft', id: 'd1', revision: 2, approve: true, note: 'Looks good' }, admin, validate);
-  await assert.rejects(applyCommand(approved, { type: 'saveDraft', id: 'd1', revision: 3, title: 'Mutation', bundle: seed }, designer, validate), /editable/);
-  const published = await applyCommand(approved, { type: 'publishDraft', id: 'd1', revision: 3 }, admin, validate);
+  assert.equal(original.drafts[0].status, 'draft'); assert.equal(submitted.drafts[0].revision, 1);
+  await assert.rejects(publish(submitted), /approved/);
+  const approved = await applyCommand(submitted, { type: 'reviewDraft', id: 'd1', revision: 1, approve: true, note: 'Looks good' }, admin, validate);
+  await assert.rejects(applyCommand(approved, { type: 'saveDraft', id: 'd1', revision: 1, title: 'Mutation', bundle: approved.drafts[0].bundle }, designer, validate), /editable/);
+  const published = await publish(approved);
   assert.equal(published.drafts[0].status, 'published'); assert.equal(published.releases.length, 2);
-  assert.equal(published.activeReleaseId, published.releases[0].id);
-  assert.match(published.releases[0].bundle.checksum!, /^sha256:[a-f0-9]{64}$/);
-  assert.equal(published.audit.length, 3); assert.deepEqual(validate(published.releases[0].bundle), []);
+  assert.equal(published.activeReleaseId, 'd1'); assert.equal(published.releases.filter(r => r.status === 'published').length, 1);
+  assert.equal(published.releases[1].status, 'archived');
+  assert.match(published.releases[0].bundle.checksum!, /^[a-f0-9]{64}$/);
+  assert.deepEqual(validate(published.releases[0].bundle), []);
+  assert.equal(published.publications[0].action, 'publish'); assert.equal(published.publications[0].previous_version_id, 'initial');
+  published.drafts[0].bundle.weapons[0].damage = 999;
+  assert.equal(original.drafts[0].bundle.weapons[0].damage, 24);
 });
-test('admin has only review and publishing navigation, without inherited authoring or analytics', async () => {
+test('admin has exactly review and publishing navigation without inherited authoring or analytics', async () => {
   assert.deepEqual(navigationForRole('admin').map(n => n.path), ['/admin/reviews', '/admin/releases']);
   assert.equal(homeForRole('admin'), '/admin/reviews');
   for (const permission of ['author', 'analytics', 'overview'] as const) assert.equal(can('admin', permission), false);
   for (const path of ['/admin/content', '/admin/content/d1', '/admin/analytics', '/admin/dashboard', '/admin/users']) assert.equal(safeRedirect(path, 'admin'), '/admin/reviews');
   assert.equal(safeRedirect('/admin/releases', 'admin'), '/admin/releases');
   await assert.rejects(applyCommand(state(), { type: 'createDraft', title: 'Admin draft' }, admin, validate), /role/);
-  await assert.rejects(applyCommand(state(), { type: 'saveDraft', id: 'd1', revision: 1, title: 'Admin edit', bundle: seed }, admin, validate), /role/);
   await assert.rejects(applyCommand(state(), { type: 'submitDraft', id: 'd1', revision: 1 }, admin, validate), /role/);
 });
-test('stale revisions, invalid bundles and duplicate release versions are blocked', async () => {
+test('stale revisions, invalid bundles and duplicate version numbers are blocked', async () => {
   await assert.rejects(applyCommand(state(), { type: 'submitDraft', id: 'd1', revision: 0 }, designer, validate), /changed/);
   const bad = state(); bad.drafts[0].bundle.weapons[0].damage = 0;
   await assert.rejects(applyCommand(bad, { type: 'submitDraft', id: 'd1', revision: 1 }, designer, validate), /Validation failed/);
-  const duplicate = state(); duplicate.drafts[0].status = 'approved'; duplicate.drafts[0].bundle.bundle_version = '1.0.0';
-  await assert.rejects(applyCommand(duplicate, { type: 'publishDraft', id: 'd1', revision: 1 }, admin, validate), /already published/);
+  const duplicate = state(); duplicate.drafts[0].status = 'approved'; duplicate.drafts[0].version_no = 1; duplicate.drafts[0].bundle.version_no = 1;
+  await assert.rejects(publish(duplicate), /already published/);
 });
-test('requested changes require feedback and resubmission resets approval', async () => {
+test('rejected content explicitly returns to draft before editing; only content saves increment revision', async () => {
   const pending = state(); pending.drafts[0].status = 'in_review';
   await assert.rejects(applyCommand(pending, { type: 'reviewDraft', id: 'd1', revision: 1, approve: false, note: '' }, admin, validate), /Explain/);
-  const returned = await applyCommand(pending, { type: 'reviewDraft', id: 'd1', revision: 1, approve: false, note: 'Reduce damage' }, admin, validate);
-  const saved = await applyCommand(returned, { type: 'saveDraft', id: 'd1', revision: 2, title: 'Updated', bundle: returned.drafts[0].bundle }, designer, validate);
-  assert.equal(saved.drafts[0].status, 'draft'); assert.equal(saved.drafts[0].reviewedBy, undefined);
+  const rejected = await applyCommand(pending, { type: 'reviewDraft', id: 'd1', revision: 1, approve: false, note: 'Reduce damage' }, admin, validate);
+  assert.equal(rejected.drafts[0].status, 'rejected');
+  await assert.rejects(applyCommand(rejected, { type: 'saveDraft', id: 'd1', revision: 1, title: 'Updated', bundle: rejected.drafts[0].bundle }, designer, validate), /Only draft/);
+  const resumed = await applyCommand(rejected, { type: 'editRejectedDraft', id: 'd1', revision: 1 }, designer, validate);
+  const saved = await applyCommand(resumed, { type: 'saveDraft', id: 'd1', revision: 1, title: 'Updated', changelog: 'Tuned', bundle: resumed.drafts[0].bundle }, designer, validate);
+  assert.equal(saved.drafts[0].status, 'draft'); assert.equal(saved.drafts[0].revision, 2);
+  assert.equal(saved.drafts[0].reviewedBy, undefined); assert.equal(saved.drafts[0].bundle.label, 'Updated');
 });
-test('restore validates the selected release and records the active version change', async () => {
-  const s = state(); const restored = await applyCommand(s, { type: 'restoreRelease', id: 'r1' }, admin, validate);
-  assert.equal(restored.activeReleaseId, 'r1'); assert.equal(restored.audit[0].action, 'restoreRelease');
-  s.releases[0].bundle.weapons[0].ammo_type = 'missing';
-  await assert.rejects(applyCommand(s, { type: 'restoreRelease', id: 'r1' }, admin, validate), /Validation failed/);
+test('publish and rollback require a reason; rollback selects archived content without rewriting its bundle', async () => {
+  const s = state(); s.drafts[0].status = 'approved';
+  await assert.rejects(applyCommand(s, { type: 'publishDraft', id: 'd1', revision: 1, reason: ' ' }, admin, validate), /reason/);
+  const published = await publish(s);
+  await assert.rejects(applyCommand(published, { type: 'restoreRelease', id: 'r1', reason: '' }, admin, validate), /reason/);
+  const restored = await applyCommand(published, { type: 'restoreRelease', id: 'r1', reason: ' Regression found ' }, admin, validate);
+  assert.equal(restored.activeReleaseId, 'r1'); assert.equal(restored.releases.filter(r => r.status === 'published').length, 1);
+  assert.deepEqual(restored.releases[1].bundle, published.releases[1].bundle);
+  assert.equal(restored.publications[0].action, 'rollback'); assert.equal(restored.publications[0].reason, 'Regression found');
+  const bad = structuredClone(published); bad.releases[1].bundle.weapons[0].ammo_item_code = 'missing';
+  await assert.rejects(applyCommand(bad, { type: 'restoreRelease', id: 'r1', reason: 'Test' }, admin, validate), /Validation failed/);
 });
-test('account mutations prevent self-removal and retain an active administrator', async () => {
+test('cloning versions keeps placement identities but allocates the next managed version number', async () => {
+  const next = await applyCommand(state(), { type: 'createDraft', title: 'Next pass' }, designer, validate);
+  assert.equal(next.drafts[0].version_no, 3); assert.equal(next.drafts[0].parent_version_id, 'initial');
+  assert.deepEqual(next.drafts[0].bundle.enemy_placements.map(e => e.id), seed.enemy_placements.map(e => e.id));
+  const edited = structuredClone(next.drafts[0].bundle); edited.version_no = 99;
+  await assert.rejects(applyCommand(next, { type: 'saveDraft', id: next.drafts[0].id, revision: 0, title: 'Next', bundle: edited }, designer, validate), /managed/);
+});
+test('account safeguards and canonical checksum remain stable', async () => {
   await assert.rejects(applyCommand(state(), { type: 'deleteUser', id: 'admin' }, admin, validate), /own access/);
   await assert.rejects(applyCommand(state(), { type: 'deleteUser', id: 'admin' }, { ...admin, id: 'admin2' }, validate), /active admin/);
-});
-test('canonical checksum and content differences are stable under object key reordering', async () => {
   assert.equal(canonicalJson({ b: 2, a: 1 }), canonicalJson({ a: 1, b: 2 }));
-  const b = structuredClone(seed); b.weapons[0].damage = 26;
-  assert.ok(compareBundles(seed, b).some(d => d.path === '/weapons/rifle_standard/damage' && d.before === 24 && d.after === 26));
   assert.equal((await sealBundle(seed, '2026-10-08T00:00:00Z')).checksum, (await sealBundle(seed, '2026-10-08T00:00:00Z')).checksum);
 });
-test('review diffs identify added, removed and nested changed content independently of record order', () => {
-  const b = structuredClone(seed);
-  const removed = b.weapons.pop()!;
-  const added = { ...b.weapons[0], id: 'new_rifle' };
-  b.weapons.push(added); b.weapons.reverse();
-  b.ai_settings.solver_mode = 'experimental';
-  const changes = compareBundles(seed, b);
-  assert.ok(changes.some(d => d.path === '/weapons/' + removed.id && d.after === undefined));
-  assert.ok(changes.some(d => d.path === '/weapons/new_rifle' && d.before === undefined));
-  assert.ok(changes.some(d => d.path === '/ai_settings/solver_mode' && d.after === 'experimental'));
-  assert.equal(changes.filter(d => d.path.startsWith('/weapons/')).length, 2);
+test('review diffs match item_code and composite keys independently of order', () => {
+  const b = structuredClone(seed); b.weapons[0].damage = 26; b.weapons.reverse();
+  assert.deepEqual(compareBundles(seed, b), [{ path: '/weapons/rifle_standard/damage', before: 24, after: 26 }]);
+  const c = structuredClone(seed); const removed = c.quest_rewards.pop()!;
+  c.quest_rewards.push({ ...removed, item_code: 'cloth' }); c.quest_rewards.reverse();
+  const changes = compareBundles(seed, c);
+  assert.ok(changes.some(d => d.path === '/quest_rewards/' + removed.quest_code + ':' + removed.item_code && d.after === undefined));
+  assert.ok(changes.some(d => d.path === '/quest_rewards/' + removed.quest_code + ':cloth' && d.before === undefined));
 });

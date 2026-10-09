@@ -37,8 +37,8 @@ function assertCurrentBaseline(state: DeliveryState, build: GameBuild) {
 }
 export async function createDemoDelivery(seed: ContentBundle): Promise<DeliveryState> {
   const baseline = await sealBundle(seed, '2026-10-08T02:00:00Z');
-  const content = copy(baseline); content.bundle_version = '1.1.0'; content.weapons[0].damage = 26;
-  content.quests.push({ ...copy(content.quests[0]), id: 'quest_rescue_route', title: 'Rescue route' });
+  const content = copy(baseline); content.version_no = baseline.version_no + 1; content.label = 'Rescue route & visual update'; content.weapons[0].damage = 26;
+  content.quests.push({ ...copy(content.quests[0]), code: 'quest_rescue_route', title: 'Rescue route' });
   const make = (id: string, title: string, status: GameBuild['status'], commit: string, source: GameBuild['source']): GameBuild => ({
     id, title, status, commit, parent_commit: '1'.repeat(40), branch: 'dev', author: 'Game developer', committed_at: '2026-10-08T12:00:00Z', source,
     revision: 1, platform: source === 'ci' ? 'windows' : null, min_client_version: source === 'ci' ? '1.0.0' : null, requires_client_update: false,
@@ -70,7 +70,7 @@ export function reviewDemoBuild(state: DeliveryState, selected: GameBuild, appro
   return next;
 }
 async function manifestFor(build: GameBuild, version: string, notes: string, actor: string, date: string): Promise<GameManifest> {
-  const content = await sealBundle({ ...build.content!, bundle_version: version }, date), text = JSON.stringify(content);
+  const content = await sealBundle(build.content!, date), text = JSON.stringify(content);
   const manifest: GameManifest = { manifest_version: 1, release_version: version, platform: build.platform!, published_at: date, published_by: actor, source_commit: build.commit, source_build_id: build.id, min_client_version: build.min_client_version!, requires_client_update: build.requires_client_update, delivery: 'assetbundles', notes, content: { url: '/demo/content/' + version, sha256: await hash(text), size_bytes: new TextEncoder().encode(text).length }, artifacts: copy(build.artifacts), checksum: '' };
   const payload = Object.fromEntries(Object.entries(manifest).filter(([key]) => key !== 'checksum'));
   manifest.checksum = 'sha256:' + await hash(canonicalJson(payload)); return manifest;

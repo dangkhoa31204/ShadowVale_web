@@ -26,7 +26,7 @@ test('demo review then publication preserves source snapshots and seals the chos
   assert.equal(manifest.source_build_id, selected.id); assert.equal(manifest.source_commit, selected.commit);
   assert.equal(manifest.published_by, 'Publisher'); assert.equal(manifest.notes, 'New map route');
   assert.deepEqual(manifest.artifacts, sourceArtifacts); assert.deepEqual(buildIn(published).content, sourceContent);
-  const sealed = await sealBundle({ ...sourceContent, bundle_version: '1.2.0' }, manifest.published_at), bytes = JSON.stringify(sealed);
+  const sealed = await sealBundle(sourceContent, manifest.published_at), bytes = JSON.stringify(sealed);
   assert.equal(manifest.content.sha256, hash(bytes)); assert.equal(manifest.content.size_bytes, Buffer.byteLength(bytes));
   const { checksum, ...payload } = manifest;
   assert.equal(checksum, 'sha256:' + hash(canonicalJson(payload)));

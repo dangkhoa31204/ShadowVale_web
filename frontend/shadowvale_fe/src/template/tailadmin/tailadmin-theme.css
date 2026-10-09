@@ -1,0 +1,79 @@
+/* Adapted from TailAdmin React's dark theme, sidebar, form and table system.
+   See LICENSE.md and upstream.css.txt in this directory. */
+.portal, .portal-state {
+  --sv-bg: #0c111d; --sv-surface: #101828; --sv-raised: #1d2939;
+  --sv-border: #263247; --sv-outline: #344054;
+  --sv-text: #f2f4f7; --sv-muted: #98a2b3; --sv-subtle: #667085;
+  --sv-accent: #7592ff; --sv-accent-dark: #465fff1a; --sv-accent-text: #9cb9ff;
+  --sv-on-accent: #fff; --sv-success: #32d583; --sv-error: #f97066; --sv-warning: #fdb022;
+  font-family: Outfit, Inter, system-ui, sans-serif; font-size: 14px;
+  background: var(--sv-bg); color: var(--sv-text);
+  color-scheme: dark;
+}
+.portal h1, .portal h2, .portal h3 { font-family: Outfit, Inter, sans-serif; letter-spacing: -.015em; }
+.portal h1 { font-size: 26px; line-height: 34px; font-weight: 600; }
+.portal h2 { font-size: 18px; font-weight: 500; }.portal h3 { font-size: 14px; font-weight: 500; }
+.portal .sv-sidebar { background: var(--sv-surface); }
+.portal .sv-brand { font-family: Outfit, sans-serif; font-size: 20px; font-weight: 600; letter-spacing: -.02em; color: var(--sv-text); }
+.portal .sv-brand-mark { background: #465fff; color: #fff; border: 0; border-radius: 10px; font-family: Outfit, sans-serif; font-weight: 600; width: 36px; height: 36px; }
+.portal .sv-nav-link { font-family: Outfit, sans-serif; font-size: 14px; padding: 11px 14px; border-radius: 8px; color: var(--sv-muted); }
+.portal .sv-nav-link.is-active { background: #465fff1a; color: #7592ff; }.portal .sv-nav-link:hover { background: #1d2939; }
+.portal .sv-nav-heading { display: block; margin: 10px 14px 12px; color: var(--sv-subtle); font: 11px Outfit,sans-serif; text-transform: uppercase; letter-spacing: .08em; }
+.portal .sv-nav-link b { color: #9cb9ff; background: #465fff20; border-radius: 4px; }
+.portal .sv-header { background: var(--sv-surface); min-height: 72px; }.portal .sv-header-role { font: 13px Outfit,sans-serif; text-transform: capitalize; }
+.portal .sv-header-title { color: var(--sv-text); font-size: 14px; font-weight: 500; }
+.portal .sv-mode { font: 11px Outfit,sans-serif; border-radius: 6px; }
+.portal .sv-mode.is-demo { border-color: #f7900940; background: #f7900910; color: #fdb022; }
+.portal .sv-avatar { border-radius: 50%; background: #465fff20; color: #9cb9ff; border: 0; font-family: Outfit,sans-serif; }
+.portal .sv-user strong { font-size: 13px; font-weight: 500; }.portal .sv-user small { font-size: 12px; }
+.portal .sv-game-card { background: var(--sv-bg); border-radius: 8px; margin-bottom: 16px; }.portal .sv-game-card strong { color: var(--sv-text); font: 13px Outfit,sans-serif; }
+.portal .sv-main { padding: 28px 32px; }.portal .sv-page { gap: 22px; }
+.portal .sv-page-heading { border: 0; padding: 0; }.portal .sv-page-heading p { font-size: 13px; margin-top: 5px; }
+.portal .sv-panel, .portal .sv-editor, .portal .sv-stat { border-radius: 12px; border-color: var(--sv-border); box-shadow: none; }
+.portal .sv-stat::after { display: none; }.portal .sv-stat strong { font-family: Outfit,sans-serif; font-weight: 600; font-size: 30px; }
+.portal .sv-stat > span, .portal .sv-stat > div > span:not(.sv-icon) { font-family: Outfit,sans-serif; font-size: 13px; }
+.portal .sv-stat small { font-size: 12px; }.portal .sv-stat .sv-icon { color: var(--sv-muted); }
+.portal .sv-panel-heading { padding: 20px 24px; }.portal .sv-panel-heading h2 { font-size: 18px; }.portal .sv-panel-heading p { font-size: 12px; }
+.portal .sv-button { font: 500 13px Outfit,sans-serif; letter-spacing: 0; min-height: 40px; border-radius: 8px; color: #d0d5dd !important; background: transparent !important; border-color: #344054 !important; }
+.portal .sv-button:hover { background: #1d2939 !important; color: #fff !important; border-color: #475467 !important; }
+.portal .sv-button-primary { background: #465fff !important; border-color: #465fff !important; color: #fff !important; }
+.portal .sv-button-primary:hover { background: #3641f5 !important; border-color: #3641f5 !important; color: #fff !important; }
+.portal .sv-button-danger { color: #f97066 !important; border-color: #f0443840 !important; }.portal .sv-button-small { min-height: 32px; font-size: 12px !important; }
+.portal input, .portal select, .portal textarea { background: #0c111d; color: #f2f4f7; border: 1px solid #344054; border-radius: 8px; font-family: Outfit,sans-serif; font-size: 14px; box-shadow: none; }
+.portal input:focus, .portal select:focus, .portal textarea:focus { border-color: #465fff; outline-color: #465fff; }
+.portal .sv-form label, .portal .sv-review-filter { font-family: Outfit,sans-serif; font-size: 12px; color: #d0d5dd; }
+.portal .sv-table { font-size: 13px; }.portal .sv-table th { font: 500 12px Outfit,sans-serif; text-transform: none; letter-spacing: 0; padding: 13px 20px; color: #98a2b3; background: #ffffff03; }
+.portal .sv-table td { padding: 16px 20px; color: #d0d5dd; border-color: #263247; }.portal .sv-table td strong { font: 500 13px Outfit,sans-serif; color: #f2f4f7; }
+.portal .sv-table td small { font: 12px Outfit,sans-serif; color: #98a2b3; }.portal .sv-table tr:hover td { background: #ffffff03; }
+.portal .sv-review-item { padding: 18px 20px; }.portal .sv-review-item.is-active { background: #465fff0d !important; border-left-color: #465fff !important; }
+.portal .sv-review-item strong { font: 500 14px Outfit,sans-serif; }.portal .sv-review-item small { font-size: 12px; }
+.portal .sv-detail-tabs { background: #1d2939; border: 0; border-radius: 8px; padding: 4px; }.portal .sv-detail-tabs button { border-radius: 6px; color: #98a2b3; font-size: 13px; }
+.portal .sv-detail-tabs button.is-active { background: #344054; color: #fff; box-shadow: 0 1px 3px #0002; }
+.portal .sv-alert { font-size: 12px; border-radius: 8px; background: #465fff0d; color: #b4c4ff; border-color: #465fff30; }
+.portal .sv-alert-error { color: #fda29b; background: #f0443810; border-color: #f0443840; }
+.portal .sv-empty { padding: 32px 20px; }.portal .sv-empty h3 { color: #98a2b3; font-size: 14px; }
+.portal .sv-build-counts button, .portal .sv-file-detail, .portal .sv-bundle-contents, .portal .sv-bundle-files > div { border-radius: 8px; }
+.portal .sv-build-counts button.is-active { background: #465fff15; color: #9cb9ff; }
+.portal .sv-demo-data { color: #fdb022; border-color: #f7900940; border-radius: 5px; font: 11px Outfit,sans-serif; }
+.portal .sv-mono { font-size: 11px; }.portal .sv-json-editor { border-radius: 8px; }.portal .sv-json-editor textarea { font-family: 'JetBrains Mono',monospace; }
+.portal .sv-snapshot details { border-radius: 8px; }.portal .sv-diff-list strong { font-size: 12px; }
+.portal .sv-diff-path { display: block; color: var(--sv-muted); margin: 4px 0 10px; }
+.portal .sv-search input { border: 0; background: transparent; }
+.portal .sv-content-tabs { scrollbar-color: #344054 transparent; scrollbar-width: thin; }
+.portal .sv-content-tabs button { font: 500 13px Outfit,sans-serif; }.portal .sv-content-tabs button > span:last-child:not(.sv-icon) { font: 11px Outfit,sans-serif; }
+.portal .sv-record strong { font: 500 13px Outfit,sans-serif; }.portal .sv-record small { font-size: 10px; }.portal .sv-records-heading { font: 500 13px Outfit,sans-serif; }
+.portal .sv-snapshot-records { padding: 14px; }
+.portal .sv-snapshot-records details { margin-bottom: 10px; }
+.portal .sv-snapshot-records details:last-child { margin-bottom: 0; }
+.portal .sv-snapshot-records dl { margin: 0; padding: 0 18px 14px; }
+.portal .sv-snapshot-records dl > div { display: grid; grid-template-columns: minmax(130px, 1fr) 2fr; gap: 16px; padding: 10px 0; border-top: 1px solid var(--sv-border); }
+.portal .sv-snapshot-records dt { color: var(--sv-muted); font-size: 12px; }.portal .sv-snapshot-records dd { margin: 0; overflow-wrap: anywhere; font-size: 13px; }
+.portal .sv-snapshot-records dd pre { padding: 0; max-height: 240px; overflow: auto; border: 0; }
+.portal .sv-publication-history { margin-top: 2px; }.portal .sv-release-reason { padding: 0 24px 22px; }
+.portal .sv-reviewed-by { display: block; margin-top: 4px; font-size: 12px; color: var(--sv-muted); }
+.portal .sv-review-detail > .sv-alert { margin: 0 24px 8px; }
+.portal .sv-modal { border-radius: 16px; background: #101828; border-color: #344054; box-shadow: 0 16px 48px #0006; }
+.portal .sv-modal .sv-form { margin-top: 16px; }.portal .sv-modal > div:last-child { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
+.portal .sv-modal > .sv-release-reason { display: block; padding: 0; }
+@media (max-width: 760px) { .portal .sv-main { padding: 22px 18px; }.portal .sv-header { padding: 0 18px; }.portal h1 { font-size: 24px; }.portal .sv-header-title { display: none; } }
+@media (max-width: 620px) { .portal .sv-snapshot-records dl > div { grid-template-columns: 1fr; gap: 5px; } }

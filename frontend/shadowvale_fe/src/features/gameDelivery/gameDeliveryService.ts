@@ -5,7 +5,7 @@ import seed from '../content/contracts/demo-bundle.json';
 import type { ContentBundle } from '../content/types';
 import { createDemoDelivery, reviewDemoBuild, publishDemoBuild } from './demoGameDelivery';
 import type { DeliveryState, GameBuild, GameManifest } from './types';
-const demoKey = 'shadowvale_game_delivery_demo_v2';
+const demoKey = 'shadowvale_game_delivery_demo_v3';
 async function loadDemo(): Promise<DeliveryState> {
   try {
     const saved = JSON.parse(localStorage.getItem(demoKey) || 'null') as DeliveryState | null;

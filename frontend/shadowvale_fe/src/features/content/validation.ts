@@ -1,81 +1,40 @@
 import Ajv from 'ajv';
 import type { ContentBundle, ContentRecord, JsonValue } from './types';
-const records = (value: JsonValue | undefined): ContentRecord[] =>
-  Array.isArray(value) ? value.filter(v => v && typeof v === 'object' && !Array.isArray(v)) as ContentRecord[] : [];
+import { collectionIdentity, schemaFields } from './schemaFields.ts';
 
+/** Frontend feedback only. Backend remains the authority for persistence and publish validation. */
 export function createBundleValidator(schema: object) {
-  const validateSchema = new Ajv({ allErrors: true, jsonPointers: true }).compile(schema);
+  const validateSchema = new Ajv({ allErrors: true, jsonPointers: true, multipleOfPrecision: 8 }).compile(schema);
   return (input: unknown): string[] => {
-    if (!validateSchema(input)) return (validateSchema.errors || []).map(e => `${e.dataPath || '/'} ${e.message}`);
+    if (!validateSchema(input)) return (validateSchema.errors || []).map(error => `${error.dataPath || '/'} ${error.message}`);
     const bundle = input as ContentBundle;
     const errors: string[] = [];
-    const groups = ['items', 'weapons', 'enemy_archetypes', 'loot_tables', 'craft_recipes', 'quests', 'maps'] as const;
-    for (const key of groups) {
-      const ids = new Set<JsonValue>();
-      bundle[key].forEach((r, i) => {
-        if (ids.has(r.id)) errors.push(`/${key}/${i}/id: duplicate id ${r.id}`);
-        ids.add(r.id);
+    for (const collection of Object.keys(collectionIdentity) as (keyof typeof collectionIdentity)[]) {
+      const identities = new Set<string>();
+      bundle[collection].forEach((record, index) => {
+        const path = `/${collection}/${index}`;
+        const identity = JSON.stringify(collectionIdentity[collection].map(key => record[key]));
+        if (identities.has(identity)) errors.push(`${path}: duplicate primary key ${collectionIdentity[collection].map(key => record[key]).join(' / ')}`);
+        identities.add(identity);
+        for (const field of schemaFields[collection]) {
+          if (!field.reference || record[field.key] === null || record[field.key] === undefined) continue;
+          const reference = field.reference;
+          const values = field.type === 'string-array' ? record[field.key] as JsonValue[] : [record[field.key]];
+          for (const value of values) {
+            const target = bundle[reference.collection].find(row => row[reference.valueField || 'code'] === value);
+            if (!target) errors.push(`${path}/${field.key}: unknown reference ${String(value)}`);
+            else if (reference.filter && target[reference.filter.field] !== reference.filter.value) errors.push(`${path}/${field.key}: must reference ${reference.filter.value} ${reference.collection}`);
+          }
+        }
+        if (record.content_version_id !== undefined && bundle.content_version_id !== undefined && record.content_version_id !== bundle.content_version_id) errors.push(`${path}/content_version_id: belongs to another content version`);
       });
     }
-    const ids = (key: typeof groups[number]) => new Set(bundle[key].map(r => r.id));
-    const itemIds = ids('items'), weaponIds = ids('weapons'), enemyIds = ids('enemy_archetypes');
-    const lootIds = ids('loot_tables'), mapIds = ids('maps');
-    const ref = (set: Set<JsonValue>, value: JsonValue | undefined, path: string) => {
-      if (!set.has(value as JsonValue)) errors.push(`${path}: unknown reference ${String(value)}`);
-    };
-    bundle.weapons.forEach((r, i) => {
-      ref(itemIds, r.ammo_type, `/weapons/${i}/ammo_type`);
-      if (!bundle.items.some(item => item.id === r.ammo_type && item.category === 'ammo')) errors.push(`/weapons/${i}/ammo_type must refer to an ammo item`);
+    if (bundle.maps.filter(map => map.is_safe_camp === true).length !== 1) errors.push('/maps: exactly one map must be the Safe Camp');
+    bundle.loot_tables.forEach((row, index) => {
+      if (Number(row.rolls_min) > Number(row.rolls_max)) errors.push(`/loot_tables/${index}: rolls_min must be <= rolls_max`);
     });
-    bundle.enemy_archetypes.forEach((r, i) => {
-      ref(weaponIds, r.weapon_id, `/enemy_archetypes/${i}/weapon_id`);
-      if (r.loot_table_id !== undefined) ref(lootIds, r.loot_table_id, `/enemy_archetypes/${i}/loot_table_id`);
-    });
-    bundle.loot_tables.forEach((r, i) => records(r.entries).forEach((entry, j) => {
-      ref(itemIds, entry.item_id, `/loot_tables/${i}/entries/${j}/item_id`);
-      if (Number(entry.min ?? 1) > Number(entry.max ?? 1)) errors.push(`/loot_tables/${i}/entries/${j}: min must be <= max`);
-    }));
-    bundle.craft_recipes.forEach((r, i) => {
-      ref(itemIds, r.output_item_id, `/craft_recipes/${i}/output_item_id`);
-      records(r.inputs).forEach((entry, j) => ref(itemIds, entry.item_id, `/craft_recipes/${i}/inputs/${j}/item_id`));
-    });
-    bundle.maps.forEach((r, i) => {
-      const nodes = records(r.nav_graph_nodes);
-      const nodeRef = (v: JsonValue, path: string) => {
-        if (!Number.isInteger(v) || Number(v) < 0 || Number(v) >= nodes.length) errors.push(`${path}: node is out of range`);
-      };
-      nodes.forEach((node, j) => {
-        if (node.id !== j) errors.push(`/maps/${i}/nav_graph_nodes/${j}/id must equal its array index`);
-        (node.neighbors as JsonValue[]).forEach(v => nodeRef(v, `/maps/${i}/nav_graph_nodes/${j}/neighbors`));
-      });
-      nodeRef(r.player_start_node ?? 0, `/maps/${i}/player_start_node`);
-      (r.escape_routes as JsonValue[]).forEach(v => nodeRef(v, `/maps/${i}/escape_routes`));
-      if (r.boss_archetype_id) ref(enemyIds, r.boss_archetype_id, `/maps/${i}/boss_archetype_id`);
-      records(r.spawn_groups).forEach((spawn, j) => {
-        ref(enemyIds, spawn.archetype_id, `/maps/${i}/spawn_groups/${j}/archetype_id`);
-        (spawn.start_nodes as JsonValue[] || []).forEach(v => nodeRef(v, `/maps/${i}/spawn_groups/${j}/start_nodes`));
-      });
-      records(r.loot_placements).forEach((placement, j) => {
-        ref(lootIds, placement.loot_table_id, `/maps/${i}/loot_placements/${j}/loot_table_id`);
-        nodeRef(placement.node, `/maps/${i}/loot_placements/${j}/node`);
-      });
-    });
-    bundle.quests.forEach((r, i) => {
-      if (r.map_id !== undefined) ref(mapIds, r.map_id, `/quests/${i}/map_id`);
-      records(r.rewards).forEach((reward, j) => ref(itemIds, reward.item_id, `/quests/${i}/rewards/${j}/item_id`));
-      const objectiveIds = new Set<JsonValue>();
-      records(r.objectives).forEach((o, j) => {
-        const path = `/quests/${i}/objectives/${j}`;
-        if (objectiveIds.has(o.id)) errors.push(`${path}/id: duplicate objective id`);
-        objectiveIds.add(o.id);
-        if (o.type === 'kill_archetype') ref(enemyIds, o.target_id, path + '/target_id');
-        if (o.type === 'collect_item') ref(itemIds, o.target_id, path + '/target_id');
-        if (o.type === 'escape_map') ref(mapIds, o.target_id ?? r.map_id, path + '/target_id');
-        if (o.type === 'reach_node') {
-          const map = bundle.maps.find(m => m.id === r.map_id);
-          if (!map || !/^\d+$/.test(String(o.target_id)) || Number(o.target_id) >= records(map.nav_graph_nodes).length) errors.push(path + '/target_id: unknown node in quest map');
-        }
-      });
+    bundle.loot_table_entries.forEach((row, index) => {
+      if (Number(row.min_qty) > Number(row.max_qty)) errors.push(`/loot_table_entries/${index}: min_qty must be <= max_qty`);
     });
     return errors;
   };
@@ -83,14 +42,13 @@ export function createBundleValidator(schema: object) {
 export function canonicalJson(value: unknown): string {
   if (value === null || typeof value !== 'object') return JSON.stringify(value);
   if (Array.isArray(value)) return '[' + value.map(canonicalJson).join(',') + ']';
-  return '{' + Object.entries(value).sort(([a], [b]) => a.localeCompare(b, 'en')).map(([k, v]) => JSON.stringify(k) + ':' + canonicalJson(v)).join(',') + '}';
+  return '{' + Object.entries(value).sort(([a], [b]) => a.localeCompare(b, 'en')).map(([key, entry]) => JSON.stringify(key) + ':' + canonicalJson(entry)).join(',') + '}';
 }
 export async function sealBundle(bundle: ContentBundle, publishedAt: string): Promise<ContentBundle> {
   const sealed = { ...structuredClone(bundle), published_at: publishedAt };
   delete sealed.checksum;
-  const bytes = new TextEncoder().encode(canonicalJson(sealed));
-  const hash = await crypto.subtle.digest('SHA-256', bytes);
-  sealed.checksum = 'sha256:' + Array.from(new Uint8Array(hash), v => v.toString(16).padStart(2, '0')).join('');
+  const hash = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(canonicalJson(sealed)));
+  sealed.checksum = Array.from(new Uint8Array(hash), value => value.toString(16).padStart(2, '0')).join('');
   return sealed;
 }
 export interface Difference { path: string; before: unknown; after: unknown }
@@ -98,12 +56,17 @@ export function compareBundles(before: unknown, after: unknown, path = ''): Diff
   if (canonicalJson(before) === canonicalJson(after)) return [];
   if (before && after && typeof before === 'object' && typeof after === 'object' && !Array.isArray(before) && !Array.isArray(after)) {
     const a = before as Record<string, unknown>, b = after as Record<string, unknown>;
-    return [...new Set([...Object.keys(a), ...Object.keys(b)])].flatMap(k => compareBundles(a[k], b[k], path + '/' + k));
+    return [...new Set([...Object.keys(a), ...Object.keys(b)])].flatMap(key => compareBundles(a[key], b[key], path + '/' + key));
   }
-  // Arrays with stable content IDs compare by ID instead of shifting indices.
-  if (Array.isArray(before) && Array.isArray(after) && [...before, ...after].every(v => v && typeof v === 'object' && 'id' in v)) {
-    const a = new Map(before.map(v => [v.id, v])), b = new Map(after.map(v => [v.id, v]));
-    return [...new Set([...a.keys(), ...b.keys()])].flatMap(id => compareBundles(a.get(id), b.get(id), path + '/' + id));
+  if (Array.isArray(before) && Array.isArray(after)) {
+    const collection = path.split('/').at(-1) as keyof typeof collectionIdentity;
+    const configured = collectionIdentity[collection];
+    const fields = configured || ([...before, ...after].every(value => value && typeof value === 'object' && 'id' in value) ? ['id'] : undefined);
+    if (fields && [...before, ...after].every(value => value && typeof value === 'object' && fields.every(field => field in value))) {
+      const key = (record: ContentRecord) => fields.map(field => String(record[field])).join(':');
+      const a = new Map(before.map(record => [key(record), record])), b = new Map(after.map(record => [key(record), record]));
+      return [...new Set([...a.keys(), ...b.keys()])].flatMap(identity => compareBundles(a.get(identity), b.get(identity), path + '/' + identity));
+    }
   }
   return [{ path: path || '/', before, after }];
 }
