@@ -27,6 +27,8 @@ public static class DependencyInjection
         services.AddScoped<IGameContentService, GameContentService>();
         services.AddScoped<IGameSessionService, GameSessionService>();
         services.AddScoped<IAnalyticsService, AnalyticsService>();
+        services.AddSingleton<IMetaService, MetaService>();
+        services.AddScoped<IDemoDataSeeder, DemoDataSeeder>();
 
         return services;
     }

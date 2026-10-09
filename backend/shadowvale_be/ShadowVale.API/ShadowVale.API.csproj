@@ -7,11 +7,18 @@
     <!-- API must go through BLL: hide DAL types from the API at compile time -->
     <DisableTransitiveProjectReferences>true</DisableTransitiveProjectReferences>
     <UserSecretsId>cd94e605-7641-4a65-ad08-1e0dcc677072</UserSecretsId>
+    <!-- docs/openapi.json is regenerated on every build and committed; CI fails if it is out of date -->
+    <OpenApiDocumentsDirectory>$(MSBuildProjectDirectory)/../docs</OpenApiDocumentsDirectory>
+    <OpenApiGenerateDocumentsOptions>--file-name openapi</OpenApiGenerateDocumentsOptions>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.12" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.12" />
+    <PackageReference Include="Microsoft.Extensions.ApiDescription.Server" Version="10.0.12">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.12">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>

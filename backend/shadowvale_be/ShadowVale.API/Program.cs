@@ -1,3 +1,4 @@
+using System.Reflection;
 using System.Text;
 using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Authentication;
@@ -19,6 +20,19 @@ using ShadowVale.BLL.Options;
 using ShadowVale.BLL.Services;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Build-time OpenAPI generation (docs/openapi.json) starts this app without secrets. It never serves a request or
+// opens the database, so placeholders let startup validation pass, and the seeders below are skipped.
+var generatingOpenApi = Assembly.GetEntryAssembly()?.GetName().Name == "GetDocument.Insider";
+if (generatingOpenApi)
+{
+    builder.Configuration.AddInMemoryCollection(new Dictionary<string, string?>
+    {
+        ["ConnectionStrings:Default"] = "Host=openapi-generation.invalid",
+        ["Jwt:Key"] = "openapi-generation-placeholder-key-000",
+        ["Game:ApiKeys:0"] = "openapi-generation-placeholder-key-000"
+    });
+}
 
 // Secrets (Supabase connection string, JWT key, seed admin) come from user-secrets in dev, env vars in prod
 var connectionString = builder.Configuration.GetConnectionString("Default")
@@ -109,8 +123,14 @@ var app = builder.Build();
 
 // Startup seeding: the first Admin (if SeedAdmin is configured and none exists yet) and the solver configurations
 // (if the table is empty). A database outage here must not stop the API from starting (/health will report it).
-await RunSeederAsync<IAdminSeeder>(app, "initial admin", (seeder, ct) => seeder.SeedAsync(ct));
-await RunSeederAsync<ISolverConfigurationSeeder>(app, "solver configurations", (seeder, ct) => seeder.SeedAsync(ct));
+if (!generatingOpenApi)
+{
+    await RunSeederAsync<IAdminSeeder>(app, "initial admin", (seeder, ct) => seeder.SeedAsync(ct));
+    await RunSeederAsync<ISolverConfigurationSeeder>(app, "solver configurations", (seeder, ct) => seeder.SeedAsync(ct));
+    // FAKE telemetry for building the dashboards: only in Development and only when Seed:DemoData=true
+    if (app.Environment.IsDevelopment() && app.Configuration.GetValue<bool>("Seed:DemoData"))
+        await RunSeederAsync<IDemoDataSeeder>(app, "demo data", (seeder, ct) => seeder.SeedAsync(ct));
+}
 
 // Runs first so every later middleware (rate limiter, HTTPS redirect, logging) sees the real client IP and scheme
 app.UseForwardedHeaders();

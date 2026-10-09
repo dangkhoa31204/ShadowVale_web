@@ -9,6 +9,7 @@ ShadowVale.DAL         Data: DbContext, Entities, Configurations, Repositories, 
 ShadowVale.Contracts   Chỉ những gì Unity dùng: Content (bundle), Telemetry (netstandard2.1, C# 9)
 tests/ShadowVale.BLL.Tests           Unit test (mock repository)
 tests/ShadowVale.IntegrationTests    Test qua HTTP với PostgreSQL thật
+docs/openapi.json                    Tài liệu API, tự sinh lại mỗi lần build
 ```
 
 Tham chiếu: `API → BLL → DAL`; API và BLL → `Contracts`. API chỉ gọi `AddBll(...)` và **không `using` được DAL**
@@ -153,6 +154,19 @@ Công thức:
 CSV: số dùng dấu chấm thập phân, thời gian UTC ISO 8601. Ô **chữ** bắt đầu bằng `= + - @` được thêm `'` để Excel không chạy
 như công thức; cột số giữ nguyên (ví dụ `-12.5`).
 
+## Danh mục giá trị (`GET /api/meta/enums`)
+
+Cần đăng nhập. Trả các giá trị hợp lệ để frontend làm dropdown và bộ lọc: thuật toán solver, family, outcome của phiên,
+outcome của trận, source (`human` / `replay`).
+
+## Dữ liệu cá nhân
+
+- Game không gửi tên, email, tài khoản hay IP. Người chơi chỉ được nhận diện bằng `installId`: một GUID ngẫu nhiên game tự
+  tạo lần đầu chạy, không gắn với danh tính nào.
+- API không lưu IP. IP chỉ được dùng trong bộ nhớ để giới hạn tần suất request.
+- Payload của event chỉ chứa dữ liệu gameplay (vị trí, vũ khí, kết quả...).
+- Tài khoản web (Admin / Designer / Analyst) lưu username, email, họ tên và hash mật khẩu; không có đăng ký công khai.
+
 ## Test
 
 xUnit + NSubstitute (mock) + Shouldly (assert): `dotnet test`
@@ -205,6 +219,22 @@ dotnet run --project ShadowVale.API
 
 - Scalar (giao diện test API): `/scalar`
 - Kiểm tra kết nối Supabase: `/health` (trả `Healthy` là kết nối được)
+- Tài liệu API dạng file: `docs/openapi.json`, được sinh lại mỗi lần build (`Microsoft.Extensions.ApiDescription.Server`).
+  Đổi API thì build rồi commit file này cùng code; CI báo lỗi nếu file không khớp.
+
+### Dữ liệu demo (chỉ máy dev)
+
+Để làm và demo dashboard trước khi game gửi dữ liệu thật, bật cờ rồi chạy API ở môi trường Development:
+
+```bash
+dotnet user-secrets set "Seed:DemoData" "true" --project ShadowVale.API
+```
+
+API sẽ tạo khoảng 300 phiên **giả** (cả `human` và `replay`), đánh dấu `client_version = "demo-seed"`, và một content version
+demo đã publish (bundle dự phòng của game) nếu chưa từng có version nào được publish. Mỗi lần chạy, dữ liệu demo cũ bị xóa
+rồi tạo lại. Seeder **từ chối chạy** nếu DB đã có phiên không phải demo, và cần có sẵn ít nhất một user.
+Chỉ dùng trên Supabase project riêng cho dev. Số liệu là ngẫu nhiên, giống nhau cho mọi solver, **không phải kết quả nghiên cứu**.
+Tắt cờ: `dotnet user-secrets remove "Seed:DemoData" --project ShadowVale.API`.
 
 ## Migration
 

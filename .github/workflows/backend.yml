@@ -44,6 +44,10 @@ jobs:
 
       - run: dotnet build --no-restore -c Release
 
+      # The build regenerates docs/openapi.json; it must match what is committed
+      - name: Check docs/openapi.json is up to date
+        run: git diff --exit-code -- docs/openapi.json || (echo "::error::docs/openapi.json is out of date. Build locally and commit it." && exit 1)
+
       # CI=true is set by GitHub, so integration tests fail (instead of skipping) if the database is unreachable
       - run: >-
           dotnet test --no-build -c Release
