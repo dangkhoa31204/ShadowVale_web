@@ -22,6 +22,8 @@ public static class DependencyInjection
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<IUserService, UserService>();
         services.AddScoped<IAdminSeeder, AdminSeeder>();
+        services.AddScoped<ISolverConfigurationService, SolverConfigurationService>();
+        services.AddScoped<ISolverConfigurationSeeder, SolverConfigurationSeeder>();
 
         return services;
     }

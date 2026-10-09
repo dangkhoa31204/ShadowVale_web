@@ -106,17 +106,10 @@ builder.Services.Configure<ForwardedHeadersOptions>(options =>
 
 var app = builder.Build();
 
-// Create the first Admin if SeedAdmin is configured and none exists yet.
-// A database outage here must not stop the API from starting (/health will report it).
-try
-{
-    await using var scope = app.Services.CreateAsyncScope();
-    await scope.ServiceProvider.GetRequiredService<IAdminSeeder>().SeedAsync();
-}
-catch (Exception ex)
-{
-    app.Logger.LogError(ex, "Seeding the initial admin failed");
-}
+// Startup seeding: the first Admin (if SeedAdmin is configured and none exists yet) and the solver configurations
+// (if the table is empty). A database outage here must not stop the API from starting (/health will report it).
+await RunSeederAsync<IAdminSeeder>(app, "initial admin", (seeder, ct) => seeder.SeedAsync(ct));
+await RunSeederAsync<ISolverConfigurationSeeder>(app, "solver configurations", (seeder, ct) => seeder.SeedAsync(ct));
 
 // Runs first so every later middleware (rate limiter, HTTPS redirect, logging) sees the real client IP and scheme
 app.UseForwardedHeaders();
@@ -143,6 +136,19 @@ app.MapControllers();
 app.MapHealthChecks("/health");
 
 await app.RunAsync();
+
+static async Task RunSeederAsync<TSeeder>(WebApplication app, string what, Func<TSeeder, CancellationToken, Task> seed) where TSeeder : notnull
+{
+    try
+    {
+        await using var scope = app.Services.CreateAsyncScope();
+        await seed(scope.ServiceProvider.GetRequiredService<TSeeder>(), app.Lifetime.ApplicationStopping);
+    }
+    catch (Exception ex)
+    {
+        app.Logger.LogError(ex, "Seeding the {What} failed", what);
+    }
+}
 
 static void AddPerIpPolicy(RateLimiterOptions options, string policyName, Func<RateLimitOptions, RateLimitOptions.FixedWindow> select) =>
     options.AddPolicy(policyName, httpContext =>

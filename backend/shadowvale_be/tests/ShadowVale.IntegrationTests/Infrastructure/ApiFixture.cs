@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using ShadowVale.API.Authentication;
 using ShadowVale.BLL.DTOs.Auth;
+using ShadowVale.BLL.Interfaces;
 using ShadowVale.DAL.Data;
 using ShadowVale.DAL.Entities;
 
@@ -79,6 +80,13 @@ public sealed class ApiFixture : IAsyncLifetime
 
     public Task WithDbAsync(Func<ShadowValeDbContext, Task> action) =>
         WithDbAsync(async db => { await action(db); return 0; });
+
+    // The startup seed ran before ResetAsync emptied the tables; run it again for tests that need it
+    public async Task SeedSolverConfigurationsAsync()
+    {
+        await using var scope = Factory.Services.CreateAsyncScope();
+        await scope.ServiceProvider.GetRequiredService<ISolverConfigurationSeeder>().SeedAsync();
+    }
 
     public HttpClient CreateClient() => Factory.CreateClient();
 

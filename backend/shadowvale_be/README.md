@@ -64,6 +64,30 @@ tài khoản. Game không đăng nhập (telemetry ẩn danh).
 
 Admin không tự hạ role hay tự khóa tài khoản của chính mình được (tránh trường hợp không còn ai quản lý user).
 
+## Cấu hình solver (`/api/solver-configurations`)
+
+Mỗi cấu hình là một thuật toán cùng bộ tham số. Cả 3 role xem được; chỉ Admin và Analyst sửa được.
+
+| Endpoint | Ghi chú |
+|---|---|
+| `GET /` | `?family=&algorithm=&isActive=`; mỗi dòng có `variant` (tên solver trong registry Python), `isAbArm`, `sessionCount`, `resultCount` |
+| `GET /{id}` | |
+| `POST /` | `{ code, name, algorithm, library?, params?, quboWeights?, timeBudgetMs }`; `family` do server suy ra; tạo ở trạng thái **tắt** |
+| `PUT /{id}` | `{ name, library?, params?, quboWeights?, timeBudgetMs }`; `code` và `algorithm` không đổi được |
+| `POST /{id}/clone` | `{ code, name }`; bản sao ở trạng thái tắt |
+| `PATCH /{id}/active` | `{ isActive }` |
+| `DELETE /{id}` | Chỉ khi chưa từng được dùng |
+
+Quy tắc giữ cho phép so sánh hợp lệ:
+- `params` chỉ nhận đúng các tham số mà constructor solver nhận (`SolverParamsValidator`); `quboWeights` chỉ nhận 6 trọng số
+  của solver và luôn được lưu đủ 6 (thiếu thì lấy mặc định của solver).
+- Cấu hình **đã được dùng** (có phiên hoặc kết quả trỏ tới) chỉ đổi được tên; muốn thử tham số khác thì clone.
+- Mọi cấu hình **đang bật** phải cùng `timeBudgetMs` và `quboWeights`, để các nhánh A/B chỉ khác nhau ở thuật toán.
+- Nhánh A/B = cấu hình đang bật, trừ `QpuDwave` (solver chưa chạy được).
+
+Lần khởi động đầu (bảng rỗng), API tự tạo `greedy`, `ga`, `sa`, `sqa`, `qiea`, `qaoa` với tham số đã tune
+(`shadowvale-solver/experiments/tuning/tuned.json`), ngân sách 120 ms; chỉ bật sẵn `greedy` và `sqa`.
+
 ## Game
 
 Game không đăng nhập. Mỗi bản build gửi header `X-Game-Key`; key nằm trong `Game:ApiKeys` (mảng, mỗi key ≥ 32 ký tự,
