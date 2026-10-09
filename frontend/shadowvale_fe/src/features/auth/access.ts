@@ -14,6 +14,7 @@ export const safeRedirect = (value: string | null, role: Role) =>
 export const navigation: { label: string; path: string; icon: string; permission?: Permission; group: string }[] = [
   { label: 'Overview', path: '/admin/dashboard', icon: 'dashboard', permission: 'overview', group: 'Workspace' },
   { label: 'Content authoring', path: '/admin/content', icon: 'edit_note', permission: 'author', group: 'Workspace' },
+  { label: 'Change reports', path: '/admin/change-reports', icon: 'description', permission: 'author', group: 'Workspace' },
   { label: 'Review content', path: '/admin/reviews', icon: 'fact_check', permission: 'review', group: 'Workspace' },
   { label: 'Versions', path: '/admin/releases', icon: 'deployed_code', permission: 'versions', group: 'Workspace' },
   { label: 'Analytics', path: '/admin/analytics', icon: 'monitoring', permission: 'analytics', group: 'Insights' },

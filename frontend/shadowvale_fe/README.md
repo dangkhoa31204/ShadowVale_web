@@ -46,6 +46,7 @@ material, and `tailadmin-theme.css` provides the compatible adaptation.
 | Overview | Yes | Yes | — |
 | Content version history / JSON | Yes | Yes | Yes |
 | Edit own drafts and submit | Yes | — | — |
+| Create change reports with image evidence | Yes | — | — |
 | Review / approve / reject | — | — | Yes |
 | Publish / rollback | — | — | Yes |
 | Telemetry and solver comparison | — | Yes | — |
@@ -99,6 +100,40 @@ Demo state maintains one published version. Historical snapshots are immutable.
 This is an FE demonstration; actual transactions and bundle generation belong
 to the backend.
 
+## Change reports and evidence
+
+Designer opens `/admin/change-reports` to attach a report to an owned content
+version, or create a new version from published content. Each change has a
+category, title and description, with optional file/scene path, previous behavior,
+verification, image and caption. Source references accept a Local Git / CI demo
+commit or a manually entered branch and commit. These are references, not Git sync.
+
+Save report allows an incomplete draft; submission requires a summary, branch,
+commit and complete change descriptions. Report edits share the content revision.
+Submission locks both gameplay content and report, and rejection must be resumed
+before editing. Admin reviews the images/descriptions and gameplay content in
+separate tabs within the same submission. Published version details retain the
+report snapshot.
+
+Admin's Game changes tab reads submitted designer reports from the same workspace
+as Content versions; it does not create a separate build approval for a report.
+Git/CI source builds remain available in a separate disclosure below the reports.
+Refresh submissions reloads the workspace. Admin demo views also reload on
+workspace storage events from another tab and when the window regains focus.
+Browser demo storage is scoped to the same browser and origin.
+
+Demo image import accepts decodable PNG/JPEG/WebP files up to 2 MB and stores
+their blobs in IndexedDB `shadowvale_review_evidence`. The workspace stores only
+image metadata. Images survive reloads within this browser; clearing browser
+storage removes them. Replacing/removing an image reference keeps the blob so
+historical versions retain their evidence. Unsaved imports may leave unused blobs.
+
+**Review package** downloads `shadowvale-review/1.0` JSON with the saved report,
+content, revision and embedded image data. It is a review attachment, not the
+Unity runtime bundle. The normal content JSON remains the 14-collection DB-shaped
+contract. Report/evidence metadata are FE sidecars; the supplied DB has no report
+or image tables, and no backend migration is included.
+
 `contracts/content.schema.json` validates this FE's DB-shaped data with AJV
 (draft-07). Additional FE checks cover PK/FK relations, fixed item types,
 quantity bounds and exactly one Safe Camp. The seed is synthetic DB v3 data,
@@ -127,6 +162,8 @@ implemented endpoints added by this change:
 | `GET /auth/me` | Verified session → `User` |
 | `GET /internal/workspace` | Role-scoped `Workspace` |
 | `POST /internal/commands` | `Command` → updated `Workspace` |
+| `POST /internal/content-versions/{id}/evidence` | Multipart `image` → `EvidenceImage` metadata |
+| `GET /internal/evidence/{id}` | Authorized evidence image blob |
 | `GET /telemetry/analytics?content_version_id=…` | DB-shaped analytics collections |
 
 Exact DTOs are in `features/content/types.ts` and

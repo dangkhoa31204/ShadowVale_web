@@ -1,4 +1,5 @@
 import type { User, Role } from '../../types/user';
+import type { ChangeReport } from '../changeReports/types';
 export type JsonValue = string | number | boolean | null | JsonValue[] | { [key: string]: JsonValue };
 export type ContentRecord = { [key: string]: JsonValue };
 export const collections = [
@@ -31,11 +32,13 @@ export interface Draft {
   submitted_at?: string; reviewedBy?: string; reviewedAt?: string;
   validation_errors?: string[]; validated_at?: string; bundle_checksum?: string;
   published_by?: string; published_at?: string; archived_at?: string;
+  changeReport?: ChangeReport;
 }
 export interface Release {
   id: string; version_no: number; label: string; changelog: string; status: 'published' | 'archived';
   version: string; publishedAt: string; publishedBy: string;
   bundle: ContentBundle; sourceDraftId: string; restoredFrom?: string;
+  changeReport?: ChangeReport; revision?: number;
 }
 export interface PublicationHistory {
   id: number; content_version_id: string; previous_version_id: string | null;
@@ -50,7 +53,7 @@ export interface Workspace {
 }
 export type Command =
   | { type: 'createDraft'; title: string; label?: string; changelog?: string; sourceReleaseId?: string }
-  | { type: 'saveDraft'; id: string; revision: number; title: string; label?: string; changelog?: string; bundle: ContentBundle }
+  | { type: 'saveDraft'; id: string; revision: number; title: string; label?: string; changelog?: string; bundle: ContentBundle; changeReport?: ChangeReport }
   | { type: 'editRejectedDraft'; id: string; revision: number }
   | { type: 'submitDraft'; id: string; revision: number }
   | { type: 'reviewDraft'; id: string; revision: number; approve: boolean; note: string }
