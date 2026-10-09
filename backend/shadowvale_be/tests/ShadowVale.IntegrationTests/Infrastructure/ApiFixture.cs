@@ -52,6 +52,16 @@ public sealed class ApiFixture : IAsyncLifetime
         _factory = new WebApplicationFactory<Program>().WithWebHostBuilder(b => b.UseEnvironment("Testing"));
     }
 
+    // Same app on a real Kestrel server (random local port), for behaviour the in-memory test server does not have
+    public WebApplicationFactory<Program> CreateKestrelFactory()
+    {
+        _ = Factory;
+        var factory = new WebApplicationFactory<Program>().WithWebHostBuilder(b => b.UseEnvironment("Testing"));
+        factory.UseKestrel(0);
+        factory.StartServer();
+        return factory;
+    }
+
     public async Task DisposeAsync()
     {
         if (_factory is not null)

@@ -82,11 +82,12 @@ builder.Services.AddAuthorization(options => options.AddPolicy(AuthPolicies.Game
     .AddAuthenticationSchemes(GameKeyAuthenticationHandler.SchemeName)
     .RequireAuthenticatedUser()));
 
-// Fixed window per client IP; limits come from RateLimits (auth: brute-force protection on login/refresh)
+// Fixed window per client IP; limits come from RateLimits (auth: brute-force protection on login/refresh, game: anti-spam)
 builder.Services.AddRateLimiter(options =>
 {
     options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
     AddPerIpPolicy(options, AuthController.RateLimitPolicy, limits => limits.Auth);
+    AddPerIpPolicy(options, GameController.RateLimitPolicy, limits => limits.Game);
 });
 
 const string FrontendCorsPolicy = "Frontend";

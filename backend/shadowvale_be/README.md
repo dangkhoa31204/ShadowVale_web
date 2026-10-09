@@ -94,6 +94,35 @@ Game không đăng nhập. Mỗi bản build gửi header `X-Game-Key`; key nằ
 cho phép nhiều key để đổi key mà không gián đoạn). Thiếu key thì API **không khởi động**. Key này chỉ để chặn spam
 (key nằm trong bản build nên có thể bị lấy ra), vì vậy endpoint game còn bị giới hạn 120 request/phút/IP (`RateLimits:Game`).
 
+DTO nằm trong `ShadowVale.Contracts` (`Game/*`, `Telemetry/*`) để Unity dùng lại; JSON dạng camelCase, thời gian là ISO 8601
+có offset (server lưu UTC). Game hiểu mã trả về như sau: **2xx và 409 = xong**; **400 và 413 = bỏ lô**; mã khác = gửi lại sau.
+
+| Endpoint | Ghi chú |
+|---|---|
+| `GET /api/game/content/manifest` | Version đang Published: `{ versionId, versionNo, label, schemaVersion, checksum, publishedAt }`; chưa có → 404 |
+| `GET /api/game/content/bundle` | Bundle nguyên văn, `ETag: "<checksum>"`. Gửi lại checksum trong `If-None-Match` → 304 nếu không đổi |
+| `GET /api/game/content/versions/{id}/bundle` | Version từng được publish (kể cả đã archive), cho replay harness |
+| `POST /api/game/sessions` | Đăng ký phiên khi bắt đầu chơi, trả solver phải dùng (`solver: null` = dùng mặc định trong bundle) |
+| `PUT /api/game/sessions/{id}` | Gửi một lần khi phiên kết thúc: kết quả, `stats`, `events[]`, `coordinationResults[]`; tối đa 2 MB |
+
+`checksum` là SHA-256 của đúng chuỗi bundle mà API trả về, do PostgreSQL tính, nên không phụ thuộc giá trị `bundle_checksum`
+mà phần publish lưu.
+
+**Giao solver** (`POST sessions`):
+- `source: "human"`: server tự chia đều theo hash của `sessionId` cho các cấu hình đang bật (trừ `QpuDwave`).
+  Không được gửi `requestedVariant`.
+- `source: "replay"`: bắt buộc gửi `requestedVariant` = `code` của cấu hình muốn chạy (không cần đang bật).
+- Gọi lại với cùng `sessionId` trả đúng kết quả cũ; `sessionId` đã thuộc `installId` khác → 409.
+
+**Upload** (`PUT sessions/{id}`): gửi lại bao nhiêu lần cũng không bị nhân đôi; event (theo `clientEventId`) và kết quả re-plan
+(theo `id`) đã lưu được đếm là `duplicate`. Kết quả trả về là số `accepted` / `duplicate` / `rejected` của event và của kết quả.
+- **400 cả lô:** thiếu hoặc sai thông tin phiên (`endedAt`, `outcome`...), id rỗng hoặc trùng trong lô, quá 5.000 event /
+  2.000 kết quả / 200 trận, `stats` có số âm hoặc trận sai.
+- **Chỉ bỏ phần tử đó (`rejected`):** loại event lạ, payload > 4 KB, thời điểm nằm ngoài phiên (cho lệch 1 phút trước / 5 phút
+  sau), `variant` không tra được cấu hình nào, `taskType` sai.
+- `contentVersionId` lạ (ví dụ bundle dự phòng trong game) được lưu là `null`.
+- Phiên chưa từng gọi `POST sessions` vẫn được lưu, nhưng không có solver được giao nên không tính vào so sánh solver.
+
 ## Test
 
 xUnit + NSubstitute (mock) + Shouldly (assert): `dotnet test`

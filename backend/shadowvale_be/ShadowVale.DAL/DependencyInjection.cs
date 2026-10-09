@@ -19,6 +19,8 @@ public static class DependencyInjection
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
         services.AddScoped<ISolverConfigurationRepository, SolverConfigurationRepository>();
+        services.AddScoped<IGameContentRepository, GameContentRepository>();
+        services.AddScoped<IGameSessionRepository, GameSessionRepository>();
 
         return services;
     }
