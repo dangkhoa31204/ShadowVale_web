@@ -8,6 +8,6 @@ export function downloadJson(value: unknown, filename: string) {
 }
 export const actionLabels: Record<string, string> = {
   createDraft: 'Created draft', saveDraft: 'Saved draft', submitDraft: 'Submitted for review',
-  reviewDraft: 'Reviewed content', publishDraft: 'Published bundle', restoreRelease: 'Restored version',
+  reviewDraft: 'Reviewed content', publishDraft: 'Published version', restoreRelease: 'Rolled back version', editRejectedDraft: 'Resumed draft',
   createUser: 'Created account', updateUser: 'Updated account', deleteUser: 'Deleted account', saveConfig: 'Updated configuration',
 };

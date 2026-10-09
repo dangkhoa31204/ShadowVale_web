@@ -1,401 +1,876 @@
 {
-  "bundle_version": "1.0.0",
-  "schema_version": 1,
+  "version_no": 1,
+  "label": "Initial release",
+  "schema_version": "1.0",
+  "changelog": "Initial maps, combat and crafting configuration.",
   "items": [
     {
-      "id": "ammo_rifle",
-      "display_name": "Rifle Rounds",
-      "category": "ammo",
-      "stack_max": 90,
-      "weight": 0.02
+      "code": "ammo_rifle",
+      "name": "Rifle Rounds",
+      "description": null,
+      "item_type": "ammo",
+      "rarity": "common",
+      "max_stack": 90,
+      "weight": 0.02,
+      "base_value": 0,
+      "stats": {},
+      "icon_key": "ammo_rifle"
     },
     {
-      "id": "ammo_smg",
-      "display_name": "SMG Rounds",
-      "category": "ammo",
-      "stack_max": 120,
-      "weight": 0.01
+      "code": "ammo_smg",
+      "name": "SMG Rounds",
+      "description": null,
+      "item_type": "ammo",
+      "rarity": "common",
+      "max_stack": 120,
+      "weight": 0.01,
+      "base_value": 0,
+      "stats": {},
+      "icon_key": "ammo_smg"
     },
     {
-      "id": "ammo_shotgun",
-      "display_name": "Shells",
-      "category": "ammo",
-      "stack_max": 32,
-      "weight": 0.05
+      "code": "ammo_shotgun",
+      "name": "Shells",
+      "description": null,
+      "item_type": "ammo",
+      "rarity": "common",
+      "max_stack": 32,
+      "weight": 0.05,
+      "base_value": 0,
+      "stats": {},
+      "icon_key": "ammo_shotgun"
     },
     {
-      "id": "ammo_pistol",
-      "display_name": "Pistol Rounds",
-      "category": "ammo",
-      "stack_max": 60,
-      "weight": 0.01
+      "code": "ammo_pistol",
+      "name": "Pistol Rounds",
+      "description": null,
+      "item_type": "ammo",
+      "rarity": "common",
+      "max_stack": 60,
+      "weight": 0.01,
+      "base_value": 0,
+      "stats": {},
+      "icon_key": "ammo_pistol"
     },
     {
-      "id": "ammo_sniper",
-      "display_name": "Long Rounds",
-      "category": "ammo",
-      "stack_max": 20,
-      "weight": 0.04
+      "code": "ammo_sniper",
+      "name": "Long Rounds",
+      "description": null,
+      "item_type": "ammo",
+      "rarity": "common",
+      "max_stack": 20,
+      "weight": 0.04,
+      "base_value": 0,
+      "stats": {},
+      "icon_key": "ammo_sniper"
     },
     {
-      "id": "scrap_metal",
-      "display_name": "Scrap Metal",
-      "category": "material",
-      "stack_max": 20,
-      "weight": 0.5
+      "code": "scrap_metal",
+      "name": "Scrap Metal",
+      "description": null,
+      "item_type": "material",
+      "rarity": "common",
+      "max_stack": 20,
+      "weight": 0.5,
+      "base_value": 0,
+      "stats": {},
+      "icon_key": "scrap_metal"
     },
     {
-      "id": "cloth",
-      "display_name": "Cloth",
-      "category": "material",
-      "stack_max": 20,
-      "weight": 0.1
+      "code": "cloth",
+      "name": "Cloth",
+      "description": null,
+      "item_type": "material",
+      "rarity": "common",
+      "max_stack": 20,
+      "weight": 0.1,
+      "base_value": 0,
+      "stats": {},
+      "icon_key": "cloth"
     },
     {
-      "id": "herb",
-      "display_name": "Bitter Herb",
-      "category": "material",
-      "stack_max": 20,
-      "weight": 0.05
+      "code": "herb",
+      "name": "Bitter Herb",
+      "description": null,
+      "item_type": "material",
+      "rarity": "common",
+      "max_stack": 20,
+      "weight": 0.05,
+      "base_value": 0,
+      "stats": {},
+      "icon_key": "herb"
     },
     {
-      "id": "gun_oil",
-      "display_name": "Gun Oil",
-      "category": "material",
-      "stack_max": 10,
-      "weight": 0.2
+      "code": "gun_oil",
+      "name": "Gun Oil",
+      "description": null,
+      "item_type": "material",
+      "rarity": "common",
+      "max_stack": 10,
+      "weight": 0.2,
+      "base_value": 0,
+      "stats": {},
+      "icon_key": "gun_oil"
     },
     {
-      "id": "medkit_small",
-      "display_name": "Field Dressing",
-      "category": "consumable",
-      "stack_max": 5,
-      "weight": 0.3
+      "code": "medkit_small",
+      "name": "Field Dressing",
+      "description": null,
+      "item_type": "consumable",
+      "rarity": "common",
+      "max_stack": 5,
+      "weight": 0.3,
+      "base_value": 0,
+      "stats": {},
+      "icon_key": "medkit_small"
     },
     {
-      "id": "repair_kit",
-      "display_name": "Repair Kit",
-      "category": "tool",
-      "stack_max": 3,
-      "weight": 0.8
+      "code": "repair_kit",
+      "name": "Repair Kit",
+      "description": null,
+      "item_type": "tool",
+      "rarity": "common",
+      "max_stack": 3,
+      "weight": 0.8,
+      "base_value": 0,
+      "stats": {},
+      "icon_key": "repair_kit"
+    },
+    {
+      "code": "rifle_standard",
+      "name": "Service Rifle",
+      "description": null,
+      "item_type": "weapon",
+      "rarity": "uncommon",
+      "max_stack": 1,
+      "weight": 2.5,
+      "base_value": 250,
+      "stats": {},
+      "icon_key": "rifle_standard"
+    },
+    {
+      "code": "smg_compact",
+      "name": "Compact SMG",
+      "description": null,
+      "item_type": "weapon",
+      "rarity": "uncommon",
+      "max_stack": 1,
+      "weight": 2.5,
+      "base_value": 250,
+      "stats": {},
+      "icon_key": "smg_compact"
+    },
+    {
+      "code": "shotgun_pump",
+      "name": "Pump Shotgun",
+      "description": null,
+      "item_type": "weapon",
+      "rarity": "uncommon",
+      "max_stack": 1,
+      "weight": 2.5,
+      "base_value": 250,
+      "stats": {},
+      "icon_key": "shotgun_pump"
+    },
+    {
+      "code": "pistol_silenced",
+      "name": "Silenced Pistol",
+      "description": null,
+      "item_type": "weapon",
+      "rarity": "uncommon",
+      "max_stack": 1,
+      "weight": 2.5,
+      "base_value": 250,
+      "stats": {},
+      "icon_key": "pistol_silenced"
+    },
+    {
+      "code": "sniper_bolt",
+      "name": "Bolt Rifle",
+      "description": null,
+      "item_type": "weapon",
+      "rarity": "uncommon",
+      "max_stack": 1,
+      "weight": 2.5,
+      "base_value": 250,
+      "stats": {},
+      "icon_key": "sniper_bolt"
+    },
+    {
+      "code": "carbine_scout",
+      "name": "Scout Carbine",
+      "description": null,
+      "item_type": "weapon",
+      "rarity": "uncommon",
+      "max_stack": 1,
+      "weight": 2.5,
+      "base_value": 250,
+      "stats": {},
+      "icon_key": "carbine_scout"
     }
   ],
   "weapons": [
     {
-      "id": "rifle_standard",
-      "display_name": "Service Rifle",
-      "class": "rifle",
+      "item_code": "rifle_standard",
+      "item_type": "weapon",
+      "weapon_class": "rifle",
       "damage": 24.0,
       "fire_rate": 6.5,
-      "range": 40.0,
-      "ammo_type": "ammo_rifle",
+      "effective_range": 40.0,
       "magazine_size": 30,
-      "reload_seconds": 2.4,
-      "durability_max": 100,
-      "durability_per_shot": 0.12,
+      "reload_time_s": 2.4,
+      "ammo_item_code": "ammo_rifle",
+      "ammo_type": "ammo",
+      "max_durability": 100,
+      "durability_per_use": 0.12,
       "noise_radius": 18.0,
-      "suppressed": false
+      "is_suppressed": false
     },
     {
-      "id": "smg_compact",
-      "display_name": "Compact SMG",
-      "class": "smg",
+      "item_code": "smg_compact",
+      "item_type": "weapon",
+      "weapon_class": "smg",
       "damage": 14.0,
       "fire_rate": 11.0,
-      "range": 22.0,
-      "ammo_type": "ammo_smg",
+      "effective_range": 22.0,
       "magazine_size": 35,
-      "reload_seconds": 1.8,
-      "durability_max": 90,
-      "durability_per_shot": 0.1,
+      "reload_time_s": 1.8,
+      "ammo_item_code": "ammo_smg",
+      "ammo_type": "ammo",
+      "max_durability": 90,
+      "durability_per_use": 0.1,
       "noise_radius": 14.0,
-      "suppressed": false
+      "is_suppressed": false
     },
     {
-      "id": "shotgun_pump",
-      "display_name": "Pump Shotgun",
-      "class": "shotgun",
+      "item_code": "shotgun_pump",
+      "item_type": "weapon",
+      "weapon_class": "shotgun",
       "damage": 60.0,
       "fire_rate": 1.2,
-      "range": 12.0,
-      "ammo_type": "ammo_shotgun",
+      "effective_range": 12.0,
       "magazine_size": 6,
-      "reload_seconds": 3.0,
-      "durability_max": 120,
-      "durability_per_shot": 0.4,
+      "reload_time_s": 3.0,
+      "ammo_item_code": "ammo_shotgun",
+      "ammo_type": "ammo",
+      "max_durability": 120,
+      "durability_per_use": 0.4,
       "noise_radius": 24.0,
-      "suppressed": false
+      "is_suppressed": false
     },
     {
-      "id": "pistol_silenced",
-      "display_name": "Silenced Pistol",
-      "class": "pistol",
+      "item_code": "pistol_silenced",
+      "item_type": "weapon",
+      "weapon_class": "pistol",
       "damage": 18.0,
       "fire_rate": 4.0,
-      "range": 20.0,
-      "ammo_type": "ammo_pistol",
+      "effective_range": 20.0,
       "magazine_size": 12,
-      "reload_seconds": 1.5,
-      "durability_max": 80,
-      "durability_per_shot": 0.15,
+      "reload_time_s": 1.5,
+      "ammo_item_code": "ammo_pistol",
+      "ammo_type": "ammo",
+      "max_durability": 80,
+      "durability_per_use": 0.15,
       "noise_radius": 4.0,
-      "suppressed": true
+      "is_suppressed": true
     },
     {
-      "id": "sniper_bolt",
-      "display_name": "Bolt Rifle",
-      "class": "sniper",
+      "item_code": "sniper_bolt",
+      "item_type": "weapon",
+      "weapon_class": "sniper",
       "damage": 95.0,
       "fire_rate": 0.8,
-      "range": 70.0,
-      "ammo_type": "ammo_sniper",
+      "effective_range": 70.0,
       "magazine_size": 5,
-      "reload_seconds": 3.2,
-      "durability_max": 110,
-      "durability_per_shot": 0.5,
+      "reload_time_s": 3.2,
+      "ammo_item_code": "ammo_sniper",
+      "ammo_type": "ammo",
+      "max_durability": 110,
+      "durability_per_use": 0.5,
       "noise_radius": 30.0,
-      "suppressed": false
+      "is_suppressed": false
     },
     {
-      "id": "carbine_scout",
-      "display_name": "Scout Carbine",
-      "class": "carbine",
+      "item_code": "carbine_scout",
+      "item_type": "weapon",
+      "weapon_class": "rifle",
       "damage": 20.0,
       "fire_rate": 5.0,
-      "range": 32.0,
-      "ammo_type": "ammo_rifle",
+      "effective_range": 32.0,
       "magazine_size": 20,
-      "reload_seconds": 2.0,
-      "durability_max": 100,
-      "durability_per_shot": 0.1,
+      "reload_time_s": 2.0,
+      "ammo_item_code": "ammo_rifle",
+      "ammo_type": "ammo",
+      "max_durability": 100,
+      "durability_per_use": 0.1,
       "noise_radius": 16.0,
-      "suppressed": false
+      "is_suppressed": false
     }
   ],
-  "enemy_archetypes": [
+  "consumables": [
     {
-      "id": "grunt",
-      "display_name": "Militia Grunt",
-      "max_hp": 80,
-      "move_speed": 3.2,
-      "vision_range": 14.0,
-      "vision_angle": 90.0,
-      "hearing_range": 12.0,
-      "weapon_id": "rifle_standard",
-      "alert_decay_seconds": 8.0,
-      "retreat_hp_threshold": 0.25,
-      "loot_table_id": "loot_tier_1",
-      "is_boss": false
+      "item_code": "medkit_small",
+      "item_type": "consumable",
+      "heal_hp": 40,
+      "restore_stamina": 0,
+      "use_time_s": 2.5,
+      "cures": [
+        "bleeding"
+      ],
+      "extra_effects": {}
+    }
+  ],
+  "skills": [
+    {
+      "code": "shooting",
+      "name": "Shooting",
+      "skill_type": "shooting",
+      "max_level": 10,
+      "xp_curve": [
+        100,
+        250,
+        500
+      ],
+      "effects": {}
     },
     {
-      "id": "scout",
-      "display_name": "Militia Scout",
-      "max_hp": 55,
-      "move_speed": 4.2,
-      "vision_range": 20.0,
-      "vision_angle": 110.0,
-      "hearing_range": 16.0,
-      "weapon_id": "carbine_scout",
-      "alert_decay_seconds": 6.0,
-      "retreat_hp_threshold": 0.4,
-      "loot_table_id": "loot_tier_1",
-      "is_boss": false
+      "code": "engineering",
+      "name": "Engineering",
+      "skill_type": "engineering",
+      "max_level": 10,
+      "xp_curve": [
+        100,
+        250,
+        500
+      ],
+      "effects": {}
     },
     {
-      "id": "heavy",
-      "display_name": "Militia Heavy",
-      "max_hp": 160,
-      "move_speed": 2.4,
-      "vision_range": 12.0,
-      "vision_angle": 80.0,
-      "hearing_range": 10.0,
-      "weapon_id": "shotgun_pump",
-      "alert_decay_seconds": 10.0,
-      "retreat_hp_threshold": 0.15,
-      "loot_table_id": "loot_tier_2",
-      "is_boss": false
-    },
-    {
-      "id": "boss_commander",
-      "display_name": "Commander Varek",
-      "max_hp": 600,
-      "move_speed": 3.6,
-      "vision_range": 18.0,
-      "vision_angle": 120.0,
-      "hearing_range": 18.0,
-      "weapon_id": "smg_compact",
-      "alert_decay_seconds": 999.0,
-      "retreat_hp_threshold": 0.0,
-      "loot_table_id": "loot_tier_3",
-      "is_boss": true
+      "code": "stealth",
+      "name": "Stealth",
+      "skill_type": "stealth",
+      "max_level": 10,
+      "xp_curve": [
+        100,
+        250,
+        500
+      ],
+      "effects": {}
     }
   ],
   "loot_tables": [
     {
-      "id": "loot_tier_1",
-      "tier": 1,
-      "rolls": 2,
-      "entries": [
-        {
-          "item_id": "ammo_rifle",
-          "weight": 40,
-          "min": 5,
-          "max": 15
-        },
-        {
-          "item_id": "ammo_smg",
-          "weight": 20,
-          "min": 10,
-          "max": 25
-        },
-        {
-          "item_id": "scrap_metal",
-          "weight": 25,
-          "min": 1,
-          "max": 3
-        },
-        {
-          "item_id": "cloth",
-          "weight": 25,
-          "min": 1,
-          "max": 2
-        },
-        {
-          "item_id": "medkit_small",
-          "weight": 10,
-          "min": 1,
-          "max": 1
-        }
-      ]
+      "code": "loot_tier_1",
+      "name": "Loot tier 1",
+      "rolls_min": 2,
+      "rolls_max": 2
     },
     {
-      "id": "loot_tier_2",
-      "tier": 2,
-      "rolls": 3,
-      "entries": [
-        {
-          "item_id": "ammo_shotgun",
-          "weight": 30,
-          "min": 4,
-          "max": 8
-        },
-        {
-          "item_id": "ammo_pistol",
-          "weight": 25,
-          "min": 6,
-          "max": 12
-        },
-        {
-          "item_id": "gun_oil",
-          "weight": 20,
-          "min": 1,
-          "max": 1
-        },
-        {
-          "item_id": "herb",
-          "weight": 20,
-          "min": 1,
-          "max": 3
-        },
-        {
-          "item_id": "repair_kit",
-          "weight": 5,
-          "min": 1,
-          "max": 1
-        }
-      ]
+      "code": "loot_tier_2",
+      "name": "Loot tier 2",
+      "rolls_min": 3,
+      "rolls_max": 3
     },
     {
-      "id": "loot_tier_3",
-      "tier": 3,
-      "rolls": 4,
-      "entries": [
-        {
-          "item_id": "ammo_sniper",
-          "weight": 30,
-          "min": 3,
-          "max": 6
-        },
-        {
-          "item_id": "repair_kit",
-          "weight": 25,
-          "min": 1,
-          "max": 2
-        },
-        {
-          "item_id": "medkit_small",
-          "weight": 25,
-          "min": 1,
-          "max": 2
-        },
-        {
-          "item_id": "gun_oil",
-          "weight": 20,
-          "min": 1,
-          "max": 2
-        }
-      ]
+      "code": "loot_tier_3",
+      "name": "Loot tier 3",
+      "rolls_min": 4,
+      "rolls_max": 4
     }
   ],
-  "craft_recipes": [
+  "loot_table_entries": [
     {
-      "id": "craft_medkit_small",
-      "output_item_id": "medkit_small",
-      "output_count": 1,
-      "required_skill": "engineering",
-      "required_skill_level": 1,
-      "craft_seconds": 4.0,
-      "inputs": [
-        {
-          "item_id": "cloth",
-          "count": 2
-        },
-        {
-          "item_id": "herb",
-          "count": 1
-        }
-      ]
+      "loot_table_code": "loot_tier_1",
+      "item_code": "ammo_rifle",
+      "tier": 1,
+      "weight": 40,
+      "min_qty": 5,
+      "max_qty": 15
     },
     {
-      "id": "craft_repair_kit",
-      "output_item_id": "repair_kit",
-      "output_count": 1,
-      "required_skill": "engineering",
+      "loot_table_code": "loot_tier_1",
+      "item_code": "ammo_smg",
+      "tier": 1,
+      "weight": 20,
+      "min_qty": 10,
+      "max_qty": 25
+    },
+    {
+      "loot_table_code": "loot_tier_1",
+      "item_code": "scrap_metal",
+      "tier": 1,
+      "weight": 25,
+      "min_qty": 1,
+      "max_qty": 3
+    },
+    {
+      "loot_table_code": "loot_tier_1",
+      "item_code": "cloth",
+      "tier": 1,
+      "weight": 25,
+      "min_qty": 1,
+      "max_qty": 2
+    },
+    {
+      "loot_table_code": "loot_tier_1",
+      "item_code": "medkit_small",
+      "tier": 1,
+      "weight": 10,
+      "min_qty": 1,
+      "max_qty": 1
+    },
+    {
+      "loot_table_code": "loot_tier_2",
+      "item_code": "ammo_shotgun",
+      "tier": 2,
+      "weight": 30,
+      "min_qty": 4,
+      "max_qty": 8
+    },
+    {
+      "loot_table_code": "loot_tier_2",
+      "item_code": "ammo_pistol",
+      "tier": 2,
+      "weight": 25,
+      "min_qty": 6,
+      "max_qty": 12
+    },
+    {
+      "loot_table_code": "loot_tier_2",
+      "item_code": "gun_oil",
+      "tier": 2,
+      "weight": 20,
+      "min_qty": 1,
+      "max_qty": 1
+    },
+    {
+      "loot_table_code": "loot_tier_2",
+      "item_code": "herb",
+      "tier": 2,
+      "weight": 20,
+      "min_qty": 1,
+      "max_qty": 3
+    },
+    {
+      "loot_table_code": "loot_tier_2",
+      "item_code": "repair_kit",
+      "tier": 2,
+      "weight": 5,
+      "min_qty": 1,
+      "max_qty": 1
+    },
+    {
+      "loot_table_code": "loot_tier_3",
+      "item_code": "ammo_sniper",
+      "tier": 3,
+      "weight": 30,
+      "min_qty": 3,
+      "max_qty": 6
+    },
+    {
+      "loot_table_code": "loot_tier_3",
+      "item_code": "repair_kit",
+      "tier": 3,
+      "weight": 25,
+      "min_qty": 1,
+      "max_qty": 2
+    },
+    {
+      "loot_table_code": "loot_tier_3",
+      "item_code": "medkit_small",
+      "tier": 3,
+      "weight": 25,
+      "min_qty": 1,
+      "max_qty": 2
+    },
+    {
+      "loot_table_code": "loot_tier_3",
+      "item_code": "gun_oil",
+      "tier": 3,
+      "weight": 20,
+      "min_qty": 1,
+      "max_qty": 2
+    }
+  ],
+  "maps": [
+    {
+      "code": "map01_docks",
+      "name": "Saltreach Docks",
+      "scene_key": "Map01_Docks",
+      "is_safe_camp": false,
+      "sort_order": 1,
+      "nav_graph": {
+        "nodes": [
+          {
+            "id": 0,
+            "x": 0,
+            "y": 0,
+            "z": 0,
+            "is_cover": false,
+            "cover_facing": 0,
+            "neighbors": [
+              1,
+              2
+            ]
+          },
+          {
+            "id": 1,
+            "x": 6,
+            "y": 0,
+            "z": 0,
+            "is_cover": true,
+            "cover_facing": 90,
+            "neighbors": [
+              0,
+              3,
+              4
+            ]
+          },
+          {
+            "id": 2,
+            "x": 0,
+            "y": 0,
+            "z": 6,
+            "is_cover": true,
+            "cover_facing": 0,
+            "neighbors": [
+              0,
+              4,
+              5
+            ]
+          },
+          {
+            "id": 3,
+            "x": 12,
+            "y": 0,
+            "z": 0,
+            "is_cover": false,
+            "cover_facing": 0,
+            "neighbors": [
+              1,
+              6
+            ]
+          },
+          {
+            "id": 4,
+            "x": 6,
+            "y": 0,
+            "z": 6,
+            "is_cover": false,
+            "cover_facing": 0,
+            "neighbors": [
+              1,
+              2,
+              7
+            ]
+          },
+          {
+            "id": 5,
+            "x": 0,
+            "y": 0,
+            "z": 12,
+            "is_cover": true,
+            "cover_facing": 180,
+            "neighbors": [
+              2,
+              8
+            ]
+          },
+          {
+            "id": 6,
+            "x": 18,
+            "y": 0,
+            "z": 0,
+            "is_cover": true,
+            "cover_facing": 270,
+            "neighbors": [
+              3,
+              9
+            ]
+          },
+          {
+            "id": 7,
+            "x": 12,
+            "y": 0,
+            "z": 12,
+            "is_cover": true,
+            "cover_facing": 45,
+            "neighbors": [
+              4,
+              8,
+              9,
+              10
+            ]
+          },
+          {
+            "id": 8,
+            "x": 0,
+            "y": 0,
+            "z": 18,
+            "is_cover": false,
+            "cover_facing": 0,
+            "neighbors": [
+              5,
+              7,
+              11
+            ]
+          },
+          {
+            "id": 9,
+            "x": 18,
+            "y": 0,
+            "z": 12,
+            "is_cover": false,
+            "cover_facing": 0,
+            "neighbors": [
+              6,
+              7,
+              10
+            ]
+          },
+          {
+            "id": 10,
+            "x": 18,
+            "y": 0,
+            "z": 18,
+            "is_cover": true,
+            "cover_facing": 225,
+            "neighbors": [
+              7,
+              9,
+              11
+            ]
+          },
+          {
+            "id": 11,
+            "x": 6,
+            "y": 0,
+            "z": 22,
+            "is_cover": false,
+            "cover_facing": 0,
+            "neighbors": [
+              8,
+              10
+            ]
+          }
+        ],
+        "escape_routes": [
+          9,
+          11
+        ]
+      },
+      "layout": {
+        "player_start_node": 0
+      }
+    },
+    {
+      "code": "safe_camp",
+      "name": "Safe Camp",
+      "scene_key": "SafeCamp",
+      "is_safe_camp": true,
+      "sort_order": 0,
+      "nav_graph": {},
+      "layout": {}
+    }
+  ],
+  "map_loot_tables": [
+    {
+      "map_code": "map01_docks",
+      "loot_table_code": "loot_tier_1",
+      "container_tag": "crate_pier_1"
+    },
+    {
+      "map_code": "map01_docks",
+      "loot_table_code": "loot_tier_2",
+      "container_tag": "crate_warehouse"
+    }
+  ],
+  "enemy_types": [
+    {
+      "code": "grunt",
+      "name": "Militia Grunt",
+      "archetype": "grunt",
+      "is_boss": false,
+      "max_hp": 80,
+      "move_speed": 3.2,
+      "vision_range": 14.0,
+      "vision_angle_deg": 90.0,
+      "hearing_range": 12.0,
+      "accuracy": 0.5,
+      "weapon_item_code": "rifle_standard",
+      "fsm_params": {
+        "alert_decay_seconds": 8.0,
+        "retreat_hp_threshold": 0.25
+      },
+      "loot_table_code": "loot_tier_1"
+    },
+    {
+      "code": "scout",
+      "name": "Militia Scout",
+      "archetype": "scout",
+      "is_boss": false,
+      "max_hp": 55,
+      "move_speed": 4.2,
+      "vision_range": 20.0,
+      "vision_angle_deg": 110.0,
+      "hearing_range": 16.0,
+      "accuracy": 0.5,
+      "weapon_item_code": "carbine_scout",
+      "fsm_params": {
+        "alert_decay_seconds": 6.0,
+        "retreat_hp_threshold": 0.4
+      },
+      "loot_table_code": "loot_tier_1"
+    },
+    {
+      "code": "heavy",
+      "name": "Militia Heavy",
+      "archetype": "heavy",
+      "is_boss": false,
+      "max_hp": 160,
+      "move_speed": 2.4,
+      "vision_range": 12.0,
+      "vision_angle_deg": 80.0,
+      "hearing_range": 10.0,
+      "accuracy": 0.5,
+      "weapon_item_code": "shotgun_pump",
+      "fsm_params": {
+        "alert_decay_seconds": 10.0,
+        "retreat_hp_threshold": 0.15
+      },
+      "loot_table_code": "loot_tier_2"
+    },
+    {
+      "code": "boss_commander",
+      "name": "Commander Varek",
+      "archetype": "boss_commander",
+      "is_boss": true,
+      "max_hp": 600,
+      "move_speed": 3.6,
+      "vision_range": 18.0,
+      "vision_angle_deg": 120.0,
+      "hearing_range": 18.0,
+      "accuracy": 0.5,
+      "weapon_item_code": "smg_compact",
+      "fsm_params": {
+        "alert_decay_seconds": 999.0,
+        "retreat_hp_threshold": 0.0
+      },
+      "loot_table_code": "loot_tier_3"
+    }
+  ],
+  "enemy_placements": [
+    {
+      "id": "00000000-0000-4000-8000-000000000001",
+      "map_code": "map01_docks",
+      "enemy_type_code": "grunt",
+      "squad_tag": "squad_a",
+      "pos_x": 18,
+      "pos_y": 0,
+      "facing_deg": 0,
+      "patrol_route": [],
+      "spawn_condition": null
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000002",
+      "map_code": "map01_docks",
+      "enemy_type_code": "grunt",
+      "squad_tag": "squad_a",
+      "pos_x": 12,
+      "pos_y": 12,
+      "facing_deg": 0,
+      "patrol_route": [],
+      "spawn_condition": null
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000003",
+      "map_code": "map01_docks",
+      "enemy_type_code": "grunt",
+      "squad_tag": "squad_a",
+      "pos_x": 0,
+      "pos_y": 18,
+      "facing_deg": 0,
+      "patrol_route": [],
+      "spawn_condition": null
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000011",
+      "map_code": "map01_docks",
+      "enemy_type_code": "scout",
+      "squad_tag": "squad_a",
+      "pos_x": 18,
+      "pos_y": 18,
+      "facing_deg": 0,
+      "patrol_route": [],
+      "spawn_condition": null
+    }
+  ],
+  "crafting_recipes": [
+    {
+      "code": "craft_medkit_small",
+      "name": "Medkit Small",
+      "output_item_code": "medkit_small",
+      "output_quantity": 1,
+      "craft_time_s": 4.0,
+      "required_skill_code": "engineering",
+      "required_skill_level": 1,
+      "station": "workbench"
+    },
+    {
+      "code": "craft_repair_kit",
+      "name": "Repair Kit",
+      "output_item_code": "repair_kit",
+      "output_quantity": 1,
+      "craft_time_s": 6.0,
+      "required_skill_code": "engineering",
       "required_skill_level": 2,
-      "craft_seconds": 6.0,
-      "inputs": [
-        {
-          "item_id": "scrap_metal",
-          "count": 3
-        },
-        {
-          "item_id": "gun_oil",
-          "count": 1
-        }
-      ]
+      "station": "workbench"
     },
     {
-      "id": "craft_ammo_pistol",
-      "output_item_id": "ammo_pistol",
-      "output_count": 12,
-      "required_skill": "engineering",
+      "code": "craft_ammo_pistol",
+      "name": "Ammo Pistol",
+      "output_item_code": "ammo_pistol",
+      "output_quantity": 12,
+      "craft_time_s": 3.0,
+      "required_skill_code": "engineering",
       "required_skill_level": 1,
-      "craft_seconds": 3.0,
-      "inputs": [
-        {
-          "item_id": "scrap_metal",
-          "count": 2
-        }
-      ]
+      "station": "workbench"
+    }
+  ],
+  "crafting_recipe_ingredients": [
+    {
+      "recipe_code": "craft_medkit_small",
+      "item_code": "cloth",
+      "quantity": 2
+    },
+    {
+      "recipe_code": "craft_medkit_small",
+      "item_code": "herb",
+      "quantity": 1
+    },
+    {
+      "recipe_code": "craft_repair_kit",
+      "item_code": "scrap_metal",
+      "quantity": 3
+    },
+    {
+      "recipe_code": "craft_repair_kit",
+      "item_code": "gun_oil",
+      "quantity": 1
+    },
+    {
+      "recipe_code": "craft_ammo_pistol",
+      "item_code": "scrap_metal",
+      "quantity": 2
     }
   ],
   "quests": [
     {
-      "id": "quest_docks_recon",
+      "code": "quest_docks_recon",
       "title": "Eyes on the Docks",
       "description": "Reach the crane overlook without raising the alarm and get out.",
-      "giver_npc_id": "npc_quartermaster",
-      "map_id": "map01_docks",
+      "is_main": true,
+      "sort_order": 1,
       "objectives": [
         {
           "id": "reach_overlook",
@@ -410,226 +885,20 @@
           "count": 1
         }
       ],
-      "rewards": [
-        {
-          "item_id": "ammo_rifle",
-          "count": 30
-        },
-        {
-          "item_id": "medkit_small",
-          "count": 1
-        }
-      ]
+      "prerequisites": [],
+      "reward_xp": 250
     }
   ],
-  "maps": [
+  "quest_rewards": [
     {
-      "id": "map01_docks",
-      "display_name": "Saltreach Docks",
-      "scene_name": "Map01_Docks",
-      "player_start_node": 0,
-      "boss_archetype_id": null,
-      "spawn_groups": [
-        {
-          "squad_id": "squad_a",
-          "archetype_id": "grunt",
-          "count": 3,
-          "start_nodes": [
-            6,
-            7,
-            8
-          ]
-        },
-        {
-          "squad_id": "squad_a",
-          "archetype_id": "scout",
-          "count": 1,
-          "start_nodes": [
-            10
-          ]
-        }
-      ],
-      "loot_placements": [
-        {
-          "container_id": "crate_pier_1",
-          "loot_table_id": "loot_tier_1",
-          "node": 3
-        },
-        {
-          "container_id": "crate_warehouse",
-          "loot_table_id": "loot_tier_2",
-          "node": 7
-        }
-      ],
-      "escape_routes": [
-        9,
-        11
-      ],
-      "nav_graph_nodes": [
-        {
-          "id": 0,
-          "x": 0,
-          "y": 0,
-          "z": 0,
-          "is_cover": false,
-          "cover_facing": 0,
-          "neighbors": [
-            1,
-            2
-          ]
-        },
-        {
-          "id": 1,
-          "x": 6,
-          "y": 0,
-          "z": 0,
-          "is_cover": true,
-          "cover_facing": 90,
-          "neighbors": [
-            0,
-            3,
-            4
-          ]
-        },
-        {
-          "id": 2,
-          "x": 0,
-          "y": 0,
-          "z": 6,
-          "is_cover": true,
-          "cover_facing": 0,
-          "neighbors": [
-            0,
-            4,
-            5
-          ]
-        },
-        {
-          "id": 3,
-          "x": 12,
-          "y": 0,
-          "z": 0,
-          "is_cover": false,
-          "cover_facing": 0,
-          "neighbors": [
-            1,
-            6
-          ]
-        },
-        {
-          "id": 4,
-          "x": 6,
-          "y": 0,
-          "z": 6,
-          "is_cover": false,
-          "cover_facing": 0,
-          "neighbors": [
-            1,
-            2,
-            7
-          ]
-        },
-        {
-          "id": 5,
-          "x": 0,
-          "y": 0,
-          "z": 12,
-          "is_cover": true,
-          "cover_facing": 180,
-          "neighbors": [
-            2,
-            8
-          ]
-        },
-        {
-          "id": 6,
-          "x": 18,
-          "y": 0,
-          "z": 0,
-          "is_cover": true,
-          "cover_facing": 270,
-          "neighbors": [
-            3,
-            9
-          ]
-        },
-        {
-          "id": 7,
-          "x": 12,
-          "y": 0,
-          "z": 12,
-          "is_cover": true,
-          "cover_facing": 45,
-          "neighbors": [
-            4,
-            8,
-            9,
-            10
-          ]
-        },
-        {
-          "id": 8,
-          "x": 0,
-          "y": 0,
-          "z": 18,
-          "is_cover": false,
-          "cover_facing": 0,
-          "neighbors": [
-            5,
-            7,
-            11
-          ]
-        },
-        {
-          "id": 9,
-          "x": 18,
-          "y": 0,
-          "z": 12,
-          "is_cover": false,
-          "cover_facing": 0,
-          "neighbors": [
-            6,
-            7,
-            10
-          ]
-        },
-        {
-          "id": 10,
-          "x": 18,
-          "y": 0,
-          "z": 18,
-          "is_cover": true,
-          "cover_facing": 225,
-          "neighbors": [
-            7,
-            9,
-            11
-          ]
-        },
-        {
-          "id": 11,
-          "x": 6,
-          "y": 0,
-          "z": 22,
-          "is_cover": false,
-          "cover_facing": 0,
-          "neighbors": [
-            8,
-            10
-          ]
-        }
-      ]
+      "quest_code": "quest_docks_recon",
+      "item_code": "ammo_rifle",
+      "quantity": 30
+    },
+    {
+      "quest_code": "quest_docks_recon",
+      "item_code": "medkit_small",
+      "quantity": 1
     }
-  ],
-  "ai_settings": {
-    "default_solver_variant": "greedy",
-    "latency_budget_ms": 120,
-    "replan_cooldown_ms": 800,
-    "weight_coverage": 1.0,
-    "weight_redundancy": 0.5,
-    "weight_flanking": 1.0,
-    "weight_cover": 0.5,
-    "weight_distance": 0.1,
-    "vision_hops": 2
-  }
+  ]
 }

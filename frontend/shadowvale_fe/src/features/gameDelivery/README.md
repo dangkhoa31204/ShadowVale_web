@@ -1,7 +1,8 @@
 # Game delivery — frontend contract
 
 Phần này chỉ triển khai bố cục và tương tác frontend cho Admin: **Review content →
-Game changes** và **Publish versions → Game bundle**. Giữ thiết kế gốc của web.
+Game changes** và **Publish versions → Game bundle**. Dùng giao diện TailAdmin
+đã điều chỉnh cho bố cục web hiện tại.
 
 Ở demo mode (`VITE_DEMO_MODE=true`), dữ liệu build, commit, preview và phiên bản
 là dữ liệu mẫu. Review, approve và publish minh hoạ luồng bằng state phía frontend.
@@ -25,6 +26,13 @@ Unity client tải/cài bản game. JSON xuất từ UI demo chỉ phục vụ x
   dependencies. UI hiển thị metadata; không biên dịch hay xác minh binary Unity.
 - `GameManifest`: phiên bản, platform, commit nguồn, minimum client version,
   gameplay JSON và artifacts của cùng một bản phát hành.
+
+Gameplay JSON bên trong theo schema DB v3: `version_no`, `label`, `schema_version`
+và 14 collection trong `content/contracts/content.schema.json`. Số content version
+là số tăng dần; phiên bản build/binary game dùng chuỗi semver riêng. Không đổi
+`version_no` của content thành phiên bản binary khi xuất manifest.
+Các DTO assets/builds là phần mở rộng UI dự kiến; DB được cung cấp chưa có bảng
+Git/CI hay AssetBundles. Không coi chúng là bảng DB đã tồn tại.
 
 Luồng UI: `awaiting_build → ready → approved → published`; lỗi build dùng `failed`,
 yêu cầu sửa dùng `rejected`. Chỉ build hoàn tất và đã duyệt mới được chọn để publish.

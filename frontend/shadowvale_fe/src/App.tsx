@@ -4,6 +4,8 @@ import { AppRoutes } from './routes';
 import './internal.css';
 import './original-theme.css';
 import './features/gameDelivery/gameDelivery.css';
+import './template/tailadmin/tailadmin-theme.css';
+import './features/content/editor.css';
 
 export function App() {
   return (
