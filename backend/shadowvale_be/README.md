@@ -69,6 +69,22 @@ Mọi phản hồi lỗi là ProblemDetails, có thêm `code`, `message` và `tr
 sai tài khoản hoặc mật khẩu, 403 `ACCOUNT_DEACTIVATED` khi đúng mật khẩu nhưng tài khoản bị khóa, 400 `VALIDATION_FAILED`
 kèm `errors` khi dữ liệu sai, 429 `AUTH_RATE_LIMITED` khi gọi quá nhanh. Lỗi 5xx không bao giờ trả nội dung exception.
 
+User management validation and session behavior:
+- `PUT /api/users/{id}` requires an explicit boolean `isActive`; omission/null returns 400.
+- User list pagination accepts page 1-1000000 and pageSize 1-100; out-of-range requests return 400.
+- Concurrent duplicate usernames/emails return 409, including email updates.
+- Role/state updates and password resets commit together with refresh-token revocation; failure rolls back both.
+- Each validated JWT is checked against the current user in PostgreSQL. Missing/inactive users and obsolete role
+  claims receive 401 and must log in again; unchanged roles still receive normal endpoint authorization checks.
+  Each access token also contains `sid`, the ID of its associated refresh-token row. The API verifies that row
+  belongs to the user, has not expired, and is not revoked. Logout of the current refresh token makes its paired
+  access token return 401 on the next authenticated request; other devices remain active.
+  Refresh rotates both tokens and invalidates the old access/refresh pair. FE must replace both tokens atomically
+  and logout with the latest refresh token. Unknown/already-revoked logout remains idempotent (204).
+  Role changes, account deactivation and password resets revoke refresh rows, so their access tokens also stop
+  working. This adds database checks to authenticated requests. Older access tokens without sid require login
+  again after this update. No database schema migration is required.
+
 ## Cấu hình solver (`/api/solver-configurations`)
 
 Mỗi cấu hình là một thuật toán cùng bộ tham số. Cả 3 role xem được; chỉ Admin và Analyst sửa được.

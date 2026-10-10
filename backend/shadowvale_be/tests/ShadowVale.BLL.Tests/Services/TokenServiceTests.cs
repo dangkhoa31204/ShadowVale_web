@@ -16,10 +16,12 @@ public class TokenServiceTests
     {
         var user = TestHelpers.User(role: UserRole.Analyst);
 
-        var (token, expiresAt) = _sut.CreateAccessToken(user);
+        var sessionId = Guid.NewGuid();
+        var (token, expiresAt) = _sut.CreateAccessToken(user, sessionId);
 
         var jwt = new JsonWebTokenHandler().ReadJsonWebToken(token);
         jwt.Subject.ShouldBe(user.Id.ToString());
+        jwt.GetClaim(TokenService.SessionClaim).Value.ShouldBe(sessionId.ToString());
         jwt.GetClaim(TokenService.RoleClaim).Value.ShouldBe("Analyst");
         jwt.GetClaim(JwtRegisteredClaimNames.UniqueName).Value.ShouldBe(user.Username);
         jwt.Issuer.ShouldBe("test-issuer");

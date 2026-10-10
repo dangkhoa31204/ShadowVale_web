@@ -5,6 +5,7 @@ namespace ShadowVale.BLL.Interfaces;
 
 public interface IAuthService
 {
+    Task<bool> IsSessionActiveAsync(Guid sessionId, Guid userId, CancellationToken ct = default);
     Task<LoginResult> LoginAsync(LoginRequest request, CancellationToken ct = default);
     Task<AuthResponse> RefreshAsync(string refreshToken, CancellationToken ct = default);
     Task LogoutAsync(string refreshToken, CancellationToken ct = default);

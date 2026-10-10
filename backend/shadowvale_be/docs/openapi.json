@@ -4136,7 +4136,7 @@
             "name": "Page",
             "in": "query",
             "schema": {
-              "maximum": 2147483647,
+              "maximum": 1000000,
               "minimum": 1,
               "pattern": "^-?(?:0|[1-9]\\d*)$",
               "type": [
@@ -8623,7 +8623,8 @@
       "UpdateUserRequest": {
         "required": [
           "email",
-          "role"
+          "role",
+          "isActive"
         ],
         "type": "object",
         "properties": {
@@ -8642,7 +8643,10 @@
             "type": "string"
           },
           "isActive": {
-            "type": "boolean"
+            "type": [
+              "null",
+              "boolean"
+            ]
           }
         }
       },

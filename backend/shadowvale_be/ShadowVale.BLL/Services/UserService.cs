@@ -1,4 +1,6 @@
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using Npgsql;
 using ShadowVale.BLL.DTOs.Common;
 using ShadowVale.BLL.DTOs.Users;
 using ShadowVale.BLL.Exceptions;
@@ -16,8 +18,16 @@ public class UserService(
     IPasswordHasher<User> passwordHasher,
     TimeProvider time) : IUserService
 {
+    public async Task<bool> IsAccessAllowedAsync(Guid userId, string role, CancellationToken ct = default)
+    {
+        var user = await users.GetByIdAsync(userId, ct);
+        return user is { IsActive: true } && user.Role.ToString() == role;
+    }
+
     public async Task<PagedResult<UserDto>> GetUsersAsync(UserQuery query, CancellationToken ct = default)
     {
+        if (query.Page is < 1 or > 1000000 || query.PageSize is < 1 or > 100)
+            throw new ValidationException("Page", "Page must be 1-1000000 and PageSize must be 1-100.");
         var role = string.IsNullOrWhiteSpace(query.Role) ? (UserRole?)null : UserMappings.ParseRole(query.Role);
 
         var (items, total) = await users.SearchAsync(query.Search, role, query.IsActive, query.Page, query.PageSize, ct);
@@ -48,18 +58,20 @@ public class UserService(
         user.PasswordHash = passwordHasher.HashPassword(user, request.Password);
 
         await users.AddAsync(user, ct);
-        await users.SaveChangesAsync(ct);
+        await SaveAsync(ct);
         return user.ToDto();
     }
 
     public async Task<UserDto> UpdateAsync(Guid id, UpdateUserRequest request, Guid currentUserId, CancellationToken ct = default)
     {
+        if (request.IsActive is null)
+            throw new ValidationException("IsActive", "IsActive is required.");
         var user = await FindAsync(id, ct);
         var role = UserMappings.ParseRole(request.Role);
         var email = UserMappings.NormalizeIdentifier(request.Email);
 
         // Stops the last admin from locking everyone out of user management
-        if (id == currentUserId && (role != UserRole.Admin || !request.IsActive))
+        if (id == currentUserId && (role != UserRole.Admin || !request.IsActive.Value))
             throw new ConflictException("You cannot remove your own Admin role or deactivate your own account.");
 
         if (email != user.Email && await users.EmailExistsAsync(email, user.Id, ct))
@@ -70,12 +82,15 @@ public class UserService(
         user.Email = email;
         user.FullName = request.FullName?.Trim();
         user.Role = role;
-        user.IsActive = request.IsActive;
-        await users.SaveChangesAsync(ct);
-
-        // Force a fresh login so the new role / disabled state applies once the current access token expires
+        user.IsActive = request.IsActive.Value;
         if (accessChanged)
-            await refreshTokens.RevokeAllForUserAsync(user.Id, time.GetUtcNow().UtcDateTime, ct);
+            await users.ExecuteInTransactionAsync(async () =>
+            {
+                await SaveAsync(ct);
+                await refreshTokens.RevokeAllForUserAsync(user.Id, time.GetUtcNow().UtcDateTime, ct);
+            }, ct);
+        else
+            await SaveAsync(ct);
 
         return user.ToDto();
     }
@@ -85,8 +100,21 @@ public class UserService(
         var user = await FindAsync(id, ct);
 
         user.PasswordHash = passwordHasher.HashPassword(user, request.NewPassword);
-        await users.SaveChangesAsync(ct);
-        await refreshTokens.RevokeAllForUserAsync(user.Id, time.GetUtcNow().UtcDateTime, ct);
+        await users.ExecuteInTransactionAsync(async () =>
+        {
+            await SaveAsync(ct);
+            await refreshTokens.RevokeAllForUserAsync(user.Id, time.GetUtcNow().UtcDateTime, ct);
+        }, ct);
+    }
+
+    private async Task SaveAsync(CancellationToken ct)
+    {
+        try { await users.SaveChangesAsync(ct); }
+        catch (DbUpdateException ex) when (ex.InnerException is PostgresException
+            { SqlState: PostgresErrorCodes.UniqueViolation, ConstraintName: "ix_users_username" or "ix_users_email" })
+        {
+            throw new ConflictException("Username or email is already in use.");
+        }
     }
 
     private async Task<User> FindAsync(Guid id, CancellationToken ct) =>

@@ -8,6 +8,9 @@ namespace ShadowVale.DAL.Repositories;
 public class RefreshTokenRepository(ShadowValeDbContext context)
     : GenericRepository<RefreshToken>(context), IRefreshTokenRepository
 {
+    public Task<bool> IsSessionActiveAsync(Guid sessionId, Guid userId, DateTime now, CancellationToken ct = default) =>
+        DbSet.AsNoTracking().AnyAsync(t => t.Id == sessionId && t.UserId == userId &&
+            t.RevokedAt == null && t.ExpiresAt > now, ct);
     public Task<RefreshToken?> GetByHashWithUserAsync(string tokenHash, CancellationToken ct = default) =>
         DbSet.Include(t => t.User).FirstOrDefaultAsync(t => t.TokenHash == tokenHash, ct);
 

@@ -5,11 +5,56 @@ using ShadowVale.BLL.Services;
 using ShadowVale.DAL.Entities;
 using ShadowVale.DAL.Repositories.Interfaces;
 using Shouldly;
+using Microsoft.IdentityModel.JsonWebTokens;
 
 namespace ShadowVale.BLL.Tests.Services;
 
 public class AuthServiceTests
 {
+    [Fact]
+    public async Task Logout_invalidates_its_access_session_but_preserves_other_device()
+    {
+        var user = TestHelpers.User(password: "Password123!");
+        _users.GetByUsernameOrEmailAsync(user.Username, Arg.Any<CancellationToken>()).Returns(user);
+        var sessions = new List<RefreshToken>();
+        _refreshTokens.When(r => r.AddAsync(Arg.Any<RefreshToken>(), Arg.Any<CancellationToken>()))
+            .Do(call => sessions.Add(call.Arg<RefreshToken>()));
+        _refreshTokens.GetByHashWithUserAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(call => sessions.SingleOrDefault(s => s.TokenHash == call.Arg<string>()));
+        _refreshTokens.IsSessionActiveAsync(Arg.Any<Guid>(), Arg.Any<Guid>(), Arg.Any<DateTime>(), Arg.Any<CancellationToken>())
+            .Returns(call => sessions.Any(s => s.Id == call.ArgAt<Guid>(0) && s.UserId == call.ArgAt<Guid>(1)
+                && s.RevokedAt == null && s.ExpiresAt > call.ArgAt<DateTime>(2)));
+        var first = (await _sut.LoginAsync(new() { UsernameOrEmail = user.Username, Password = "Password123!" })).Data!;
+        var second = (await _sut.LoginAsync(new() { UsernameOrEmail = user.Username, Password = "Password123!" })).Data!;
+        Guid Session(string token) => Guid.Parse(new JsonWebToken(token).GetClaim(TokenService.SessionClaim).Value);
+        var firstId = Session(first.AccessToken); var secondId = Session(second.AccessToken);
+        firstId.ShouldNotBe(secondId);
+        (await _sut.IsSessionActiveAsync(firstId, user.Id)).ShouldBeTrue();
+        (await _sut.IsSessionActiveAsync(firstId, Guid.NewGuid())).ShouldBeFalse();
+        await _sut.LogoutAsync(first.RefreshToken);
+        (await _sut.IsSessionActiveAsync(firstId, user.Id)).ShouldBeFalse();
+        (await _sut.IsSessionActiveAsync(secondId, user.Id)).ShouldBeTrue();
+        await _sut.LogoutAsync(first.RefreshToken); // remains idempotent
+        (await _sut.IsSessionActiveAsync(secondId, user.Id)).ShouldBeTrue();
+    }
+
+    [Fact]
+    public async Task Refresh_binds_new_access_token_to_new_row_and_revokes_old_pair()
+    {
+        var user = TestHelpers.User();
+        var (token, hash, _) = _tokenService.CreateRefreshToken();
+        var old = new RefreshToken { User = user, UserId = user.Id, TokenHash = hash, ExpiresAt = TestHelpers.Now.AddDays(1) };
+        _refreshTokens.GetByHashWithUserAsync(hash, Arg.Any<CancellationToken>()).Returns(old);
+        RefreshToken? created = null;
+        _refreshTokens.When(r => r.AddAsync(Arg.Any<RefreshToken>(), Arg.Any<CancellationToken>()))
+            .Do(call => created = call.Arg<RefreshToken>());
+        var response = await _sut.RefreshAsync(token);
+        old.RevokedAt.ShouldBe(TestHelpers.Now);
+        created.ShouldNotBeNull(); created.Id.ShouldNotBe(old.Id);
+        new JsonWebToken(response.AccessToken).GetClaim(TokenService.SessionClaim).Value.ShouldBe(created.Id.ToString());
+        created.TokenHash.ShouldBe(_tokenService.HashRefreshToken(response.RefreshToken));
+    }
+
     private readonly IUserRepository _users = Substitute.For<IUserRepository>();
     private readonly IRefreshTokenRepository _refreshTokens = Substitute.For<IRefreshTokenRepository>();
     private readonly TokenService _tokenService;

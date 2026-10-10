@@ -103,8 +103,24 @@ builder.Services.AddOpenApi(options =>
 });
 
 // JWT is the default scheme (web users); the game key scheme is only used by the Game policy
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer()
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
+{
+    options.Events = new JwtBearerEvents
+    {
+        OnTokenValidated = async context =>
+        {
+            var subject = context.Principal?.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
+            var role = context.Principal?.FindFirst(TokenService.RoleClaim)?.Value;
+            var session = context.Principal?.FindFirst(TokenService.SessionClaim)?.Value;
+            if (!Guid.TryParse(subject, out var userId) || !Guid.TryParse(session, out var sessionId) || role is null ||
+                !await context.HttpContext.RequestServices.GetRequiredService<IUserService>()
+                    .IsAccessAllowedAsync(userId, role, context.HttpContext.RequestAborted) ||
+                !await context.HttpContext.RequestServices.GetRequiredService<IAuthService>()
+                    .IsSessionActiveAsync(sessionId, userId, context.HttpContext.RequestAborted))
+                context.Fail("The account or login session is no longer valid. Log in again.");
+        }
+    };
+})
     .AddScheme<AuthenticationSchemeOptions, GameKeyAuthenticationHandler>(GameKeyAuthenticationHandler.SchemeName, null);
 builder.Services.AddOptions<JwtBearerOptions>(JwtBearerDefaults.AuthenticationScheme)
     .Configure<IOptions<JwtOptions>>((bearer, jwtOptions) =>
