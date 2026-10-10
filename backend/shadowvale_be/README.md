@@ -84,6 +84,134 @@ User management validation and session behavior:
   Role changes, account deactivation and password resets revoke refresh rows, so their access tokens also stop
   working. This adds database checks to authenticated requests. Older access tokens without sid require login
   again after this update. No database schema migration is required.
+- `tests/admin_api_smoke.py` uses optional `API_SMOKE_ADMIN_TOKEN`, `API_SMOKE_DESIGNER_TOKEN`,
+  `API_SMOKE_ANALYST_TOKEN` from active database users; fabricated JWTs no longer simulate valid sessions.
+
+## Content versions (Admin / Designer)
+
+API này dùng JWT, cho phép role `Admin` và `Designer`:
+
+- `GET /api/content-versions?search=&status=Draft&page=1&pageSize=20`: danh sách metadata, không tải toàn bộ bundle.
+- `GET /api/content-versions/{id}`: `{ version, bundle }`, bundle dựng từ các bảng của đúng phiên bản.
+- `POST /api/content-versions`: `{ label, changelog?, schemaVersion: "1.0", parentVersionId? }`.
+  Bỏ `parentVersionId` để tạo bản nháp trống; truyền ID để sao chép nội dung của một phiên bản.
+  Backend cấp version number, tạo ID mới và remap các quan hệ; không sao chép trạng thái duyệt/phát hành.
+- `PUT /api/content-versions/{id}`: `{ label, changelog?, schemaVersion: "1.0", revision }`.
+  Hiện cập nhật metadata; CRUD từng bảng nội dung là bước tiếp theo.
+- `POST /api/content-versions/{id}/validate`: `{ revision }`.
+- `GET /api/content-versions/{id}/compare?targetId={guid}`: thay đổi từ phiên bản nguồn sang phiên bản đích,
+  kèm revision của cả hai. So sánh theo code/khóa ghép; enemy placements so sánh nội dung, bỏ ID được tạo lại khi clone.
+
+Chỉ `Draft` được cập nhật/validate. `revision` bắt buộc và phải khớp phiên bản hiện tại;
+request thiếu revision trả 400, phiên bản đã thay đổi hoặc không còn Draft trả 409.
+Cập nhật metadata tăng revision và xóa kết quả validation/checksum cũ.
+Validation cũng tăng revision để tránh ghi đè kết quả của request khác; client phải dùng revision trả về cho lần ghi tiếp theo.
+
+Bundle v1.0 dùng snake_case và tham chiếu bằng code, dựa trên contract content editor hiện có ở frontend.
+Schema nằm trong `ShadowVale.BLL/Schemas/content-bundle-1.0.schema.json`, được nhúng vào assembly.
+Backend kiểm tra JSON Schema, danh tính trùng, loại item/tham chiếu cùng phiên bản,
+đúng một Safe Camp, khoảng loot, subtype weapon/consumable, melee, skill level và vòng lặp quest.
+Draft trống tạo được nhưng không validate thành công cho tới khi có Safe Camp và dữ liệu hợp lệ.
+JSONB được xuất thành object/array, không thành chuỗi JSON.
+
+Validation trả 200 với `{ id, revision, isValid, validatedAt, bundleChecksum, errors: [{ path, message }] }`.
+Bundle hợp lệ được lưu cùng SHA-256 của chính chuỗi JSON có thứ tự key ổn định;
+bundle không hợp lệ xóa bundle/checksum cũ và lưu lỗi. Đây chưa phải thao tác publish.
+Không có endpoint sửa status tùy ý hay rollback. API duyệt/publish dành cho Admin được mô tả bên dưới.
+Mọi API chỉnh sửa nội dung bổ sung sau này phải cập nhật revision của content version trong cùng transaction.
+
+### Admin review and publication (Scalar)
+
+Naming conventions for content APIs: lowercase kebab-case resource paths, plural collection names
+(`content-versions`, `content-publications`), and HTTP methods describing the operation.
+CRUD uses the collection or `/{id}`, never `/get`, `/create`, or `/update`.
+The existing workflow commands `/validate`, `/submit`, `/approve`, `/reject`, `/publish`, and query
+`/compare` are retained as explicit action routes for compatibility; this API does not model them as
+separate persistent REST resources. Scalar summaries use HTTP method + full route + `(ADMIN)` or `(DESIGNER)`,
+for example `POST /api/content-versions/{id}/approve (ADMIN)`. Functional explanations are in Description.
+Role suffixes indicate the intended UI flow; actual authorization is documented separately because
+some endpoints are shared. Version metadata update must not be confused with weapon stats editing.
+
+#### Reusable workflow test fixtures
+
+Run `dotnet run --project tools/SeedContent -- --seed` to create exactly two additional validated Drafts.
+The tool reads `ConnectionStrings__Default` or the API user-secrets without printing credentials.
+It needs an existing active Designer/Admin author and never creates users, alters existing versions,
+or publishes content. Repeating seed preserves any fixture edits/status. Read-only checks:
+`dotnet run --project tools/SeedContent -- --verify`.
+
+- `019a0000-0000-7000-8000-000000000001`: TEST Weapon baseline V1, rifle damage 30/reload 2.5, pistol fire rate 2.
+- `019a0000-0000-7000-8000-000000000002`: TEST Weapon balance V2, parent V1, rifle damage 40/reload 2, pistol fire rate 3.
+
+Each has two weapons, two ammo items, two maps with exactly one Safe Camp. Other content groups are empty
+but valid; scene/icon keys are test placeholders, not actual Unity assets. Both fixtures start Draft with a
+validated bundle; always GET the latest revision before each action.
+
+Test first release: V1 validate -> submit -> approve -> publish -> publication history.
+Test update: compare V1 -> V2, then V2 validate -> submit -> approve -> publish; V1 becomes Archived.
+To test rejection without losing the update scenario, clone V2 before submission, validate and submit the
+clone, then reject it with a note. Reopen/rollback are not implemented; use a new clone for another review.
+Use Analyst/Designer on Admin endpoints for 403; stale revisions and repeated/wrong-state actions for 409.
+Current submit also permits Admin, useful when a Designer account is not available.
+
+Numeric canonicalization ignores decimal scale (30 and 30.00), so PostgreSQL numeric precision does not
+invalidate an unchanged snapshot. Draft bundles created with an older canonicalization should be validated
+again before submission. Already-approved historical snapshots require a separate migration plan if needed.
+
+Scalar hiển thị hậu tố `(ADMIN)` trong Summary của các API phục vụ màn hình Admin.
+Các API GET danh sách/detail/compare hiện có vẫn dùng chung cho Admin và Designer;
+approve/reject/publish và publication history chỉ cho JWT role `Admin` (Designer/Analyst nhận 403).
+
+- `GET /api/content-versions?status=InReview&page=1&pageSize=20` (ADMIN): danh sách chờ duyệt.
+- `GET /api/content-versions/{id}` (ADMIN): metadata và bundle, bao gồm `weapons` với thông số đầy đủ.
+- `GET /api/content-versions/{sourceId}/compare?targetId={draftId}` (ADMIN): before/after từ nguồn sang bản cần duyệt. Dùng `parentVersionId` làm nguồn khi có.
+- `POST /api/content-versions/{id}/approve` (ADMIN): `{ "revision": 4, "reviewNote": "Balanced" }`.
+  Chỉ `InReview` -> `Approved`; ghi reviewer/time/note và tăng revision.
+- `POST /api/content-versions/{id}/reject` (ADMIN): `{ "revision": 4, "reviewNote": "Damage too high" }`.
+  Chỉ `InReview` -> `Rejected`; note bắt buộc, không quá 2000 ký tự. Designer xử lý reopen/resubmit ở phần riêng.
+- `POST /api/content-versions/{id}/publish` (ADMIN): `{ "revision": 5, "reason": "Weapon balance release" }`.
+  Chỉ `Approved` -> `Published`, cần thông tin Admin đã duyệt; reason bắt buộc, tối đa 500 ký tự.
+- `GET /api/content-publications?contentVersionId={id}&page=1&pageSize=20` (ADMIN): lịch sử phân trang;
+  bỏ `contentVersionId` để xem tất cả. Mỗi row gồm version, previousVersion, action, actor, reason và createdAt.
+
+Các thao tác thành công trả 200 và DTO với revision mới. Metadata bổ sung `submittedAt`, `reviewedById`,
+`reviewedAt`, `reviewNote`, `publishedById`, `publishedAt`; các trường chưa có giá trị trả null.
+FE phải dùng revision mới sau approve để publish; stale revision/sai trạng thái trả 409,
+version không tồn tại trả 404, dữ liệu sai hoặc bundle không hợp lệ trả 400.
+
+`POST /api/content-versions/{id}/submit` (DESIGNER): `{ "revision": 3 }`.
+JWT Designer hoặc Admin được gọi; Analyst nhận 403. Chỉ nhận Draft với revision hiện tại.
+Phải validate thành công trước, rồi dùng revision mới từ response validate để submit.
+Submit kiểm tra lại schema, tham chiếu, bundle/checksum và snapshot chưa thay đổi;
+chuyển sang `InReview`, lưu `SubmittedAt`, xóa thông tin review cũ và tăng revision trong cùng SaveChanges.
+Thành công trả 200 với ContentVersionDto và revision mới; chưa validate/bundle sai trả 400,
+stale revision/sai trạng thái trả 409, không tồn tại trả 404.
+Khi còn `InReview`/`Approved` phải khóa mọi chỉnh sửa content.
+Admin approve/publish kiểm tra lại schema, checksum và bundle có khớp dữ liệu snapshot hay không;
+reject vẫn được phép khi bundle không hợp lệ. API reopen/chỉnh weapon vẫn do người phụ trách Designer triển khai.
+
+Publish giữ nguyên bundle đã duyệt. Transaction PostgreSQL dùng advisory lock để tuần tự hóa publish,
+archive phiên bản Published cũ, tăng revision của cả hai và ghi history atomically;
+partial unique index hiện có bảo đảm tối đa một Published. Không cần migration mới.
+Phía Unity/config loader cần tải và áp dụng bundle Published; API game và tích hợp Unity thuộc phần riêng,
+publish Admin không tự đẩy thông số vào Unity đang chạy.
+
+ContentVersion soft delete: `DELETE /api/content-versions/{id}` with JSON body `{ "revision": 2 }` (Admin/Designer). Only Draft versions can be deleted; success returns 204. This archives the version (Status=Archived, ArchivedAt=UTC, Revision incremented), preserving all content and bundle data. Default searches exclude Archived; use `?status=Archived` to list them. Detail/compare/clone remain available for archived snapshots. Missing versions return 404; stale revisions, concurrent changes, and non-Draft versions return 409; missing/negative revision returns 400. No schema migration is required.
+
+ContentVersion expected business errors use `ServiceResult<T>` rather than throwing exceptions. Controllers return ProblemDetails JSON directly with `code`, `message`, `traceId`, and optional field `errors`: 400/VALIDATION_FAILED, 404/CONTENT_VERSION_NOT_FOUND, 409/CONTENT_VERSION_CHANGED or CONTENT_VERSION_NOT_DRAFT. Successful response bodies and validation reports are unchanged. EF concurrency failures are caught and converted to conflict results; unexpected infrastructure exceptions still use the global exception handler.
+
+### Nội dung của một version (`/api/content-versions/{versionId}/...`)
+
+Role `Admin` và `Designer`. Mỗi nhóm có đủ `GET /` (danh sách), `GET /{id}`, `POST /`, `PUT /{id}`, `DELETE /{id}`:
+`items` (kèm thông số weapon / consumable), `skills`, `loot-tables` (kèm entries), `enemy-types`, `maps` (kèm enemy
+placements và loot tables), `recipes` (kèm ingredients), `quests` (kèm rewards).
+
+- Chỉ sửa được version `Draft` hoặc `Rejected`; lần sửa đầu tiên đưa version `Rejected` về `Draft`. Trạng thái khác trả 409.
+- Mỗi lần sửa tăng `revision` của version và xóa bundle / checksum / kết quả validation cũ, nên phải lấy lại revision
+  rồi validate lại trước khi submit.
+- Tham chiếu giữa các dòng dùng `code` trong cùng version (ví dụ `ammoItemCode`, `lootTableCode`); code không tồn tại trả 400.
+- `code` trùng trong cùng version trả 409. Dòng đang được dòng khác dùng thì không xóa được (409, có nêu nơi đang dùng).
+- Mỗi version chỉ có một map `isSafeCamp`. Danh sách con (entries, placements, ingredients, rewards) được thay toàn bộ khi `PUT`.
 
 ## Cấu hình solver (`/api/solver-configurations`)
 

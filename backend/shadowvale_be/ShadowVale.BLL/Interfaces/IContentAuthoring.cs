@@ -3,31 +3,6 @@ using ShadowVale.BLL.DTOs.Content;
 
 namespace ShadowVale.BLL.Interfaces;
 
-// Content versions and their review / publish workflow:
-// Draft -> InReview -> Approved -> Published -> Archived (a rejected version goes back to Draft on its next edit)
-public interface IContentVersionService
-{
-    Task<PagedResult<ContentVersionDto>> GetAllAsync(ContentVersionQuery query, CancellationToken ct = default);
-    Task<ContentVersionDto> GetByIdAsync(Guid id, CancellationToken ct = default);
-    Task<ContentVersionDto> CreateAsync(CreateContentVersionRequest request, Guid actorId, CancellationToken ct = default);
-    Task<ContentVersionDto> UpdateAsync(Guid id, UpdateContentVersionRequest request, CancellationToken ct = default);
-    Task DeleteAsync(Guid id, CancellationToken ct = default);
-
-    // Builds the bundle and checks it; stores the result. Never throws for invalid content: the report lists the problems.
-    Task<ValidationReportDto> ValidateAsync(Guid id, CancellationToken ct = default);
-    // The validated bundle exactly as the game would receive it (409 when not validated since the last edit)
-    Task<string> GetBundleAsync(Guid id, CancellationToken ct = default);
-    Task<ContentCompareDto> CompareAsync(Guid a, Guid b, CancellationToken ct = default);
-
-    Task<ContentVersionDto> SubmitAsync(Guid id, CancellationToken ct = default);
-    Task<ContentVersionDto> ApproveAsync(Guid id, Guid actorId, ReviewNoteRequest request, CancellationToken ct = default);
-    Task<ContentVersionDto> RejectAsync(Guid id, Guid actorId, RejectContentVersionRequest request, CancellationToken ct = default);
-    Task<ContentVersionDto> PublishAsync(Guid id, Guid actorId, PublishContentVersionRequest request, CancellationToken ct = default);
-    Task<ContentVersionDto> RollbackAsync(Guid id, Guid actorId, RollbackContentVersionRequest request, CancellationToken ct = default);
-
-    Task<PagedResult<PublicationHistoryDto>> GetHistoryAsync(HistoryQuery query, CancellationToken ct = default);
-}
-
 public interface IItemService
 {
     Task<IReadOnlyList<ItemDto>> GetAllAsync(Guid versionId, ItemQuery query, CancellationToken ct = default);
