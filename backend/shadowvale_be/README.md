@@ -65,6 +65,10 @@ tài khoản. Game không đăng nhập (telemetry ẩn danh).
 
 Admin không tự hạ role hay tự khóa tài khoản của chính mình được (tránh trường hợp không còn ai quản lý user).
 
+Mọi phản hồi lỗi là ProblemDetails, có thêm `code`, `message` và `traceId`. Đăng nhập trả 401 `INVALID_CREDENTIALS` khi
+sai tài khoản hoặc mật khẩu, 403 `ACCOUNT_DEACTIVATED` khi đúng mật khẩu nhưng tài khoản bị khóa, 400 `VALIDATION_FAILED`
+kèm `errors` khi dữ liệu sai, 429 `AUTH_RATE_LIMITED` khi gọi quá nhanh. Lỗi 5xx không bao giờ trả nội dung exception.
+
 ## Cấu hình solver (`/api/solver-configurations`)
 
 Mỗi cấu hình là một thuật toán cùng bộ tham số. Cả 3 role xem được; chỉ Admin và Analyst sửa được.

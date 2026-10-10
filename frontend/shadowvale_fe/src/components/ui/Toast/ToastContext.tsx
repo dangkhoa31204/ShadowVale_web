@@ -1,26 +1,5 @@
-import React, { createContext, useState, useCallback, type ReactNode } from 'react';
-
-export type ToastType = 'success' | 'error' | 'warning' | 'info';
-
-export interface Toast {
-  id: string;
-  message: string;
-  type: ToastType;
-  title?: string;
-  duration?: number;
-}
-
-export interface ToastContextType {
-  toasts: Toast[];
-  showToast: (message: string, type?: ToastType, title?: string, duration?: number) => void;
-  removeToast: (id: string) => void;
-  success: (message: string, title?: string) => void;
-  error: (message: string, title?: string) => void;
-  warning: (message: string, title?: string) => void;
-  info: (message: string, title?: string) => void;
-}
-
-export const ToastContext = createContext<ToastContextType | undefined>(undefined);
+import React, { useState, useCallback, type ReactNode } from 'react';
+import { ToastContext, type Toast, type ToastType } from './toastContextValue';
 
 export const ToastProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [toasts, setToasts] = useState<Toast[]>([]);
@@ -46,8 +25,8 @@ export const ToastProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   );
 
   const success = useCallback((message: string, title?: string) => showToast(message, 'success', title || 'SUCCESS'), [showToast]);
-  const error = useCallback((message: string, title?: string) => showToast(message, 'error', title || 'SYSTEM ERROR'), [showToast]);
-  const warning = useCallback((message: string, title?: string) => showToast(message, 'warning', title || 'TACTICAL WARNING'), [showToast]);
+  const error = useCallback((message: string, title?: string) => showToast(message, 'error', title || 'ERROR'), [showToast]);
+  const warning = useCallback((message: string, title?: string) => showToast(message, 'warning', title || 'WARNING'), [showToast]);
   const info = useCallback((message: string, title?: string) => showToast(message, 'info', title || 'NOTICE'), [showToast]);
 
   return (

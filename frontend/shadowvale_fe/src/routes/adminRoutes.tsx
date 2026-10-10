@@ -1,34 +1,26 @@
-import type { RouteObject } from 'react-router-dom';
-import { Navigate } from 'react-router-dom';
-import { AdminLayout } from '../layouts/AdminLayout';
+import { Navigate, type RouteObject } from 'react-router-dom';
+import { InternalLayout } from '../layouts/InternalLayout';
 import { ProtectedRoute } from './guards/ProtectedRoute';
-import { DashboardPage } from '../pages/admin/Dashboard/DashboardPage';
-import { AnalyticsPage } from '../pages/admin/Analytics/AnalyticsPage';
-import { LiveOpsPage } from '../pages/admin/LiveOps/LiveOpsPage';
-import { EntityEditorPage } from '../pages/admin/EntityEditor/EntityEditorPage';
-import { AssetsManagerPage } from '../pages/admin/Assets/AssetsManagerPage';
-import { UsersPage } from '../pages/admin/Users/UsersPage';
-import { UserDetailsPage } from '../pages/admin/UserDetails/UserDetailsPage';
-import { RoleManagementPage } from '../pages/admin/RoleManagement/RoleManagementPage';
-import { SystemArchitecturePage } from '../pages/admin/SystemArchitecture/SystemArchitecturePage';
-
+import { permissions, type Permission } from '../features/auth/access';
+import { HomeRedirect } from '../features/auth/RoleHome';
+import { Dashboard, Content, ChangeReports, Reviews, Releases, Analytics } from './routePages';
+function guard(permission: Permission, element: React.ReactNode) {
+  return <ProtectedRoute allowedRoles={permissions[permission]}>{element}</ProtectedRoute>;
+}
 export const adminRoutes: RouteObject = {
-  element: (
-    <ProtectedRoute allowedRoles={['admin', 'commander']}>
-      <AdminLayout />
-    </ProtectedRoute>
-  ),
+  path: '/admin',
+  element: <ProtectedRoute><InternalLayout /></ProtectedRoute>,
   children: [
-    { path: '/admin', element: <Navigate to="/admin/dashboard" replace /> },
-    { path: '/admin/dashboard', element: <DashboardPage /> },
-    { path: '/admin/assets', element: <AssetsManagerPage /> },
-    { path: '/admin/entity-editor', element: <EntityEditorPage /> },
-    { path: '/admin/live-ops', element: <LiveOpsPage /> },
-    { path: '/admin/analytics', element: <AnalyticsPage /> },
-    { path: '/admin/roles', element: <RoleManagementPage /> },
-    { path: '/admin/users', element: <UsersPage /> },
-    { path: '/admin/users/:id', element: <UserDetailsPage /> },
-    { path: '/admin/system', element: <SystemArchitecturePage /> },
+    { index: true, element: <HomeRedirect /> },
+    { path: 'dashboard', element: guard('overview', <Dashboard />) },
+    { path: 'content', element: guard('author', <Content />) },
+    { path: 'content/:draftId', element: guard('author', <Content />) },
+    { path: 'change-reports', element: guard('author', <ChangeReports />) },
+    { path: 'change-reports/:draftId', element: guard('author', <ChangeReports />) },
+    { path: 'reviews', element: guard('review', <Reviews />) },
+    { path: 'releases', element: guard('versions', <Releases />) },
+    { path: 'analytics', element: guard('analytics', <Analytics />) },
+    { path: 'assets', element: <Navigate to="/admin/content" replace /> },
+    { path: 'entity-editor', element: <Navigate to="/admin/content" replace /> },
   ],
 };
-

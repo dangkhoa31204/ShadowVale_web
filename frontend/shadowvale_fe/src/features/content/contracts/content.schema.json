@@ -1,0 +1,911 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ShadowVale database-aligned content editor DTO",
+  "description": "Frontend validation prototype aligned to the supplied ShadowVale v3 database. Backend bundle serialization remains an API integration concern.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "version_no",
+    "label",
+    "schema_version",
+    "items",
+    "weapons",
+    "consumables",
+    "skills",
+    "loot_tables",
+    "loot_table_entries",
+    "maps",
+    "map_loot_tables",
+    "enemy_types",
+    "enemy_placements",
+    "crafting_recipes",
+    "crafting_recipe_ingredients",
+    "quests",
+    "quest_rewards"
+  ],
+  "properties": {
+    "version_no": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "label": {
+      "type": "string",
+      "pattern": ".*\\S.*"
+    },
+    "schema_version": {
+      "type": "string",
+      "minLength": 1
+    },
+    "changelog": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "content_version_id": {
+      "type": "string"
+    },
+    "published_at": {
+      "type": "string"
+    },
+    "checksum": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "code",
+          "name",
+          "item_type",
+          "rarity",
+          "max_stack",
+          "weight",
+          "base_value",
+          "stats"
+        ],
+        "properties": {
+          "code": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*$"
+          },
+          "name": {
+            "type": "string",
+            "pattern": ".*\\S.*"
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "item_type": {
+            "type": "string",
+            "enum": [
+              "weapon",
+              "ammo",
+              "consumable",
+              "material",
+              "tool",
+              "armor",
+              "quest_item"
+            ]
+          },
+          "rarity": {
+            "type": "string",
+            "enum": [
+              "common",
+              "uncommon",
+              "rare",
+              "epic",
+              "legendary"
+            ]
+          },
+          "max_stack": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 2147483647,
+            "multipleOf": 1
+          },
+          "weight": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 9999.99,
+            "multipleOf": 0.01
+          },
+          "base_value": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 2147483647,
+            "multipleOf": 1
+          },
+          "stats": {
+            "type": "object"
+          },
+          "icon_key": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "content_version_id": {
+            "type": "string"
+          },
+          "created_at": {
+            "type": "string"
+          },
+          "updated_at": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "weapons": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "item_code",
+          "item_type",
+          "weapon_class",
+          "damage",
+          "fire_rate",
+          "effective_range",
+          "magazine_size",
+          "reload_time_s",
+          "ammo_type",
+          "max_durability",
+          "durability_per_use",
+          "noise_radius",
+          "is_suppressed"
+        ],
+        "properties": {
+          "item_code": {
+            "type": "string"
+          },
+          "item_type": {
+            "type": "string",
+            "enum": [
+              "weapon"
+            ]
+          },
+          "weapon_class": {
+            "type": "string",
+            "enum": [
+              "pistol",
+              "smg",
+              "rifle",
+              "shotgun",
+              "sniper",
+              "melee"
+            ]
+          },
+          "damage": {
+            "type": "number",
+            "minimum": 0.01,
+            "maximum": 99999.99,
+            "multipleOf": 0.01
+          },
+          "fire_rate": {
+            "type": "number",
+            "minimum": 0.01,
+            "maximum": 9999.99,
+            "multipleOf": 0.01
+          },
+          "effective_range": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 9999.99,
+            "multipleOf": 0.01
+          },
+          "magazine_size": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 1,
+            "maximum": 2147483647,
+            "multipleOf": 1
+          },
+          "reload_time_s": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": 0,
+            "maximum": 999.99,
+            "multipleOf": 0.01
+          },
+          "ammo_item_code": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "ammo_type": {
+            "type": "string",
+            "enum": [
+              "ammo"
+            ]
+          },
+          "max_durability": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 2147483647,
+            "multipleOf": 1
+          },
+          "durability_per_use": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 999.999,
+            "multipleOf": 0.001
+          },
+          "noise_radius": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 9999.99,
+            "multipleOf": 0.01
+          },
+          "is_suppressed": {
+            "type": "boolean"
+          },
+          "content_version_id": {
+            "type": "string"
+          },
+          "created_at": {
+            "type": "string"
+          },
+          "updated_at": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "consumables": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "item_code",
+          "item_type",
+          "heal_hp",
+          "restore_stamina",
+          "use_time_s",
+          "cures",
+          "extra_effects"
+        ],
+        "properties": {
+          "item_code": {
+            "type": "string"
+          },
+          "item_type": {
+            "type": "string",
+            "enum": [
+              "consumable"
+            ]
+          },
+          "heal_hp": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 2147483647,
+            "multipleOf": 1
+          },
+          "restore_stamina": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 2147483647,
+            "multipleOf": 1
+          },
+          "use_time_s": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 999.99,
+            "multipleOf": 0.01
+          },
+          "cures": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "extra_effects": {
+            "type": "object"
+          },
+          "content_version_id": {
+            "type": "string"
+          },
+          "created_at": {
+            "type": "string"
+          },
+          "updated_at": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "skills": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "code",
+          "name",
+          "skill_type",
+          "max_level",
+          "xp_curve",
+          "effects"
+        ],
+        "properties": {
+          "code": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*$"
+          },
+          "name": {
+            "type": "string",
+            "pattern": ".*\\S.*"
+          },
+          "skill_type": {
+            "type": "string",
+            "enum": [
+              "shooting",
+              "engineering",
+              "stealth"
+            ]
+          },
+          "max_level": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 2147483647,
+            "multipleOf": 1
+          },
+          "xp_curve": {
+            "type": "array"
+          },
+          "effects": {
+            "type": "object"
+          },
+          "content_version_id": {
+            "type": "string"
+          },
+          "created_at": {
+            "type": "string"
+          },
+          "updated_at": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "loot_tables": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "code",
+          "name",
+          "rolls_min",
+          "rolls_max"
+        ],
+        "properties": {
+          "code": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*$"
+          },
+          "name": {
+            "type": "string",
+            "pattern": ".*\\S.*"
+          },
+          "rolls_min": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 2147483647,
+            "multipleOf": 1
+          },
+          "rolls_max": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 2147483647,
+            "multipleOf": 1
+          },
+          "content_version_id": {
+            "type": "string"
+          },
+          "created_at": {
+            "type": "string"
+          },
+          "updated_at": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "loot_table_entries": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "loot_table_code",
+          "item_code",
+          "tier",
+          "weight",
+          "min_qty",
+          "max_qty"
+        ],
+        "properties": {
+          "loot_table_code": {
+            "type": "string"
+          },
+          "item_code": {
+            "type": "string"
+          },
+          "tier": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 5,
+            "multipleOf": 1
+          },
+          "weight": {
+            "type": "number",
+            "minimum": 0.0001,
+            "maximum": 999999.9999,
+            "multipleOf": 0.0001
+          },
+          "min_qty": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 2147483647,
+            "multipleOf": 1
+          },
+          "max_qty": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 2147483647,
+            "multipleOf": 1
+          },
+          "content_version_id": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "maps": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "code",
+          "name",
+          "scene_key",
+          "is_safe_camp",
+          "sort_order",
+          "nav_graph",
+          "layout"
+        ],
+        "properties": {
+          "code": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*$"
+          },
+          "name": {
+            "type": "string",
+            "pattern": ".*\\S.*"
+          },
+          "scene_key": {
+            "type": "string",
+            "pattern": ".*\\S.*"
+          },
+          "is_safe_camp": {
+            "type": "boolean"
+          },
+          "sort_order": {
+            "type": "integer",
+            "minimum": -2147483648,
+            "maximum": 2147483647,
+            "multipleOf": 1
+          },
+          "nav_graph": {
+            "type": "object"
+          },
+          "layout": {
+            "type": "object"
+          },
+          "content_version_id": {
+            "type": "string"
+          },
+          "created_at": {
+            "type": "string"
+          },
+          "updated_at": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "map_loot_tables": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "map_code",
+          "loot_table_code",
+          "container_tag"
+        ],
+        "properties": {
+          "map_code": {
+            "type": "string"
+          },
+          "loot_table_code": {
+            "type": "string"
+          },
+          "container_tag": {
+            "type": "string"
+          },
+          "content_version_id": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "enemy_types": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "code",
+          "name",
+          "archetype",
+          "is_boss",
+          "max_hp",
+          "move_speed",
+          "vision_range",
+          "vision_angle_deg",
+          "hearing_range",
+          "accuracy",
+          "fsm_params"
+        ],
+        "properties": {
+          "code": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*$"
+          },
+          "name": {
+            "type": "string",
+            "pattern": ".*\\S.*"
+          },
+          "archetype": {
+            "type": "string"
+          },
+          "is_boss": {
+            "type": "boolean"
+          },
+          "max_hp": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 2147483647,
+            "multipleOf": 1
+          },
+          "move_speed": {
+            "type": "number",
+            "minimum": 0.01,
+            "maximum": 999.99,
+            "multipleOf": 0.01
+          },
+          "vision_range": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 9999.99,
+            "multipleOf": 0.01
+          },
+          "vision_angle_deg": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 360,
+            "multipleOf": 0.01
+          },
+          "hearing_range": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 9999.99,
+            "multipleOf": 0.01
+          },
+          "accuracy": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1,
+            "multipleOf": 0.001
+          },
+          "weapon_item_code": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "fsm_params": {
+            "type": "object"
+          },
+          "loot_table_code": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "content_version_id": {
+            "type": "string"
+          },
+          "created_at": {
+            "type": "string"
+          },
+          "updated_at": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "enemy_placements": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "map_code",
+          "enemy_type_code",
+          "squad_tag",
+          "pos_x",
+          "pos_y",
+          "facing_deg",
+          "patrol_route"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+          },
+          "map_code": {
+            "type": "string"
+          },
+          "enemy_type_code": {
+            "type": "string"
+          },
+          "squad_tag": {
+            "type": "string"
+          },
+          "pos_x": {
+            "type": "number",
+            "minimum": -999999.999,
+            "maximum": 999999.999,
+            "multipleOf": 0.001
+          },
+          "pos_y": {
+            "type": "number",
+            "minimum": -999999.999,
+            "maximum": 999999.999,
+            "multipleOf": 0.001
+          },
+          "facing_deg": {
+            "type": "number",
+            "minimum": -999.99,
+            "maximum": 999.99,
+            "multipleOf": 0.01
+          },
+          "patrol_route": {
+            "type": "array"
+          },
+          "spawn_condition": {
+            "type": [
+              "object",
+              "null"
+            ]
+          },
+          "content_version_id": {
+            "type": "string"
+          },
+          "created_at": {
+            "type": "string"
+          },
+          "updated_at": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "crafting_recipes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "code",
+          "name",
+          "output_item_code",
+          "output_quantity",
+          "craft_time_s",
+          "required_skill_level",
+          "station"
+        ],
+        "properties": {
+          "code": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*$"
+          },
+          "name": {
+            "type": "string",
+            "pattern": ".*\\S.*"
+          },
+          "output_item_code": {
+            "type": "string"
+          },
+          "output_quantity": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 2147483647,
+            "multipleOf": 1
+          },
+          "craft_time_s": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 9999.99,
+            "multipleOf": 0.01
+          },
+          "required_skill_code": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "required_skill_level": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 2147483647,
+            "multipleOf": 1
+          },
+          "station": {
+            "type": "string"
+          },
+          "content_version_id": {
+            "type": "string"
+          },
+          "created_at": {
+            "type": "string"
+          },
+          "updated_at": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "crafting_recipe_ingredients": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "recipe_code",
+          "item_code",
+          "quantity"
+        ],
+        "properties": {
+          "recipe_code": {
+            "type": "string"
+          },
+          "item_code": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 2147483647,
+            "multipleOf": 1
+          },
+          "content_version_id": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "quests": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "code",
+          "title",
+          "is_main",
+          "sort_order",
+          "objectives",
+          "prerequisites",
+          "reward_xp"
+        ],
+        "properties": {
+          "code": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*$"
+          },
+          "title": {
+            "type": "string",
+            "pattern": ".*\\S.*"
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "is_main": {
+            "type": "boolean"
+          },
+          "sort_order": {
+            "type": "integer",
+            "minimum": -2147483648,
+            "maximum": 2147483647,
+            "multipleOf": 1
+          },
+          "objectives": {
+            "type": "array"
+          },
+          "prerequisites": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "reward_xp": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 2147483647,
+            "multipleOf": 1
+          },
+          "content_version_id": {
+            "type": "string"
+          },
+          "created_at": {
+            "type": "string"
+          },
+          "updated_at": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "quest_rewards": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "quest_code",
+          "item_code",
+          "quantity"
+        ],
+        "properties": {
+          "quest_code": {
+            "type": "string"
+          },
+          "item_code": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 2147483647,
+            "multipleOf": 1
+          },
+          "content_version_id": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}

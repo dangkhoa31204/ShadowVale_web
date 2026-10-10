@@ -18,8 +18,28 @@ public class AuthController(IAuthService authService) : ControllerBase
     [HttpPost("login")]
     [AllowAnonymous]
     [EnableRateLimiting(RateLimitPolicy)]
-    public async Task<ActionResult<AuthResponse>> Login(LoginRequest request, CancellationToken ct) =>
-        Ok(await authService.LoginAsync(request, ct));
+    [ProducesResponseType<AuthResponse>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status403Forbidden)]
+    public async Task<ActionResult<AuthResponse>> Login(LoginRequest request, CancellationToken ct)
+    {
+        var result = await authService.LoginAsync(request, ct);
+        if (result.Failure is null) return Ok(result.Data);
+        var disabled = result.Failure == LoginFailure.AccountDeactivated;
+        var message = disabled ? "This account has been deactivated." : "Invalid username or password.";
+        var problem = new ProblemDetails
+        {
+            Status = disabled ? StatusCodes.Status403Forbidden : StatusCodes.Status401Unauthorized,
+            Title = disabled ? "Forbidden" : "Unauthorized",
+            Detail = message, Instance = Request.Path
+        };
+        problem.Extensions["code"] = disabled ? "ACCOUNT_DEACTIVATED" : "INVALID_CREDENTIALS";
+        problem.Extensions["message"] = message;
+        problem.Extensions["traceId"] = HttpContext.TraceIdentifier;
+        var response = new ObjectResult(problem) { StatusCode = problem.Status };
+        response.ContentTypes.Add("application/problem+json");
+        return response;
+    }
 
     [HttpPost("refresh")]
     [AllowAnonymous]

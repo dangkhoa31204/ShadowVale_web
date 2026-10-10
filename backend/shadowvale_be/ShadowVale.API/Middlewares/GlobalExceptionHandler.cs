@@ -53,6 +53,9 @@ public sealed class GlobalExceptionHandler(
         if (exception is ValidationException validation)
             problem.Extensions["errors"] = validation.Errors;
 
+        if (exception is UnauthorizedException unauthorized) problem.Extensions["code"] = unauthorized.Code;
+        if (exception is ForbiddenException forbidden) problem.Extensions["code"] = forbidden.Code;
+
         httpContext.Response.StatusCode = status;
         return await problemDetailsService.TryWriteAsync(new ProblemDetailsContext
         {

@@ -4,7 +4,7 @@ import { Input } from '../../../../components/ui/Input';
 interface SliderCreateModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSliderCreated?: (slider: any) => void;
+  onSliderCreated?: (slider: Record<string, string | boolean | number>) => void;
 }
 
 const PRESET_IMAGES = [

@@ -1,31 +1,12 @@
-import type { RouteObject } from 'react-router-dom';
-import { CommonLayout } from '../layouts/CommonLayout';
-import { HomePage } from '../pages/common/Home/HomePage';
-import { LoginPage } from '../pages/common/Login/LoginPage';
-import { RegisterPage } from '../pages/common/Register/RegisterPage';
-import { ResetPasswordPage } from '../pages/common/ResetPassword/ResetPasswordPage';
-import { AuthorizationPage } from '../pages/common/Authorization/AuthorizationPage';
-import { ProfilePage } from '../pages/common/Profile/ProfilePage';
-import { ChangePasswordPage } from '../pages/common/ChangePassword/ChangePasswordPage';
-import { NotFoundPage } from '../pages/common/NotFound/NotFoundPage';
-import { ProtectedRoute } from './guards/ProtectedRoute';
-
+import { Navigate, type RouteObject } from 'react-router-dom';
+import { InternalLoginPage } from '../features/auth/LoginPage';
+import { AccessPage } from '../features/auth/AccessPage';
 export const commonRoutes: RouteObject = {
-  element: <CommonLayout />,
   children: [
-    { path: '/', element: <HomePage /> },
-    { path: '/login', element: <LoginPage /> },
-    { path: '/register', element: <RegisterPage /> },
-    { path: '/reset-password', element: <ResetPasswordPage /> },
-    { path: '/authorization', element: <AuthorizationPage /> },
-    {
-      element: <ProtectedRoute />,
-      children: [
-        { path: '/profile', element: <ProfilePage /> },
-        { path: '/change-password', element: <ChangePasswordPage /> },
-      ],
-    },
-    { path: '*', element: <NotFoundPage /> },
+    { path: '/', element: <Navigate to="/admin" replace /> },
+    { path: '/login', element: <InternalLoginPage /> },
+    { path: '/forbidden', element: <AccessPage forbidden /> },
+    { path: '/authorization', element: <Navigate to="/forbidden" replace /> },
+    { path: '*', element: <AccessPage /> },
   ],
 };
-

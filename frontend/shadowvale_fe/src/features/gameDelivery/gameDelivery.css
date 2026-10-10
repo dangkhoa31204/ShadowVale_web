@@ -1,0 +1,57 @@
+.sv-review-source-tabs { align-self: flex-start; }
+.sv-game-sync-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.sv-game-sync-header > span { font-size: 11px; color: var(--sv-muted); }
+.sv-game-sync-header > div { display: flex; gap: 8px; }
+.sv-demo-data { display: inline-block; margin-left: 12px; border: 1px solid #eabf8a40; padding: 3px 6px; color: var(--sv-warning); font-size: 10px; }
+.sv-build-detail > .sv-alert { margin: 0 24px 16px; }
+.sv-build-detail > .sv-table-note { margin: 0 24px 16px; }
+.sv-status-ready, .sv-status-added { color: var(--sv-success); }
+.sv-status-failed, .sv-status-rejected, .sv-status-removed { color: var(--sv-error); }
+.sv-status-awaiting_build, .sv-status-modified, .sv-status-renamed { color: var(--sv-accent); }
+.sv-build-metadata { display: flex; flex-wrap: wrap; gap: 16px; padding: 0 24px 20px; color: var(--sv-muted); font: 11px 'JetBrains Mono',monospace; }
+.sv-build-metadata > span { display: flex; align-items: center; gap: 6px; }.sv-build-metadata .sv-icon { font-size: 16px; }
+.sv-build-counts { display: flex; flex-wrap: wrap; gap: 8px; padding: 0 24px; }
+.sv-build-counts button { display: flex; align-items: center; gap: 8px; padding: 9px 12px; border: 1px solid var(--sv-border) !important; font-size: 11px; color: var(--sv-muted); }
+.sv-build-counts button.is-active { border-color: var(--sv-accent) !important; color: var(--sv-accent); background: var(--sv-accent-dark); }
+.sv-build-counts .sv-icon { font-size: 18px; }
+.sv-build-files { max-height: 420px; overflow-y: auto; padding: 0 24px 24px; }
+.sv-build-files > button { display: flex; align-items: center; gap: 12px; width: 100%; text-align: left; padding: 12px 8px; border-bottom: 1px solid var(--sv-border) !important; }
+.sv-build-files > button.is-active { background: var(--sv-raised); }.sv-build-files > button > span:nth-child(2) { min-width: 0; }
+.sv-build-files strong { display: block; font: 11px 'JetBrains Mono',monospace; overflow-wrap: anywhere; }.sv-build-files small { color: var(--sv-subtle); font-size: 11px; }
+.sv-build-files .sv-icon { margin-left: auto; color: var(--sv-accent); }
+.sv-build-no-preview, .sv-build-preview { margin: 0 24px 24px; border: 1px solid var(--sv-border); padding: 16px; color: var(--sv-muted); }
+.sv-file-detail { margin: 0 24px 24px; border: 1px solid var(--sv-border); background: var(--sv-bg); }
+.sv-file-detail-heading { display: flex; align-items: center; gap: 10px; padding: 16px; }
+.sv-file-detail-heading > .sv-icon { color: var(--sv-accent); }.sv-file-detail-heading h3 { flex: 1; min-width: 0; overflow-wrap: anywhere; font-size: 13px; }
+.sv-file-detail > p { padding: 0 16px 16px; font-size: 12px; color: var(--sv-muted); }
+.sv-file-detail .sv-table th { background: var(--sv-surface); }.sv-file-diff td { padding: 12px 16px; font-size: 12px; }
+.sv-file-diff td:nth-child(2) { color: var(--sv-subtle); }.sv-file-diff td:nth-child(3) { color: var(--sv-success); }
+.sv-file-detail .sv-build-preview { margin: 16px; background: var(--sv-surface); padding: 8px; }
+.sv-file-detail .sv-build-no-preview { display: flex; align-items: center; justify-content: center; gap: 10px; margin: 16px; border-style: dashed; font-size: 12px; min-height: 72px; }
+.sv-build-no-preview strong { font-size: 11px; overflow-wrap: anywhere; }.sv-build-no-preview p { margin-top: 8px; font-size: 12px; }
+.sv-build-preview img { display: block; max-width: 100%; max-height: 360px; margin: auto; object-fit: contain; }
+.sv-build-artifacts { padding: 0 24px 24px; }.sv-build-artifacts h3 { margin-bottom: 10px; }
+.sv-build-artifacts > div { display: flex; align-items: center; gap: 10px; padding: 12px 0; border-bottom: 1px solid var(--sv-border); font-size: 12px; }
+.sv-build-artifacts > div > span:nth-child(2) { min-width: 0; flex: 1; }.sv-build-artifacts strong, .sv-build-artifacts small { display: block; overflow-wrap: anywhere; }.sv-build-artifacts small { color: var(--sv-subtle); font-size: 10px; margin-top: 4px; }
+.sv-build-review-note { border-top: 1px solid var(--sv-border); padding: 20px 24px; color: var(--sv-muted); font-size: 12px; white-space: pre-wrap; }
+.sv-game-compose { padding: 0 24px 24px; display: grid; grid-template-columns: 2fr 1fr; gap: 18px; }
+.sv-game-compose > label:nth-child(3), .sv-game-release-summary { grid-column: 1/-1; }
+.sv-bundle-contents { grid-column: 1/-1; padding: 18px; border: 1px solid var(--sv-border); background: var(--sv-bg); }
+.sv-bundle-categories { display: flex; flex-wrap: wrap; gap: 16px; margin-bottom: 18px; color: var(--sv-accent); }
+.sv-bundle-categories > span { display: flex; align-items: center; gap: 6px; font-size: 11px; }.sv-bundle-categories .sv-icon { font-size: 18px; }
+.sv-bundle-contents h3 { font-size: 12px; margin-bottom: 12px; }
+.sv-bundle-files { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 10px; }
+.sv-bundle-files > div { display: flex; align-items: center; gap: 10px; padding: 12px; border: 1px solid var(--sv-border); }
+.sv-bundle-files > div > span { min-width: 0; }.sv-bundle-files strong, .sv-bundle-files small { display: block; overflow-wrap: anywhere; }
+.sv-bundle-files strong { font-size: 12px; color: var(--sv-text); }.sv-bundle-files small { font-size: 10px; color: var(--sv-subtle); margin-top: 4px; }.sv-bundle-files .sv-icon { color: var(--sv-accent); }
+.sv-game-compose > button { justify-self: start; }
+.sv-game-release-summary { display: flex; flex-wrap: wrap; gap: 14px; color: var(--sv-muted); font: 11px 'JetBrains Mono',monospace; }
+.sv-game-release-summary a { color: var(--sv-accent); }.sv-game-error { margin: 0 24px 20px; }
+@media (max-width: 760px) {
+ .sv-bundle-files { grid-template-columns: 1fr; }
+ .sv-file-detail { margin: 0 18px 18px; }.sv-file-diff th, .sv-file-diff td { padding: 10px; }
+ .sv-build-detail > .sv-alert, .sv-build-no-preview, .sv-build-preview { margin-left: 18px; margin-right: 18px; }
+ .sv-build-metadata, .sv-build-artifacts, .sv-build-files { padding-left: 18px; padding-right: 18px; }
+ .sv-build-counts { padding: 0 18px; }.sv-game-compose { grid-template-columns: 1fr; padding: 0 18px 18px; }
+ .sv-game-sync-header { flex-wrap: wrap; }.sv-build-files > button { align-items: flex-start; gap: 8px; }
+}
