@@ -46,13 +46,13 @@ public class ContentVersionsController(IContentVersionService service) : Control
         CancellationToken ct) => Respond(await service.CompareAsync(id, targetId.GetValueOrDefault(), ct));
 
     [HttpPut("{id:guid}")]
-    [EndpointSummary("PUT /api/content-versions/{id} (DESIGNER)")]
+    [EndpointSummary("PUT /api/content-versions/{id} (ADMIN)")]
     [EndpointDescription("Available to both Designer and Admin. Updates label, changelog, and schemaVersion only; requires Draft status and current revision. Does not update weapon stats.")]
     public async Task<ActionResult<ContentVersionDto>> Update(Guid id, UpdateContentVersionRequest request,
         CancellationToken ct) => Respond(await service.UpdateAsync(id, request, ct));
 
     [HttpPost("{id:guid}/validate")]
-    [EndpointSummary("POST /api/content-versions/{id}/validate (DESIGNER)")]
+    [EndpointSummary("POST /api/content-versions/{id}/validate (ADMIN)")]
     [EndpointDescription("Available to both Designer and Admin. Validates the complete Draft snapshot and returns isValid, errors, and the incremented revision. Does not submit the version for review.")]
     public async Task<ActionResult<ContentValidationResultDto>> Validate(Guid id,
         ValidateContentVersionRequest request, CancellationToken ct) => Respond(await service.ValidateAsync(id, request, ct));
@@ -66,7 +66,7 @@ public class ContentVersionsController(IContentVersionService service) : Control
         CancellationToken ct) => Respond(await service.SubmitAsync(id, request, ct));
 
     [HttpDelete("{id:guid}")]
-    [EndpointSummary("DELETE /api/content-versions/{id} (DESIGNER)")]
+    [EndpointSummary("DELETE /api/content-versions/{id} (ADMIN)")]
     [EndpointDescription("Available to both Designer and Admin. Soft-deletes a Draft by setting Archived; preserves its content. Requires the current revision.")]
     public async Task<IActionResult> Delete(Guid id, [FromBody] DeleteContentVersionRequest request,
         CancellationToken ct)
