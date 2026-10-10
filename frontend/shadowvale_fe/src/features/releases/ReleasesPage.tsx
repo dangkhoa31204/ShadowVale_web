@@ -8,6 +8,8 @@ import { GamePublishPanel } from '../gameDelivery/GamePublishPanel';
 import { Empty, Icon, PageHeading, Status } from '../shared/ui';
 import { dateLabel, downloadJson } from '../shared/format';
 import { Table, TableBody, TableCell, TableHeader, TableRow } from '../../template/tailadmin/Table';
+import { ReportDetails } from '../changeReports/ReportDetails';
+import { ReviewPackageButton } from '../changeReports/ReviewPackageButton';
 
 type Confirmation = { type: 'publish'; id: string; revision: number } | { type: 'rollback'; id: string };
 
@@ -91,12 +93,14 @@ export function ReleasesPage() {
                 <td data-label="Actions"><div className="sv-row-actions">
                   {canPublish && <button id={'release-toggle-' + r.id} className="sv-button sv-button-small" aria-expanded={detailId === r.id} aria-controls={'release-detail-' + r.id} onClick={() => setDetailId(detailId === r.id ? '' : r.id)}>{detailId === r.id ? 'Hide changes' : 'View changes'}</button>}
                   <button className="sv-button sv-button-small" onClick={() => downloadJson(r.bundle, 'shadowvale-content-' + r.version_no + '.json')}>JSON</button>
+                  {r.changeReport && <ReviewPackageButton content={r.bundle} report={r.changeReport} revision={r.revision || 0} />}
                   {canPublish && r.status === 'archived' && <button className="sv-button sv-button-small" disabled={busy} onClick={() => requestAction({ type: 'rollback', id: r.id })}>Rollback</button>}
                 </div></td>
               </tr>
               {detailId === r.id && <tr className="sv-release-detail-row"><td colSpan={6}>
                 <section ref={detailRef} id={'release-detail-' + r.id} aria-label={'Changes for version ' + r.version_no}>
                   <div className="sv-panel-heading"><div><h2>#{r.version_no} · {r.label}</h2>{r.changelog && <p>{r.changelog}</p>}</div><button className="sv-button sv-button-small" onClick={closeDetails}>Close</button></div>
+                  {r.changeReport && <ReportDetails report={r.changeReport} contentVersionId={r.sourceDraftId} />}
                   <BundleDetails before={baseline?.bundle} after={r.bundle} />
                 </section>
               </td></tr>}
