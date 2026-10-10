@@ -9,3 +9,4 @@ tests/
 Dockerfile
 .dockerignore
 README.md
+**/.env

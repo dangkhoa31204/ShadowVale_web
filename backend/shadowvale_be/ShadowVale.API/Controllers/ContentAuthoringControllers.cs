@@ -11,7 +11,7 @@ namespace ShadowVale.API.Controllers;
 // Rows refer to each other by code ("ammoItemCode"), and a code cannot change once created.
 
 [ApiController]
-[Route("api/content/versions/{versionId:guid}/items")]
+[Route("api/content-versions/{versionId:guid}/items")]
 [Authorize(Roles = $"{AppRoles.Admin},{AppRoles.Designer}")]
 public class ItemsController(IItemService items) : ControllerBase
 {
@@ -46,7 +46,7 @@ public class ItemsController(IItemService items) : ControllerBase
 }
 
 [ApiController]
-[Route("api/content/versions/{versionId:guid}/skills")]
+[Route("api/content-versions/{versionId:guid}/skills")]
 [Authorize(Roles = $"{AppRoles.Admin},{AppRoles.Designer}")]
 public class SkillsController(ISkillService skills) : ControllerBase
 {
@@ -79,7 +79,7 @@ public class SkillsController(ISkillService skills) : ControllerBase
 }
 
 [ApiController]
-[Route("api/content/versions/{versionId:guid}/loot-tables")]
+[Route("api/content-versions/{versionId:guid}/loot-tables")]
 [Authorize(Roles = $"{AppRoles.Admin},{AppRoles.Designer}")]
 public class LootTablesController(ILootTableService lootTables) : ControllerBase
 {
@@ -113,7 +113,7 @@ public class LootTablesController(ILootTableService lootTables) : ControllerBase
 }
 
 [ApiController]
-[Route("api/content/versions/{versionId:guid}/enemy-types")]
+[Route("api/content-versions/{versionId:guid}/enemy-types")]
 [Authorize(Roles = $"{AppRoles.Admin},{AppRoles.Designer}")]
 public class EnemyTypesController(IEnemyTypeService enemyTypes) : ControllerBase
 {
@@ -146,7 +146,7 @@ public class EnemyTypesController(IEnemyTypeService enemyTypes) : ControllerBase
 }
 
 [ApiController]
-[Route("api/content/versions/{versionId:guid}/maps")]
+[Route("api/content-versions/{versionId:guid}/maps")]
 [Authorize(Roles = $"{AppRoles.Admin},{AppRoles.Designer}")]
 public class MapsController(IMapService maps) : ControllerBase
 {
@@ -180,7 +180,7 @@ public class MapsController(IMapService maps) : ControllerBase
 }
 
 [ApiController]
-[Route("api/content/versions/{versionId:guid}/recipes")]
+[Route("api/content-versions/{versionId:guid}/recipes")]
 [Authorize(Roles = $"{AppRoles.Admin},{AppRoles.Designer}")]
 public class CraftingRecipesController(ICraftingRecipeService recipes) : ControllerBase
 {
@@ -213,7 +213,7 @@ public class CraftingRecipesController(ICraftingRecipeService recipes) : Control
 }
 
 [ApiController]
-[Route("api/content/versions/{versionId:guid}/quests")]
+[Route("api/content-versions/{versionId:guid}/quests")]
 [Authorize(Roles = $"{AppRoles.Admin},{AppRoles.Designer}")]
 public class QuestsController(IQuestService quests) : ControllerBase
 {

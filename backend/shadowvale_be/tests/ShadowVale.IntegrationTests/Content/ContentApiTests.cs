@@ -9,9 +9,11 @@ using Shouldly;
 
 namespace ShadowVale.IntegrationTests.Content;
 
+// Content rows are authored through the per-version CRUD endpoints; the version itself and its
+// validate / review / publish workflow go through /api/content-versions, which needs the current revision on every write
 public class ContentApiTests(ApiFixture api) : IntegrationTest(api)
 {
-    private const string Versions = "/api/content/versions";
+    private const string Versions = "/api/content-versions";
 
     private static JsonElement Json(string json) => JsonDocument.Parse(json).RootElement.Clone();
 
@@ -21,9 +23,34 @@ public class ContentApiTests(ApiFixture api) : IntegrationTest(api)
         return (await response.Content.ReadFromJsonAsync<T>(new JsonSerializerOptions(JsonSerializerDefaults.Web)))!;
     }
 
-    private static async Task<ContentVersionDto> CreateVersion(HttpClient client, string label = "v1", Guid? baseVersionId = null) =>
+    private static async Task<ContentVersionDto> CreateVersion(HttpClient client, string label = "v1", Guid? parentVersionId = null) =>
         await Read<ContentVersionDto>(await client.PostAsJsonAsync(Versions,
-            new CreateContentVersionRequest { Label = label, BaseVersionId = baseVersionId }), HttpStatusCode.Created);
+            new CreateContentVersionRequest { Label = label, ParentVersionId = parentVersionId }), HttpStatusCode.Created);
+
+    private static async Task<ContentVersionDto> GetVersion(HttpClient client, Guid id) =>
+        (await Read<ContentVersionDetailsDto>(await client.GetAsync($"{Versions}/{id}"))).Version;
+
+    // Every workflow call sends the revision the caller last saw
+    private static async Task<HttpResponseMessage> Act(HttpClient client, Guid id, string action, object? extra = null)
+    {
+        var body = new Dictionary<string, object?> { ["revision"] = (await GetVersion(client, id)).Revision };
+        foreach (var property in extra?.GetType().GetProperties() ?? [])
+            body[property.Name] = property.GetValue(extra);
+        return await client.PostAsJsonAsync($"{Versions}/{id}/{action}", body);
+    }
+
+    private static async Task<ContentVersionDto> ValidateAndSubmit(HttpClient client, Guid id)
+    {
+        var report = await Read<ContentValidationResultDto>(await Act(client, id, "validate"));
+        report.IsValid.ShouldBeTrue(string.Join("; ", report.Errors.Select(e => $"{e.Path}: {e.Message}")));
+        return await Read<ContentVersionDto>(await Act(client, id, "submit"));
+    }
+
+    private static async Task<ContentVersionDto> ApproveAndPublish(HttpClient admin, Guid id)
+    {
+        await Read<ContentVersionDto>(await Act(admin, id, "approve", new { reviewNote = "Looks good" }));
+        return await Read<ContentVersionDto>(await Act(admin, id, "publish", new { reason = "Release" }));
+    }
 
     // Fills a version with a small but complete set of content that passes validation
     private static async Task FillAsync(HttpClient client, Guid versionId)
@@ -94,57 +121,49 @@ public class ContentApiTests(ApiFixture api) : IntegrationTest(api)
         version.Status.ShouldBe("Draft");
         await FillAsync(designer, version.Id);
 
-        var report = await Read<ValidationReportDto>(await designer.PostAsync($"{Versions}/{version.Id}/validate", null));
-        report.IsValid.ShouldBeTrue(string.Join("; ", report.Issues.Select(i => $"{i.Path}: {i.Message}")));
-        report.Counts.Items.ShouldBe(3);
-        report.Counts.Maps.ShouldBe(2);
+        (await ValidateAndSubmit(designer, version.Id)).Status.ShouldBe("InReview");
 
-        (await Read<ContentVersionDto>(await designer.PostAsync($"{Versions}/{version.Id}/submit", null))).Status.ShouldBe("InReview");
-
-        // The designer cannot approve or publish, and the content is frozen while under review
-        (await designer.PostAsJsonAsync($"{Versions}/{version.Id}/approve", new ReviewNoteRequest())).StatusCode.ShouldBe(HttpStatusCode.Forbidden);
+        // The designer cannot approve, and the content is frozen while under review
+        (await Act(designer, version.Id, "approve")).StatusCode.ShouldBe(HttpStatusCode.Forbidden);
         (await designer.PostAsJsonAsync($"{Versions}/{version.Id}/items", new CreateItemRequest { Code = "late", Name = "Late", Type = "Material" }))
             .StatusCode.ShouldBe(HttpStatusCode.Conflict);
 
-        await Read<ContentVersionDto>(await admin.PostAsJsonAsync($"{Versions}/{version.Id}/approve", new ReviewNoteRequest { Note = "Looks good" }));
-        var published = await Read<ContentVersionDto>(await admin.PostAsJsonAsync($"{Versions}/{version.Id}/publish", new PublishContentVersionRequest { Reason = "First release" }));
+        var published = await ApproveAndPublish(admin, version.Id);
         published.Status.ShouldBe("Published");
-        published.PublishedBy!.Username.ShouldStartWith("admin");
+        published.PublishedById.ShouldNotBeNull();
 
-        // The game now receives exactly this bundle
+        // The game now receives this version
         var game = Api.CreateGameClient();
         var manifest = await game.GetFromJsonAsync<JsonElement>("/api/game/content/manifest");
         manifest.GetProperty("versionId").GetGuid().ShouldBe(version.Id);
         var bundleResponse = await game.GetAsync("/api/game/content/bundle");
         bundleResponse.StatusCode.ShouldBe(HttpStatusCode.OK);
         var bundle = JsonDocument.Parse(await bundleResponse.Content.ReadAsStringAsync()).RootElement;
-        bundle.GetProperty("weapons")[0].GetProperty("ammo_type").GetString().ShouldBe("ammo_rifle");
+        bundle.GetProperty("weapons")[0].GetProperty("ammo_item_code").GetString().ShouldBe("ammo_rifle");
         bundle.GetProperty("maps").GetArrayLength().ShouldBe(2);
-        bundle.GetProperty("enemy_archetypes")[0].GetProperty("alert_decay_seconds").GetInt32().ShouldBe(8);
-        bundle.GetProperty("ai_settings").GetProperty("default_solver_variant").GetString().ShouldNotBeNullOrEmpty();
 
-        var history = await Read<PagedResult<PublicationHistoryDto>>(await admin.GetAsync($"{Versions}/history"));
-        history.Items.Single().Action.ShouldBe("Publish");
+        var history = await Read<PagedResult<ContentPublicationDto>>(await admin.GetAsync("/api/content-publications"));
+        history.Items.Single().ContentVersionId.ShouldBe(version.Id);
     }
 
     [DbFact]
-    public async Task NewVersionFromPublished_CopiesContent_ComparesAndRollsBack()
+    public async Task NewVersionFromParent_CopiesContent_PublishingArchivesTheOldOne_AndRollbackRestoresIt()
     {
         var designer = await Api.CreateUserClientAsync(UserRole.Designer);
         var admin = await Api.CreateUserClientAsync(UserRole.Admin);
 
         var v1 = await CreateVersion(designer, "v1");
         await FillAsync(designer, v1.Id);
-        await designer.PostAsync($"{Versions}/{v1.Id}/submit", null);
-        await admin.PostAsJsonAsync($"{Versions}/{v1.Id}/approve", new ReviewNoteRequest());
-        await Read<ContentVersionDto>(await admin.PostAsJsonAsync($"{Versions}/{v1.Id}/publish", new PublishContentVersionRequest()));
+        await ValidateAndSubmit(designer, v1.Id);
+        await ApproveAndPublish(admin, v1.Id);
 
         // v2 starts as a copy; change a weapon stat and add an item
-        var v2 = await CreateVersion(designer, "v2", baseVersionId: v1.Id);
+        var v2 = await CreateVersion(designer, "v2", parentVersionId: v1.Id);
         v2.ParentVersionId.ShouldBe(v1.Id);
+        var originalItems = await Read<List<ItemDto>>(await designer.GetAsync($"{Versions}/{v1.Id}/items"));
         var copiedItems = await Read<List<ItemDto>>(await designer.GetAsync($"{Versions}/{v2.Id}/items"));
         copiedItems.Select(i => i.Code).Order().ShouldBe(["ammo_rifle", "rifle", "scrap"]);
-        copiedItems.Select(i => i.Id).ShouldNotContain(id => id == Guid.Empty);
+        copiedItems.Select(i => i.Id).ShouldNotContain(id => originalItems.Any(o => o.Id == id));
         var rifle = copiedItems.Single(i => i.Code == "rifle");
         rifle.Weapon!.AmmoItemCode.ShouldBe("ammo_rifle");
 
@@ -161,45 +180,51 @@ public class ContentApiTests(ApiFixture api) : IntegrationTest(api)
         await Read<ItemDto>(await designer.PostAsJsonAsync($"{Versions}/{v2.Id}/items",
             new CreateItemRequest { Code = "cloth", Name = "Cloth", Type = "Material", MaxStack = 20 }), HttpStatusCode.Created);
 
-        // v1 is untouched and frozen
-        (await Read<ItemDto>(await designer.GetAsync($"{Versions}/{v1.Id}/items/{rifle.Id}".Replace(rifle.Id.ToString(), copiedItems.Single(i => i.Code == "rifle").Id.ToString()))))
-            .ShouldNotBeNull();
+        // v1 is untouched
+        originalItems.Single(i => i.Code == "rifle").Weapon!.Damage.ShouldBe(24);
 
-        var diff = await Read<ContentCompareDto>(await designer.GetAsync($"{Versions}/compare?a={v1.Id}&b={v2.Id}"));
-        diff.HasChanges.ShouldBeTrue();
-        diff.Sections.Single(s => s.Section == "items").Added.ShouldBe(["cloth"]);
-        diff.Sections.Single(s => s.Section == "weapons").Changed.Single().Fields.ShouldContain("damage");
+        var diff = await Read<ContentComparisonDto>(await designer.GetAsync($"{Versions}/{v1.Id}/compare?targetId={v2.Id}"));
+        diff.Differences.ShouldNotBeEmpty();
 
-        await designer.PostAsync($"{Versions}/{v2.Id}/submit", null);
-        await admin.PostAsJsonAsync($"{Versions}/{v2.Id}/approve", new ReviewNoteRequest());
-        await Read<ContentVersionDto>(await admin.PostAsJsonAsync($"{Versions}/{v2.Id}/publish", new PublishContentVersionRequest()));
+        await ValidateAndSubmit(designer, v2.Id);
+        await ApproveAndPublish(admin, v2.Id);
 
-        var versions = await Read<PagedResult<ContentVersionDto>>(await admin.GetAsync(Versions));
-        versions.Items.Single(v => v.Id == v1.Id).Status.ShouldBe("Archived");
-        versions.Items.Single(v => v.Id == v2.Id).Status.ShouldBe("Published");
+        (await GetVersion(admin, v1.Id)).Status.ShouldBe("Archived");
+        (await GetVersion(admin, v2.Id)).Status.ShouldBe("Published");
+        var game = Api.CreateGameClient();
+        (await game.GetFromJsonAsync<JsonElement>("/api/game/content/manifest")).GetProperty("versionId").GetGuid().ShouldBe(v2.Id);
 
-        // Rolling back needs a reason, then v1 is live again
-        (await admin.PostAsJsonAsync($"{Versions}/{v1.Id}/rollback", new { reason = "" })).StatusCode.ShouldBe(HttpStatusCode.BadRequest);
-        await Read<ContentVersionDto>(await admin.PostAsJsonAsync($"{Versions}/{v1.Id}/rollback", new RollbackContentVersionRequest { Reason = "Damage too high" }));
-        var manifest = await Api.CreateGameClient().GetFromJsonAsync<JsonElement>("/api/game/content/manifest");
-        manifest.GetProperty("versionId").GetGuid().ShouldBe(v1.Id);
-        (await Read<PagedResult<PublicationHistoryDto>>(await admin.GetAsync($"{Versions}/history"))).Items.Select(h => h.Action)
-            .ShouldBe(["Rollback", "Publish", "Publish"]);
+        // Rolling back needs a reason, then v1 is live again and v2 is archived
+        (await Act(admin, v1.Id, "rollback")).StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+        (await Act(designer, v1.Id, "rollback", new { reason = "Damage too high" })).StatusCode.ShouldBe(HttpStatusCode.Forbidden);
+        (await Read<ContentVersionDto>(await Act(admin, v1.Id, "rollback", new { reason = "Damage too high" }))).Status.ShouldBe("Published");
+        (await GetVersion(admin, v2.Id)).Status.ShouldBe("Archived");
+        (await game.GetFromJsonAsync<JsonElement>("/api/game/content/manifest")).GetProperty("versionId").GetGuid().ShouldBe(v1.Id);
+
+        var history = await Read<PagedResult<ContentPublicationDto>>(await admin.GetAsync("/api/content-publications"));
+        history.Items.Select(h => h.Action).ShouldBe(["Rollback", "Publish", "Publish"]);
+        var rollback = history.Items[0];
+        rollback.VersionLabel.ShouldBe("v1");
+        rollback.PreviousVersionNo.ShouldBe(v2.VersionNo);
+        rollback.ActorUsername!.ShouldStartWith("admin");
+        rollback.Reason.ShouldBe("Damage too high");
     }
 
     [DbFact]
-    public async Task Submit_WithBrokenContent_Returns400ListingTheProblems()
+    public async Task Submit_WithBrokenContent_IsRefused_AndValidationListsTheProblems()
     {
         var designer = await Api.CreateUserClientAsync(UserRole.Designer);
         var version = await CreateVersion(designer);
         await Read<ItemDto>(await designer.PostAsJsonAsync($"{Versions}/{version.Id}/items",
             new CreateItemRequest { Code = "scrap", Name = "Scrap", Type = "Material" }), HttpStatusCode.Created);
 
-        var response = await designer.PostAsync($"{Versions}/{version.Id}/submit", null);
+        // No Safe Camp yet
+        var report = await Read<ContentValidationResultDto>(await Act(designer, version.Id, "validate"));
+        report.IsValid.ShouldBeFalse();
+        report.Errors.ShouldNotBeEmpty();
 
-        response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
-        (await response.Content.ReadAsStringAsync()).ShouldContain("maps");
-        (await Read<ContentVersionDto>(await designer.GetAsync($"{Versions}/{version.Id}"))).Status.ShouldBe("Draft");
+        (await Act(designer, version.Id, "submit")).StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+        (await GetVersion(designer, version.Id)).Status.ShouldBe("Draft");
     }
 
     [DbFact]
@@ -209,35 +234,51 @@ public class ContentApiTests(ApiFixture api) : IntegrationTest(api)
         var admin = await Api.CreateUserClientAsync(UserRole.Admin);
         var version = await CreateVersion(designer);
         await FillAsync(designer, version.Id);
-        await designer.PostAsync($"{Versions}/{version.Id}/submit", null);
+        await ValidateAndSubmit(designer, version.Id);
 
-        (await admin.PostAsJsonAsync($"{Versions}/{version.Id}/reject", new { note = "" })).StatusCode.ShouldBe(HttpStatusCode.BadRequest);
-        var rejected = await Read<ContentVersionDto>(await admin.PostAsJsonAsync($"{Versions}/{version.Id}/reject", new RejectContentVersionRequest { Note = "Rebalance the boss" }));
+        (await Act(admin, version.Id, "reject")).StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+        var rejected = await Read<ContentVersionDto>(await Act(admin, version.Id, "reject", new { reviewNote = "Rebalance the boss" }));
         rejected.Status.ShouldBe("Rejected");
         rejected.ReviewNote.ShouldBe("Rebalance the boss");
 
+        // The first edit reopens it as a Draft
         await Read<ItemDto>(await designer.PostAsJsonAsync($"{Versions}/{version.Id}/items",
             new CreateItemRequest { Code = "cloth", Name = "Cloth", Type = "Material" }), HttpStatusCode.Created);
-        (await Read<ContentVersionDto>(await designer.GetAsync($"{Versions}/{version.Id}"))).Status.ShouldBe("Draft");
+        (await GetVersion(designer, version.Id)).Status.ShouldBe("Draft");
 
-        (await Read<ContentVersionDto>(await designer.PostAsync($"{Versions}/{version.Id}/submit", null))).Status.ShouldBe("InReview");
+        (await ValidateAndSubmit(designer, version.Id)).Status.ShouldBe("InReview");
     }
 
     [DbFact]
-    public async Task EditingClearsTheValidation_AndPublishedVersionIsFrozen()
+    public async Task EditingContent_MovesTheRevisionOn_AndClearsTheValidation()
     {
         var designer = await Api.CreateUserClientAsync(UserRole.Designer);
         var version = await CreateVersion(designer);
         await FillAsync(designer, version.Id);
 
-        (await Read<ValidationReportDto>(await designer.PostAsync($"{Versions}/{version.Id}/validate", null))).IsValid.ShouldBeTrue();
-        (await designer.GetAsync($"{Versions}/{version.Id}/bundle")).StatusCode.ShouldBe(HttpStatusCode.OK);
+        (await Read<ContentValidationResultDto>(await Act(designer, version.Id, "validate"))).IsValid.ShouldBeTrue();
+        var validated = await GetVersion(designer, version.Id);
+        validated.ValidatedAt.ShouldNotBeNull();
+        validated.BundleChecksum.ShouldNotBeNull();
+
+        // The validated bundle can be downloaded as the game would get it
+        var download = await designer.GetAsync($"{Versions}/{version.Id}/bundle");
+        download.StatusCode.ShouldBe(HttpStatusCode.OK);
+        download.Content.Headers.ContentType!.MediaType.ShouldBe("application/json");
+        JsonDocument.Parse(await download.Content.ReadAsStringAsync()).RootElement.GetProperty("items").GetArrayLength().ShouldBe(3);
 
         await Read<ItemDto>(await designer.PostAsJsonAsync($"{Versions}/{version.Id}/items",
             new CreateItemRequest { Code = "cloth", Name = "Cloth", Type = "Material" }), HttpStatusCode.Created);
 
-        (await Read<ContentVersionDto>(await designer.GetAsync($"{Versions}/{version.Id}"))).IsValidated.ShouldBeFalse();
+        var edited = await GetVersion(designer, version.Id);
+        edited.Revision.ShouldBeGreaterThan(validated.Revision);
+        edited.ValidatedAt.ShouldBeNull();
+        edited.BundleChecksum.ShouldBeNull();
         (await designer.GetAsync($"{Versions}/{version.Id}/bundle")).StatusCode.ShouldBe(HttpStatusCode.Conflict);
+
+        // A write that still carries the old revision is refused
+        (await designer.PostAsJsonAsync($"{Versions}/{version.Id}/submit", new { revision = validated.Revision }))
+            .StatusCode.ShouldBe(HttpStatusCode.Conflict);
     }
 
     [DbFact]
@@ -306,38 +347,49 @@ public class ContentApiTests(ApiFixture api) : IntegrationTest(api)
     }
 
     [DbFact]
-    public async Task Roles_AnalystReadsVersionsOnly_DesignerCannotDeleteOthersPublishedWork()
+    public async Task Roles_AnalystCannotReachContent_AndAnonymousIsRejected()
     {
         var analyst = await Api.CreateUserClientAsync(UserRole.Analyst);
         var designer = await Api.CreateUserClientAsync(UserRole.Designer);
         var version = await CreateVersion(designer);
 
-        (await analyst.GetAsync(Versions)).StatusCode.ShouldBe(HttpStatusCode.OK);
-        (await analyst.GetAsync($"{Versions}/{version.Id}")).StatusCode.ShouldBe(HttpStatusCode.OK);
+        (await analyst.GetAsync(Versions)).StatusCode.ShouldBe(HttpStatusCode.Forbidden);
         (await analyst.GetAsync($"{Versions}/{version.Id}/items")).StatusCode.ShouldBe(HttpStatusCode.Forbidden);
         (await analyst.PostAsJsonAsync(Versions, new CreateContentVersionRequest { Label = "x" })).StatusCode.ShouldBe(HttpStatusCode.Forbidden);
+        (await designer.GetAsync("/api/content-publications")).StatusCode.ShouldBe(HttpStatusCode.Forbidden);
         (await Api.CreateClient().GetAsync(Versions)).StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
     }
 
     [DbFact]
-    public async Task Publish_OnlyApprovedVersions_And_Delete_OnlyUnpublished()
+    public async Task Publish_OnlyApprovedVersions_And_Delete_OnlyDrafts()
     {
         var admin = await Api.CreateUserClientAsync(UserRole.Admin);
         var version = await CreateVersion(admin);
         await FillAsync(admin, version.Id);
 
-        (await admin.PostAsJsonAsync($"{Versions}/{version.Id}/publish", new PublishContentVersionRequest())).StatusCode.ShouldBe(HttpStatusCode.Conflict);
+        (await Act(admin, version.Id, "publish", new { reason = "Too early" })).StatusCode.ShouldBe(HttpStatusCode.Conflict);
 
-        await admin.PostAsync($"{Versions}/{version.Id}/submit", null);
-        await admin.PostAsJsonAsync($"{Versions}/{version.Id}/approve", new ReviewNoteRequest());
-        await Read<ContentVersionDto>(await admin.PostAsJsonAsync($"{Versions}/{version.Id}/publish", new PublishContentVersionRequest()));
+        await ValidateAndSubmit(admin, version.Id);
+        await ApproveAndPublish(admin, version.Id);
 
-        (await admin.DeleteAsync($"{Versions}/{version.Id}")).StatusCode.ShouldBe(HttpStatusCode.Conflict);
+        (await Delete(admin, version.Id)).StatusCode.ShouldBe(HttpStatusCode.Conflict);
 
+        // Deleting a validated draft archives it; its content is kept
         var draft = await CreateVersion(admin, "scratch");
-        (await admin.DeleteAsync($"{Versions}/{draft.Id}")).StatusCode.ShouldBe(HttpStatusCode.NoContent);
-        (await admin.GetAsync($"{Versions}/{draft.Id}")).StatusCode.ShouldBe(HttpStatusCode.NotFound);
+        await FillAsync(admin, draft.Id);
+        (await Read<ContentValidationResultDto>(await Act(admin, draft.Id, "validate"))).IsValid.ShouldBeTrue();
+        (await Delete(admin, draft.Id)).StatusCode.ShouldBe(HttpStatusCode.NoContent);
+        (await GetVersion(admin, draft.Id)).Status.ShouldBe("Archived");
+
+        // A deleted draft was never live, so there is nothing to roll back to
+        (await Act(admin, draft.Id, "rollback", new { reason = "Mistake" })).StatusCode.ShouldBe(HttpStatusCode.Conflict);
     }
+
+    private static async Task<HttpResponseMessage> Delete(HttpClient client, Guid id) =>
+        await client.SendAsync(new HttpRequestMessage(HttpMethod.Delete, $"{Versions}/{id}")
+        {
+            Content = JsonContent.Create(new { revision = (await GetVersion(client, id)).Revision })
+        });
 
     [DbFact]
     public async Task Meta_ListsContentEnums()

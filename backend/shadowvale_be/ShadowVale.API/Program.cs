@@ -11,6 +11,7 @@ using Microsoft.IdentityModel.Tokens;
 using Scalar.AspNetCore;
 using ShadowVale.API.Authentication;
 using ShadowVale.API.Controllers;
+using ShadowVale.API.Extensions;
 using ShadowVale.API.Middlewares;
 using ShadowVale.API.OpenApi;
 using ShadowVale.API.Options;
@@ -18,6 +19,9 @@ using ShadowVale.BLL;
 using ShadowVale.BLL.Interfaces;
 using ShadowVale.BLL.Options;
 using ShadowVale.BLL.Services;
+
+// Must run before the builder reads environment variables
+var dotEnvPath = DotEnv.Load(Directory.GetCurrentDirectory());
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -34,7 +38,7 @@ if (generatingOpenApi)
     });
 }
 
-// Secrets (Supabase connection string, JWT key, seed admin) come from user-secrets in dev, env vars in prod
+// Secrets (Supabase connection string, JWT key, seed admin) come from a .env file or user-secrets in dev, env vars in prod
 var connectionString = builder.Configuration.GetConnectionString("Default")
     ?? throw new InvalidOperationException("Missing ConnectionStrings:Default (see backend README).");
 
@@ -171,6 +175,9 @@ builder.Services.Configure<ForwardedHeadersOptions>(options =>
 });
 
 var app = builder.Build();
+
+if (dotEnvPath is not null)
+    app.Logger.LogInformation("Loaded local settings from {Path}", dotEnvPath);
 
 // Startup seeding: the first Admin (if SeedAdmin is configured and none exists yet) and the solver configurations
 // (if the table is empty). A database outage here must not stop the API from starting (/health will report it).

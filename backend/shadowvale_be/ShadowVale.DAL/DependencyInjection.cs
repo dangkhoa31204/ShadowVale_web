@@ -20,6 +20,7 @@ public static class DependencyInjection
         services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
         services.AddScoped<ISolverConfigurationRepository, SolverConfigurationRepository>();
         services.AddScoped<IGameContentRepository, GameContentRepository>();
+        services.AddScoped<IContentVersionRepository, ContentVersionRepository>();
         services.AddScoped<IContentRepository, ContentRepository>();
         services.AddScoped<IGameSessionRepository, GameSessionRepository>();
         services.AddScoped<IAnalyticsRepository, AnalyticsRepository>();

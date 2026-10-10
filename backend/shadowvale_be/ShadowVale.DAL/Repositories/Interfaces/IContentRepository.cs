@@ -2,32 +2,13 @@ using ShadowVale.DAL.Entities;
 
 namespace ShadowVale.DAL.Repositories.Interfaces;
 
-public sealed record ContentCounts(int Items, int Skills, int LootTables, int EnemyTypes, int Maps, int CraftingRecipes, int Quests);
-
-// Everything one content version holds, with child rows loaded (read-only, not tracked)
-public sealed record ContentSnapshot(
-    ContentVersion Version,
-    List<Item> Items,
-    List<Skill> Skills,
-    List<LootTable> LootTables,
-    List<EnemyType> EnemyTypes,
-    List<Map> Maps,
-    List<CraftingRecipe> CraftingRecipes,
-    List<Quest> Quests);
-
-// Authoring side of the content platform (the game only reads, through IGameContentRepository)
+// Content rows of a version: items, skills, loot tables, enemy types, maps, recipes and quests.
+// The version itself and its review / publish workflow live in IContentVersionRepository.
 public interface IContentRepository
 {
-    // Versions. The tracked ones include the people (author, reviewer, publisher) for display.
+    // Tracked, so an edit can move the version's revision on and clear its validated bundle
     Task<ContentVersion?> GetVersionAsync(Guid id, CancellationToken ct = default);
-    Task<ContentVersion?> GetPublishedVersionAsync(CancellationToken ct = default);
     Task<bool> VersionExistsAsync(Guid id, CancellationToken ct = default);
-    Task<(List<ContentVersion> Items, int TotalCount)> SearchVersionsAsync(ContentStatus? status, int page, int pageSize, CancellationToken ct = default);
-    Task<ContentCounts> GetCountsAsync(Guid versionId, CancellationToken ct = default);
-    Task<ContentSnapshot?> LoadSnapshotAsync(Guid versionId, CancellationToken ct = default);
-
-    Task<(List<ContentPublicationHistory> Items, int TotalCount)> GetHistoryAsync(int page, int pageSize, CancellationToken ct = default);
-    void AddHistory(ContentPublicationHistory entry);
 
     // Content rows of one version. List is read-only; Find is tracked so it can be changed and saved.
     // Child rows (weapon stats, loot entries, ingredients, placements, rewards) come with their parent.

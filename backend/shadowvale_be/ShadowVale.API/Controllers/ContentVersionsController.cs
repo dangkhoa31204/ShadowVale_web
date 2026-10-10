@@ -8,95 +8,146 @@ using ShadowVale.BLL.Interfaces;
 
 namespace ShadowVale.API.Controllers;
 
-// Content versions and the review / publish workflow. Every role can look (the Analyst filters dashboards by version);
-// Designers (and Admins) author and submit; only Admins approve, reject, publish and roll back.
 [ApiController]
-[Route("api/content/versions")]
-[Authorize(Roles = $"{AppRoles.Admin},{AppRoles.Designer},{AppRoles.Analyst}")]
-public class ContentVersionsController(IContentVersionService versions) : ControllerBase
+[Route("api/content-versions")]
+[Authorize(Roles = AppRoles.Admin + "," + AppRoles.Designer)]
+[ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
+[ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
+[ProducesResponseType<ProblemDetails>(StatusCodes.Status409Conflict)]
+public class ContentVersionsController(IContentVersionService service) : ControllerBase
 {
-    private const string Authors = $"{AppRoles.Admin},{AppRoles.Designer}";
-
     [HttpGet]
-    public async Task<ActionResult<PagedResult<ContentVersionDto>>> GetAll([FromQuery] ContentVersionQuery query, CancellationToken ct) =>
-        Ok(await versions.GetAllAsync(query, ct));
+    [EndpointSummary("GET /api/content-versions (ADMIN)")]
+    [EndpointDescription("Available to both Admin and Designer. Lists version metadata with search, status filtering, and pagination.")]
+    public async Task<ActionResult<PagedResult<ContentVersionDto>>> Search(
+        [FromQuery] ContentVersionQuery query, CancellationToken ct) => Respond(await service.SearchAsync(query, ct));
 
     [HttpGet("{id:guid}")]
-    public async Task<ActionResult<ContentVersionDto>> GetById(Guid id, CancellationToken ct) =>
-        Ok(await versions.GetByIdAsync(id, ct));
+    [EndpointSummary("GET /api/content-versions/{id} (ADMIN)")]
+    [EndpointDescription("Available to both Admin and Designer. Returns version metadata (including status and current revision) and the full content bundle, including weapon stats. Use this revision for validate/submit/review actions.")]
+    public async Task<ActionResult<ContentVersionDetailsDto>> GetById(Guid id, CancellationToken ct) =>
+        Respond(await service.GetByIdAsync(id, ct));
 
-    // Publish / rollback log, newest first
-    [HttpGet("history")]
-    public async Task<ActionResult<PagedResult<PublicationHistoryDto>>> GetHistory([FromQuery] HistoryQuery query, CancellationToken ct) =>
-        Ok(await versions.GetHistoryAsync(query, ct));
-
-    // What changed going from version a to version b, per section (added / removed / changed rows by code)
-    [HttpGet("compare")]
-    public async Task<ActionResult<ContentCompareDto>> Compare([FromQuery] Guid a, [FromQuery] Guid b, CancellationToken ct) =>
-        Ok(await versions.CompareAsync(a, b, ct));
-
-    // New version as a Draft: empty, or a copy of BaseVersionId (usually the published one) to edit from
     [HttpPost]
-    [Authorize(Roles = Authors)]
+    [EndpointSummary("POST /api/content-versions (DESIGNER)")]
+    [EndpointDescription("Available to both Designer and Admin. Creates an empty Draft or clones all content when parentVersionId is provided. Returns version metadata; weapon editing is a separate operation.")]
     public async Task<ActionResult<ContentVersionDto>> Create(CreateContentVersionRequest request, CancellationToken ct)
     {
-        var version = await versions.CreateAsync(request, User.GetUserId(), ct);
-        return CreatedAtAction(nameof(GetById), new { id = version.Id }, version);
+        var version = await service.CreateAsync(request, User.GetUserId(), ct);
+        if (version.Error is not null) return ErrorResponse(version.Error);
+        return CreatedAtAction(nameof(GetById), new { id = version.Data!.Id }, version.Data);
     }
+
+    [HttpGet("{id:guid}/compare")]
+    [EndpointSummary("GET /api/content-versions/{id}/compare (ADMIN)")]
+    [EndpointDescription("Available to both Admin and Designer. Compares the source version identified by id with the target version identified by targetId; returns before/after differences.")]
+    public async Task<ActionResult<ContentComparisonDto>> Compare(Guid id,
+        [FromQuery, System.ComponentModel.DataAnnotations.Required] Guid? targetId,
+        CancellationToken ct) => Respond(await service.CompareAsync(id, targetId.GetValueOrDefault(), ct));
 
     [HttpPut("{id:guid}")]
-    [Authorize(Roles = Authors)]
-    public async Task<ActionResult<ContentVersionDto>> Update(Guid id, UpdateContentVersionRequest request, CancellationToken ct) =>
-        Ok(await versions.UpdateAsync(id, request, ct));
+    [EndpointSummary("PUT /api/content-versions/{id} (ADMIN)")]
+    [EndpointDescription("Available to both Designer and Admin. Updates label, changelog, and schemaVersion only; requires Draft status and current revision. Does not update weapon stats.")]
+    public async Task<ActionResult<ContentVersionDto>> Update(Guid id, UpdateContentVersionRequest request,
+        CancellationToken ct) => Respond(await service.UpdateAsync(id, request, ct));
 
-    // Only a Draft or Rejected version
+    [HttpPost("{id:guid}/validate")]
+    [EndpointSummary("POST /api/content-versions/{id}/validate (ADMIN)")]
+    [EndpointDescription("Available to both Designer and Admin. Validates the complete Draft snapshot and returns isValid, errors, and the incremented revision. Does not submit the version for review.")]
+    public async Task<ActionResult<ContentValidationResultDto>> Validate(Guid id,
+        ValidateContentVersionRequest request, CancellationToken ct) => Respond(await service.ValidateAsync(id, request, ct));
+
+    [HttpPost("{id:guid}/submit")]
+    [EndpointSummary("POST /api/content-versions/{id}/submit (DESIGNER)")]
+    [EndpointDescription("Available to both Designer and Admin. Requires Draft status, the current revision, and an unchanged validated bundle/checksum. Revalidates the bundle, sets InReview and submittedAt, and returns the incremented revision. Submitted content is locked for editing.")]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    public async Task<ActionResult<ContentVersionDto>> Submit(Guid id, SubmitContentVersionRequest request,
+        CancellationToken ct) => Respond(await service.SubmitAsync(id, request, ct));
+
     [HttpDelete("{id:guid}")]
-    [Authorize(Roles = Authors)]
-    public async Task<IActionResult> Delete(Guid id, CancellationToken ct)
+    [EndpointSummary("DELETE /api/content-versions/{id} (ADMIN)")]
+    [EndpointDescription("Available to both Designer and Admin. Soft-deletes a Draft by setting Archived; preserves its content. Requires the current revision.")]
+    public async Task<IActionResult> Delete(Guid id, [FromBody] DeleteContentVersionRequest request,
+        CancellationToken ct)
     {
-        await versions.DeleteAsync(id, ct);
+        var result = await service.DeleteAsync(id, request, ct);
+        if (result.Error is not null) return ErrorResponse(result.Error);
         return NoContent();
     }
-
-    // Builds the bundle and checks all content. Always 200 with the list of problems (empty when valid).
-    [HttpPost("{id:guid}/validate")]
-    [Authorize(Roles = Authors)]
-    public async Task<ActionResult<ValidationReportDto>> Validate(Guid id, CancellationToken ct) =>
-        Ok(await versions.ValidateAsync(id, ct));
-
-    // The validated bundle as the game receives it
-    [HttpGet("{id:guid}/bundle")]
-    [Authorize(Roles = Authors)]
-    [Produces("application/json")]
-    public async Task<ContentResult> GetBundle(Guid id, CancellationToken ct) =>
-        Content(await versions.GetBundleAsync(id, ct), "application/json");
-
-    // Draft / Rejected -> InReview (400 with the problems when the content does not validate)
-    [HttpPost("{id:guid}/submit")]
-    [Authorize(Roles = Authors)]
-    public async Task<ActionResult<ContentVersionDto>> Submit(Guid id, CancellationToken ct) =>
-        Ok(await versions.SubmitAsync(id, ct));
-
     [HttpPost("{id:guid}/approve")]
     [Authorize(Roles = AppRoles.Admin)]
-    public async Task<ActionResult<ContentVersionDto>> Approve(Guid id, ReviewNoteRequest request, CancellationToken ct) =>
-        Ok(await versions.ApproveAsync(id, User.GetUserId(), request, ct));
+    [EndpointSummary("POST /api/content-versions/{id}/approve (ADMIN)")]
+    [EndpointDescription("Approves an InReview version after checking its validated bundle; returns Approved status and the incremented revision.")]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    public async Task<ActionResult<ContentVersionDto>> Approve(Guid id, ReviewContentVersionRequest request,
+        CancellationToken ct) => Respond(await service.ApproveAsync(id, request, User.GetUserId(), ct));
 
-    // The designer edits it again (it goes back to Draft) and submits again
     [HttpPost("{id:guid}/reject")]
     [Authorize(Roles = AppRoles.Admin)]
-    public async Task<ActionResult<ContentVersionDto>> Reject(Guid id, RejectContentVersionRequest request, CancellationToken ct) =>
-        Ok(await versions.RejectAsync(id, User.GetUserId(), request, ct));
+    [EndpointSummary("POST /api/content-versions/{id}/reject (ADMIN)")]
+    [EndpointDescription("Rejects an InReview version with a required reviewNote; returns Rejected status and the incremented revision.")]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    public async Task<ActionResult<ContentVersionDto>> Reject(Guid id, ReviewContentVersionRequest request,
+        CancellationToken ct) => Respond(await service.RejectAsync(id, request, User.GetUserId(), ct));
 
-    // Approved -> Published; the previously published version is archived. The game gets the new bundle on its next start.
     [HttpPost("{id:guid}/publish")]
     [Authorize(Roles = AppRoles.Admin)]
-    public async Task<ActionResult<ContentVersionDto>> Publish(Guid id, PublishContentVersionRequest request, CancellationToken ct) =>
-        Ok(await versions.PublishAsync(id, User.GetUserId(), request, ct));
+    [EndpointSummary("POST /api/content-versions/{id}/publish (ADMIN)")]
+    [EndpointDescription("Publishes an Approved version, archives the previous Published version, and records publication history in one transaction.")]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    public async Task<ActionResult<ContentVersionDto>> Publish(Guid id, PublishContentVersionRequest request,
+        CancellationToken ct) => Respond(await service.PublishAsync(id, request, User.GetUserId(), ct));
 
-    // Archived -> Published again (the current one is archived)
     [HttpPost("{id:guid}/rollback")]
     [Authorize(Roles = AppRoles.Admin)]
-    public async Task<ActionResult<ContentVersionDto>> Rollback(Guid id, RollbackContentVersionRequest request, CancellationToken ct) =>
-        Ok(await versions.RollbackAsync(id, User.GetUserId(), request, ct));
+    [EndpointSummary("POST /api/content-versions/{id}/rollback (ADMIN)")]
+    [EndpointDescription("Puts a previously published (now Archived) version back live with a required reason, archives the current Published version, and records a Rollback entry in the publication history in one transaction.")]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    public async Task<ActionResult<ContentVersionDto>> Rollback(Guid id, RollbackContentVersionRequest request,
+        CancellationToken ct) => Respond(await service.RollbackAsync(id, request, User.GetUserId(), ct));
+
+    [HttpGet("{id:guid}/bundle")]
+    [EndpointSummary("GET /api/content-versions/{id}/bundle (DESIGNER)")]
+    [EndpointDescription("Available to both Designer and Admin. Downloads the stored validated bundle, exactly what the game receives once the version is published. Returns 409 when the version has not been validated since its last edit.")]
+    [ProducesResponseType<System.Text.Json.JsonElement>(StatusCodes.Status200OK, "application/json")]
+    public async Task<IActionResult> GetBundle(Guid id, CancellationToken ct)
+    {
+        var result = await service.GetBundleAsync(id, ct);
+        return result.Error is not null ? ErrorResponse(result.Error) : Content(result.Data!, "application/json");
+    }
+
+    [HttpGet("/api/content-publications")]
+    [Authorize(Roles = AppRoles.Admin)]
+    [EndpointSummary("GET /api/content-publications (ADMIN)")]
+    [EndpointDescription("Lists publication history with optional contentVersionId filtering and pagination.")]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    public async Task<ActionResult<PagedResult<ContentPublicationDto>>> Publications(
+        [FromQuery] ContentPublicationQuery query, CancellationToken ct) =>
+        Respond(await service.SearchPublicationsAsync(query, ct));
+
+    private ActionResult<T> Respond<T>(ServiceResult<T> result) =>
+        result.Error is not null ? ErrorResponse(result.Error) : Ok(result.Data);
+
+    private ObjectResult ErrorResponse(ServiceError error)
+    {
+        var status = error.Kind switch
+        {
+            ServiceErrorKind.Validation => 400,
+            ServiceErrorKind.NotFound => 404,
+            _ => 409
+        };
+        var problem = new ProblemDetails
+        {
+            Status = status, Title = status switch { 400 => "Validation failed", 404 => "Not found", _ => "Conflict" },
+            Detail = error.Message, Instance = Request.Path
+        };
+        problem.Extensions["code"] = error.Code;
+        problem.Extensions["message"] = error.Message;
+        problem.Extensions["traceId"] = HttpContext.TraceIdentifier;
+        if (error.Errors is not null) problem.Extensions["errors"] = error.Errors;
+        var response = new ObjectResult(problem) { StatusCode = status };
+        response.ContentTypes.Add("application/problem+json");
+        return response;
+    }
 }

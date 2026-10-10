@@ -7,77 +7,11 @@ namespace ShadowVale.DAL.Repositories;
 
 public class ContentRepository(ShadowValeDbContext context) : IContentRepository
 {
-    private IQueryable<ContentVersion> VersionsWithPeople =>
-        context.ContentVersions.Include(v => v.AuthoredBy).Include(v => v.ReviewedBy).Include(v => v.PublishedBy);
-
     public Task<ContentVersion?> GetVersionAsync(Guid id, CancellationToken ct = default) =>
-        VersionsWithPeople.FirstOrDefaultAsync(v => v.Id == id, ct);
-
-    public Task<ContentVersion?> GetPublishedVersionAsync(CancellationToken ct = default) =>
-        VersionsWithPeople.FirstOrDefaultAsync(v => v.Status == ContentStatus.Published, ct);
+        context.ContentVersions.FirstOrDefaultAsync(v => v.Id == id, ct);
 
     public Task<bool> VersionExistsAsync(Guid id, CancellationToken ct = default) =>
         context.ContentVersions.AnyAsync(v => v.Id == id, ct);
-
-    public async Task<(List<ContentVersion> Items, int TotalCount)> SearchVersionsAsync(
-        ContentStatus? status, int page, int pageSize, CancellationToken ct = default)
-    {
-        var query = VersionsWithPeople.AsNoTracking();
-        if (status is not null)
-            query = query.Where(v => v.Status == status);
-
-        var total = await query.CountAsync(ct);
-        var items = await query
-            .OrderByDescending(v => v.VersionNo)
-            .Skip((page - 1) * pageSize)
-            .Take(pageSize)
-            .ToListAsync(ct);
-        return (items, total);
-    }
-
-    public async Task<ContentCounts> GetCountsAsync(Guid versionId, CancellationToken ct = default) => new(
-        await context.Items.CountAsync(e => e.ContentVersionId == versionId, ct),
-        await context.Skills.CountAsync(e => e.ContentVersionId == versionId, ct),
-        await context.LootTables.CountAsync(e => e.ContentVersionId == versionId, ct),
-        await context.EnemyTypes.CountAsync(e => e.ContentVersionId == versionId, ct),
-        await context.Maps.CountAsync(e => e.ContentVersionId == versionId, ct),
-        await context.CraftingRecipes.CountAsync(e => e.ContentVersionId == versionId, ct),
-        await context.Quests.CountAsync(e => e.ContentVersionId == versionId, ct));
-
-    public async Task<ContentSnapshot?> LoadSnapshotAsync(Guid versionId, CancellationToken ct = default)
-    {
-        var version = await context.ContentVersions.AsNoTracking().FirstOrDefaultAsync(v => v.Id == versionId, ct);
-        if (version is null)
-            return null;
-
-        return new ContentSnapshot(
-            version,
-            await ListAsync<Item>(versionId, ct),
-            await ListAsync<Skill>(versionId, ct),
-            await ListAsync<LootTable>(versionId, ct),
-            await ListAsync<EnemyType>(versionId, ct),
-            await ListAsync<Map>(versionId, ct),
-            await ListAsync<CraftingRecipe>(versionId, ct),
-            await ListAsync<Quest>(versionId, ct));
-    }
-
-    public async Task<(List<ContentPublicationHistory> Items, int TotalCount)> GetHistoryAsync(
-        int page, int pageSize, CancellationToken ct = default)
-    {
-        var query = context.ContentPublicationHistory.AsNoTracking();
-        var total = await query.CountAsync(ct);
-        var items = await query
-            .Include(h => h.ContentVersion)
-            .Include(h => h.PreviousVersion)
-            .Include(h => h.Actor)
-            .OrderByDescending(h => h.CreatedAt)
-            .Skip((page - 1) * pageSize)
-            .Take(pageSize)
-            .ToListAsync(ct);
-        return (items, total);
-    }
-
-    public void AddHistory(ContentPublicationHistory entry) => context.ContentPublicationHistory.Add(entry);
 
     public Task<List<T>> ListAsync<T>(Guid versionId, CancellationToken ct = default) where T : ContentEntity =>
         WithChildren(context.Set<T>().AsNoTracking().Where(e => e.ContentVersionId == versionId))

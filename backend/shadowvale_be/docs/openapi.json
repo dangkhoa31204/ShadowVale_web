@@ -1049,7 +1049,7 @@
         }
       }
     },
-    "/api/content/versions/{versionId}/items": {
+    "/api/content-versions/{versionId}/items": {
       "get": {
         "tags": [
           "Items"
@@ -1177,7 +1177,7 @@
         }
       }
     },
-    "/api/content/versions/{versionId}/items/{id}": {
+    "/api/content-versions/{versionId}/items/{id}": {
       "get": {
         "tags": [
           "Items"
@@ -1323,7 +1323,7 @@
         }
       }
     },
-    "/api/content/versions/{versionId}/skills": {
+    "/api/content-versions/{versionId}/skills": {
       "get": {
         "tags": [
           "Skills"
@@ -1430,7 +1430,7 @@
         }
       }
     },
-    "/api/content/versions/{versionId}/skills/{id}": {
+    "/api/content-versions/{versionId}/skills/{id}": {
       "get": {
         "tags": [
           "Skills"
@@ -1576,7 +1576,7 @@
         }
       }
     },
-    "/api/content/versions/{versionId}/loot-tables": {
+    "/api/content-versions/{versionId}/loot-tables": {
       "get": {
         "tags": [
           "LootTables"
@@ -1683,7 +1683,7 @@
         }
       }
     },
-    "/api/content/versions/{versionId}/loot-tables/{id}": {
+    "/api/content-versions/{versionId}/loot-tables/{id}": {
       "get": {
         "tags": [
           "LootTables"
@@ -1829,7 +1829,7 @@
         }
       }
     },
-    "/api/content/versions/{versionId}/enemy-types": {
+    "/api/content-versions/{versionId}/enemy-types": {
       "get": {
         "tags": [
           "EnemyTypes"
@@ -1936,7 +1936,7 @@
         }
       }
     },
-    "/api/content/versions/{versionId}/enemy-types/{id}": {
+    "/api/content-versions/{versionId}/enemy-types/{id}": {
       "get": {
         "tags": [
           "EnemyTypes"
@@ -2082,7 +2082,7 @@
         }
       }
     },
-    "/api/content/versions/{versionId}/maps": {
+    "/api/content-versions/{versionId}/maps": {
       "get": {
         "tags": [
           "Maps"
@@ -2189,7 +2189,7 @@
         }
       }
     },
-    "/api/content/versions/{versionId}/maps/{id}": {
+    "/api/content-versions/{versionId}/maps/{id}": {
       "get": {
         "tags": [
           "Maps"
@@ -2335,7 +2335,7 @@
         }
       }
     },
-    "/api/content/versions/{versionId}/recipes": {
+    "/api/content-versions/{versionId}/recipes": {
       "get": {
         "tags": [
           "CraftingRecipes"
@@ -2442,7 +2442,7 @@
         }
       }
     },
-    "/api/content/versions/{versionId}/recipes/{id}": {
+    "/api/content-versions/{versionId}/recipes/{id}": {
       "get": {
         "tags": [
           "CraftingRecipes"
@@ -2588,7 +2588,7 @@
         }
       }
     },
-    "/api/content/versions/{versionId}/quests": {
+    "/api/content-versions/{versionId}/quests": {
       "get": {
         "tags": [
           "Quests"
@@ -2695,7 +2695,7 @@
         }
       }
     },
-    "/api/content/versions/{versionId}/quests/{id}": {
+    "/api/content-versions/{versionId}/quests/{id}": {
       "get": {
         "tags": [
           "Quests"
@@ -2841,12 +2841,22 @@
         }
       }
     },
-    "/api/content/versions": {
+    "/api/content-versions": {
       "get": {
         "tags": [
           "ContentVersions"
         ],
+        "summary": "GET /api/content-versions (ADMIN)",
+        "description": "Available to both Admin and Designer. Lists version metadata with search, status filtering, and pagination.",
         "parameters": [
+          {
+            "name": "Search",
+            "in": "query",
+            "schema": {
+              "maxLength": 200,
+              "type": "string"
+            }
+          },
           {
             "name": "Status",
             "in": "query",
@@ -2858,7 +2868,7 @@
             "name": "Page",
             "in": "query",
             "schema": {
-              "maximum": 2147483647,
+              "maximum": 1000000,
               "minimum": 1,
               "pattern": "^-?(?:0|[1-9]\\d*)$",
               "type": [
@@ -2884,22 +2894,62 @@
           }
         ],
         "responses": {
-          "200": {
-            "description": "OK",
+          "400": {
+            "description": "Bad Request",
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/PagedResultOfContentVersionDto"
+                  "$ref": "#/components/schemas/ProblemDetails"
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/PagedResultOfContentVersionDto"
+                  "$ref": "#/components/schemas/ProblemDetails"
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/PagedResultOfContentVersionDto"
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
                 }
               }
             }
@@ -2910,6 +2960,8 @@
         "tags": [
           "ContentVersions"
         ],
+        "summary": "POST /api/content-versions (DESIGNER)",
+        "description": "Available to both Designer and Admin. Creates an empty Draft or clones all content when parentVersionId is provided. Returns version metadata; weapon editing is a separate operation.",
         "requestBody": {
           "content": {
             "application/json": {
@@ -2931,22 +2983,62 @@
           "required": true
         },
         "responses": {
-          "200": {
-            "description": "OK",
+          "400": {
+            "description": "Bad Request",
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/ContentVersionDto"
+                  "$ref": "#/components/schemas/ProblemDetails"
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ContentVersionDto"
+                  "$ref": "#/components/schemas/ProblemDetails"
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ContentVersionDto"
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
                 }
               }
             }
@@ -2954,11 +3046,13 @@
         }
       }
     },
-    "/api/content/versions/{id}": {
+    "/api/content-versions/{id}": {
       "get": {
         "tags": [
           "ContentVersions"
         ],
+        "summary": "GET /api/content-versions/{id} (ADMIN)",
+        "description": "Available to both Admin and Designer. Returns version metadata (including status and current revision) and the full content bundle, including weapon stats. Use this revision for validate/submit/review actions.",
         "parameters": [
           {
             "name": "id",
@@ -2971,22 +3065,62 @@
           }
         ],
         "responses": {
-          "200": {
-            "description": "OK",
+          "400": {
+            "description": "Bad Request",
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/ContentVersionDto"
+                  "$ref": "#/components/schemas/ProblemDetails"
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ContentVersionDto"
+                  "$ref": "#/components/schemas/ProblemDetails"
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ContentVersionDto"
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
                 }
               }
             }
@@ -2997,6 +3131,8 @@
         "tags": [
           "ContentVersions"
         ],
+        "summary": "PUT /api/content-versions/{id} (ADMIN)",
+        "description": "Available to both Designer and Admin. Updates label, changelog, and schemaVersion only; requires Draft status and current revision. Does not update weapon stats.",
         "parameters": [
           {
             "name": "id",
@@ -3029,22 +3165,62 @@
           "required": true
         },
         "responses": {
-          "200": {
-            "description": "OK",
+          "400": {
+            "description": "Bad Request",
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/ContentVersionDto"
+                  "$ref": "#/components/schemas/ProblemDetails"
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ContentVersionDto"
+                  "$ref": "#/components/schemas/ProblemDetails"
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ContentVersionDto"
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
                 }
               }
             }
@@ -3055,6 +3231,933 @@
         "tags": [
           "ContentVersions"
         ],
+        "summary": "DELETE /api/content-versions/{id} (ADMIN)",
+        "description": "Available to both Designer and Admin. Soft-deletes a Draft by setting Archived; preserves its content. Requires the current revision.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DeleteContentVersionRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DeleteContentVersionRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/DeleteContentVersionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/content-versions/{id}/compare": {
+      "get": {
+        "tags": [
+          "ContentVersions"
+        ],
+        "summary": "GET /api/content-versions/{id}/compare (ADMIN)",
+        "description": "Available to both Admin and Designer. Compares the source version identified by id with the target version identified by targetId; returns before/after differences.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "targetId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/content-versions/{id}/validate": {
+      "post": {
+        "tags": [
+          "ContentVersions"
+        ],
+        "summary": "POST /api/content-versions/{id}/validate (ADMIN)",
+        "description": "Available to both Designer and Admin. Validates the complete Draft snapshot and returns isValid, errors, and the incremented revision. Does not submit the version for review.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ValidateContentVersionRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ValidateContentVersionRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/ValidateContentVersionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/content-versions/{id}/submit": {
+      "post": {
+        "tags": [
+          "ContentVersions"
+        ],
+        "summary": "POST /api/content-versions/{id}/submit (DESIGNER)",
+        "description": "Available to both Designer and Admin. Requires Draft status, the current revision, and an unchanged validated bundle/checksum. Revalidates the bundle, sets InReview and submittedAt, and returns the incremented revision. Submitted content is locked for editing.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SubmitContentVersionRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SubmitContentVersionRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/SubmitContentVersionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/content-versions/{id}/approve": {
+      "post": {
+        "tags": [
+          "ContentVersions"
+        ],
+        "summary": "POST /api/content-versions/{id}/approve (ADMIN)",
+        "description": "Approves an InReview version after checking its validated bundle; returns Approved status and the incremented revision.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReviewContentVersionRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReviewContentVersionRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReviewContentVersionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/content-versions/{id}/reject": {
+      "post": {
+        "tags": [
+          "ContentVersions"
+        ],
+        "summary": "POST /api/content-versions/{id}/reject (ADMIN)",
+        "description": "Rejects an InReview version with a required reviewNote; returns Rejected status and the incremented revision.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReviewContentVersionRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReviewContentVersionRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReviewContentVersionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/content-versions/{id}/publish": {
+      "post": {
+        "tags": [
+          "ContentVersions"
+        ],
+        "summary": "POST /api/content-versions/{id}/publish (ADMIN)",
+        "description": "Publishes an Approved version, archives the previous Published version, and records publication history in one transaction.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PublishContentVersionRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PublishContentVersionRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/PublishContentVersionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/content-versions/{id}/rollback": {
+      "post": {
+        "tags": [
+          "ContentVersions"
+        ],
+        "summary": "POST /api/content-versions/{id}/rollback (ADMIN)",
+        "description": "Puts a previously published (now Archived) version back live with a required reason, archives the current Published version, and records a Rollback entry in the publication history in one transaction.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RollbackContentVersionRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RollbackContentVersionRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/RollbackContentVersionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/content-versions/{id}/bundle": {
+      "get": {
+        "tags": [
+          "ContentVersions"
+        ],
+        "summary": "GET /api/content-versions/{id}/bundle (DESIGNER)",
+        "description": "Available to both Designer and Admin. Downloads the stored validated bundle, exactly what the game receives once the version is published. Returns 409 when the version has not been validated since its last edit.",
         "parameters": [
           {
             "name": "id",
@@ -3067,23 +4170,100 @@
           }
         ],
         "responses": {
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JsonElement"
+                }
+              }
+            }
           }
         }
       }
     },
-    "/api/content/versions/history": {
+    "/api/content-publications": {
       "get": {
         "tags": [
           "ContentVersions"
         ],
+        "summary": "GET /api/content-publications (ADMIN)",
+        "description": "Lists publication history with optional contentVersionId filtering and pagination.",
         "parameters": [
+          {
+            "name": "ContentVersionId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
           {
             "name": "Page",
             "in": "query",
             "schema": {
-              "maximum": 2147483647,
+              "maximum": 1000000,
               "minimum": 1,
               "pattern": "^-?(?:0|[1-9]\\d*)$",
               "type": [
@@ -3109,415 +4289,82 @@
           }
         ],
         "responses": {
-          "200": {
-            "description": "OK",
+          "400": {
+            "description": "Bad Request",
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/PagedResultOfPublicationHistoryDto"
+                  "$ref": "#/components/schemas/ProblemDetails"
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/PagedResultOfPublicationHistoryDto"
+                  "$ref": "#/components/schemas/ProblemDetails"
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/PagedResultOfPublicationHistoryDto"
+                  "$ref": "#/components/schemas/ProblemDetails"
                 }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/content/versions/compare": {
-      "get": {
-        "tags": [
-          "ContentVersions"
-        ],
-        "parameters": [
-          {
-            "name": "a",
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
-          {
-            "name": "b",
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/ContentCompareDto"
-                }
-              },
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ContentCompareDto"
-                }
-              },
-              "text/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ContentCompareDto"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/content/versions/{id}/validate": {
-      "post": {
-        "tags": [
-          "ContentVersions"
-        ],
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/ValidationReportDto"
-                }
-              },
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ValidationReportDto"
-                }
-              },
-              "text/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ValidationReportDto"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/content/versions/{id}/bundle": {
-      "get": {
-        "tags": [
-          "ContentVersions"
-        ],
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": { }
-            }
-          }
-        }
-      }
-    },
-    "/api/content/versions/{id}/submit": {
-      "post": {
-        "tags": [
-          "ContentVersions"
-        ],
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/ContentVersionDto"
-                }
-              },
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ContentVersionDto"
-                }
-              },
-              "text/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ContentVersionDto"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/content/versions/{id}/approve": {
-      "post": {
-        "tags": [
-          "ContentVersions"
-        ],
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ReviewNoteRequest"
-              }
-            },
-            "text/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ReviewNoteRequest"
-              }
-            },
-            "application/*+json": {
-              "schema": {
-                "$ref": "#/components/schemas/ReviewNoteRequest"
               }
             }
           },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "OK",
+          "404": {
+            "description": "Not Found",
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/ContentVersionDto"
+                  "$ref": "#/components/schemas/ProblemDetails"
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ContentVersionDto"
+                  "$ref": "#/components/schemas/ProblemDetails"
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ContentVersionDto"
+                  "$ref": "#/components/schemas/ProblemDetails"
                 }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/content/versions/{id}/reject": {
-      "post": {
-        "tags": [
-          "ContentVersions"
-        ],
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/RejectContentVersionRequest"
-              }
-            },
-            "text/json": {
-              "schema": {
-                "$ref": "#/components/schemas/RejectContentVersionRequest"
-              }
-            },
-            "application/*+json": {
-              "schema": {
-                "$ref": "#/components/schemas/RejectContentVersionRequest"
               }
             }
           },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "OK",
+          "409": {
+            "description": "Conflict",
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/ContentVersionDto"
+                  "$ref": "#/components/schemas/ProblemDetails"
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ContentVersionDto"
+                  "$ref": "#/components/schemas/ProblemDetails"
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ContentVersionDto"
+                  "$ref": "#/components/schemas/ProblemDetails"
                 }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/content/versions/{id}/publish": {
-      "post": {
-        "tags": [
-          "ContentVersions"
-        ],
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/PublishContentVersionRequest"
-              }
-            },
-            "text/json": {
-              "schema": {
-                "$ref": "#/components/schemas/PublishContentVersionRequest"
-              }
-            },
-            "application/*+json": {
-              "schema": {
-                "$ref": "#/components/schemas/PublishContentVersionRequest"
               }
             }
           },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "OK",
+          "403": {
+            "description": "Forbidden",
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/ContentVersionDto"
+                  "$ref": "#/components/schemas/ProblemDetails"
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ContentVersionDto"
+                  "$ref": "#/components/schemas/ProblemDetails"
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ContentVersionDto"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/content/versions/{id}/rollback": {
-      "post": {
-        "tags": [
-          "ContentVersions"
-        ],
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/RollbackContentVersionRequest"
-              }
-            },
-            "text/json": {
-              "schema": {
-                "$ref": "#/components/schemas/RollbackContentVersionRequest"
-              }
-            },
-            "application/*+json": {
-              "schema": {
-                "$ref": "#/components/schemas/RollbackContentVersionRequest"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/ContentVersionDto"
-                }
-              },
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ContentVersionDto"
-                }
-              },
-              "text/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ContentVersionDto"
+                  "$ref": "#/components/schemas/ProblemDetails"
                 }
               }
             }
@@ -4611,24 +5458,6 @@
           }
         }
       },
-      "ChangedEntryDto": {
-        "required": [
-          "id",
-          "fields"
-        ],
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "fields": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          }
-        }
-      },
       "ChangePasswordRequest": {
         "required": [
           "currentPassword",
@@ -4763,117 +5592,6 @@
           }
         }
       },
-      "ContentCompareDto": {
-        "required": [
-          "a",
-          "b",
-          "hasChanges",
-          "sections"
-        ],
-        "type": "object",
-        "properties": {
-          "a": {
-            "$ref": "#/components/schemas/VersionRefDto"
-          },
-          "b": {
-            "$ref": "#/components/schemas/VersionRefDto"
-          },
-          "hasChanges": {
-            "type": "boolean"
-          },
-          "sections": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/SectionDiffDto"
-            }
-          }
-        }
-      },
-      "ContentCountsDto": {
-        "required": [
-          "items",
-          "skills",
-          "lootTables",
-          "enemyTypes",
-          "maps",
-          "craftingRecipes",
-          "quests"
-        ],
-        "type": "object",
-        "properties": {
-          "items": {
-            "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "integer",
-              "string"
-            ],
-            "format": "int32"
-          },
-          "skills": {
-            "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "integer",
-              "string"
-            ],
-            "format": "int32"
-          },
-          "lootTables": {
-            "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "integer",
-              "string"
-            ],
-            "format": "int32"
-          },
-          "enemyTypes": {
-            "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "integer",
-              "string"
-            ],
-            "format": "int32"
-          },
-          "maps": {
-            "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "integer",
-              "string"
-            ],
-            "format": "int32"
-          },
-          "craftingRecipes": {
-            "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "integer",
-              "string"
-            ],
-            "format": "int32"
-          },
-          "quests": {
-            "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "integer",
-              "string"
-            ],
-            "format": "int32"
-          }
-        }
-      },
-      "ContentIssueDto": {
-        "required": [
-          "path",
-          "message"
-        ],
-        "type": "object",
-        "properties": {
-          "path": {
-            "type": "string"
-          },
-          "message": {
-            "type": "string"
-          }
-        }
-      },
       "ContentManifest": {
         "type": "object",
         "properties": {
@@ -4901,178 +5619,6 @@
           "publishedAt": {
             "type": "string",
             "format": "date-time"
-          }
-        }
-      },
-      "ContentVersionDto": {
-        "required": [
-          "id",
-          "versionNo",
-          "label",
-          "changelog",
-          "parentVersionId",
-          "status",
-          "revision",
-          "schemaVersion",
-          "isValidated",
-          "validatedAt",
-          "bundleChecksum",
-          "validationErrors",
-          "authoredBy",
-          "submittedAt",
-          "reviewedBy",
-          "reviewedAt",
-          "reviewNote",
-          "publishedBy",
-          "publishedAt",
-          "archivedAt",
-          "createdAt",
-          "updatedAt",
-          "counts"
-        ],
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "versionNo": {
-            "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "integer",
-              "string"
-            ],
-            "format": "int64"
-          },
-          "label": {
-            "type": "string"
-          },
-          "changelog": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "parentVersionId": {
-            "type": [
-              "null",
-              "string"
-            ],
-            "format": "uuid"
-          },
-          "status": {
-            "type": "string"
-          },
-          "revision": {
-            "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "integer",
-              "string"
-            ],
-            "format": "int64"
-          },
-          "schemaVersion": {
-            "type": "string"
-          },
-          "isValidated": {
-            "type": "boolean"
-          },
-          "validatedAt": {
-            "type": [
-              "null",
-              "string"
-            ],
-            "format": "date-time"
-          },
-          "bundleChecksum": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "validationErrors": {
-            "type": [
-              "null",
-              "array"
-            ],
-            "items": {
-              "$ref": "#/components/schemas/ContentIssueDto"
-            }
-          },
-          "authoredBy": {
-            "$ref": "#/components/schemas/UserRefDto"
-          },
-          "submittedAt": {
-            "type": [
-              "null",
-              "string"
-            ],
-            "format": "date-time"
-          },
-          "reviewedBy": {
-            "oneOf": [
-              {
-                "type": "null"
-              },
-              {
-                "$ref": "#/components/schemas/UserRefDto"
-              }
-            ]
-          },
-          "reviewedAt": {
-            "type": [
-              "null",
-              "string"
-            ],
-            "format": "date-time"
-          },
-          "reviewNote": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "publishedBy": {
-            "oneOf": [
-              {
-                "type": "null"
-              },
-              {
-                "$ref": "#/components/schemas/UserRefDto"
-              }
-            ]
-          },
-          "publishedAt": {
-            "type": [
-              "null",
-              "string"
-            ],
-            "format": "date-time"
-          },
-          "archivedAt": {
-            "type": [
-              "null",
-              "string"
-            ],
-            "format": "date-time"
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "updatedAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "counts": {
-            "oneOf": [
-              {
-                "type": "null"
-              },
-              {
-                "$ref": "#/components/schemas/ContentCountsDto"
-              }
-            ]
           }
         }
       },
@@ -5246,7 +5792,8 @@
       },
       "CreateContentVersionRequest": {
         "required": [
-          "label"
+          "label",
+          "schemaVersion"
         ],
         "type": "object",
         "properties": {
@@ -5255,18 +5802,21 @@
             "type": "string"
           },
           "changelog": {
-            "maxLength": 4000,
             "type": [
               "null",
               "string"
             ]
           },
-          "baseVersionId": {
+          "parentVersionId": {
             "type": [
               "null",
               "string"
             ],
             "format": "uuid"
+          },
+          "schemaVersion": {
+            "maxLength": 20,
+            "type": "string"
           }
         }
       },
@@ -5892,6 +6442,25 @@
           "sessions": {
             "pattern": "^-?(?:0|[1-9]\\d*)$",
             "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int64"
+          }
+        }
+      },
+      "DeleteContentVersionRequest": {
+        "required": [
+          "revision"
+        ],
+        "type": "object",
+        "properties": {
+          "revision": {
+            "maximum": 9223372036854776000,
+            "minimum": 0,
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
               "integer",
               "string"
             ],
@@ -7024,104 +7593,6 @@
           }
         }
       },
-      "PagedResultOfContentVersionDto": {
-        "required": [
-          "items",
-          "page",
-          "pageSize",
-          "totalCount"
-        ],
-        "type": "object",
-        "properties": {
-          "items": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ContentVersionDto"
-            }
-          },
-          "page": {
-            "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "integer",
-              "string"
-            ],
-            "format": "int32"
-          },
-          "pageSize": {
-            "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "integer",
-              "string"
-            ],
-            "format": "int32"
-          },
-          "totalCount": {
-            "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "integer",
-              "string"
-            ],
-            "format": "int32"
-          },
-          "totalPages": {
-            "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "integer",
-              "string"
-            ],
-            "format": "int32"
-          }
-        }
-      },
-      "PagedResultOfPublicationHistoryDto": {
-        "required": [
-          "items",
-          "page",
-          "pageSize",
-          "totalCount"
-        ],
-        "type": "object",
-        "properties": {
-          "items": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/PublicationHistoryDto"
-            }
-          },
-          "page": {
-            "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "integer",
-              "string"
-            ],
-            "format": "int32"
-          },
-          "pageSize": {
-            "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "integer",
-              "string"
-            ],
-            "format": "int32"
-          },
-          "totalCount": {
-            "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "integer",
-              "string"
-            ],
-            "format": "int32"
-          },
-          "totalPages": {
-            "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "integer",
-              "string"
-            ],
-            "format": "int32"
-          }
-        }
-      },
       "PagedResultOfUserDto": {
         "required": [
           "items",
@@ -7281,52 +7752,16 @@
           }
         }
       },
-      "PublicationHistoryDto": {
+      "PublishContentVersionRequest": {
         "required": [
-          "id",
-          "action",
-          "contentVersionId",
-          "contentVersionNo",
-          "contentVersionLabel",
-          "previousVersionId",
-          "previousVersionNo",
-          "actorId",
-          "actorName",
-          "reason",
-          "createdAt"
+          "revision",
+          "reason"
         ],
         "type": "object",
         "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "action": {
-            "type": "string"
-          },
-          "contentVersionId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "contentVersionNo": {
-            "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "integer",
-              "string"
-            ],
-            "format": "int64"
-          },
-          "contentVersionLabel": {
-            "type": "string"
-          },
-          "previousVersionId": {
-            "type": [
-              "null",
-              "string"
-            ],
-            "format": "uuid"
-          },
-          "previousVersionNo": {
+          "revision": {
+            "maximum": 9223372036854776000,
+            "minimum": 0,
             "pattern": "^-?(?:0|[1-9]\\d*)$",
             "type": [
               "null",
@@ -7335,37 +7770,9 @@
             ],
             "format": "int64"
           },
-          "actorId": {
-            "type": [
-              "null",
-              "string"
-            ],
-            "format": "uuid"
-          },
-          "actorName": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "reason": {
-            "type": "string"
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date-time"
-          }
-        }
-      },
-      "PublishContentVersionRequest": {
-        "type": "object",
-        "properties": {
           "reason": {
             "maxLength": 500,
-            "type": [
-              "null",
-              "string"
-            ]
+            "type": "string"
           }
         }
       },
@@ -7493,18 +7900,6 @@
           }
         }
       },
-      "RejectContentVersionRequest": {
-        "required": [
-          "note"
-        ],
-        "type": "object",
-        "properties": {
-          "note": {
-            "maxLength": 2000,
-            "type": "string"
-          }
-        }
-      },
       "ResetPasswordRequest": {
         "required": [
           "newPassword"
@@ -7518,10 +7913,24 @@
           }
         }
       },
-      "ReviewNoteRequest": {
+      "ReviewContentVersionRequest": {
+        "required": [
+          "revision"
+        ],
         "type": "object",
         "properties": {
-          "note": {
+          "revision": {
+            "maximum": 9223372036854776000,
+            "minimum": 0,
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int64"
+          },
+          "reviewNote": {
             "maxLength": 2000,
             "type": [
               "null",
@@ -7532,10 +7941,22 @@
       },
       "RollbackContentVersionRequest": {
         "required": [
+          "revision",
           "reason"
         ],
         "type": "object",
         "properties": {
+          "revision": {
+            "maximum": 9223372036854776000,
+            "minimum": 0,
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int64"
+          },
           "reason": {
             "maxLength": 500,
             "type": "string"
@@ -8119,38 +8540,6 @@
           }
         }
       },
-      "SectionDiffDto": {
-        "required": [
-          "section",
-          "added",
-          "removed",
-          "changed"
-        ],
-        "type": "object",
-        "properties": {
-          "section": {
-            "type": "string"
-          },
-          "added": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "removed": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "changed": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ChangedEntryDto"
-            }
-          }
-        }
-      },
       "SessionStats": {
         "type": "object",
         "properties": {
@@ -8514,6 +8903,25 @@
           }
         }
       },
+      "SubmitContentVersionRequest": {
+        "required": [
+          "revision"
+        ],
+        "type": "object",
+        "properties": {
+          "revision": {
+            "maximum": 9223372036854776000,
+            "minimum": 0,
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int64"
+          }
+        }
+      },
       "TelemetryEventDto": {
         "type": "object",
         "properties": {
@@ -8562,7 +8970,9 @@
       },
       "UpdateContentVersionRequest": {
         "required": [
-          "label"
+          "label",
+          "schemaVersion",
+          "revision"
         ],
         "type": "object",
         "properties": {
@@ -8571,11 +8981,25 @@
             "type": "string"
           },
           "changelog": {
-            "maxLength": 4000,
             "type": [
               "null",
               "string"
             ]
+          },
+          "schemaVersion": {
+            "maxLength": 20,
+            "type": "string"
+          },
+          "revision": {
+            "maximum": 9223372036854776000,
+            "minimum": 0,
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int64"
           }
         }
       },
@@ -8698,48 +9122,22 @@
           }
         }
       },
-      "UserRefDto": {
+      "ValidateContentVersionRequest": {
         "required": [
-          "id",
-          "username"
+          "revision"
         ],
         "type": "object",
         "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "username": {
-            "type": "string"
-          }
-        }
-      },
-      "ValidationReportDto": {
-        "required": [
-          "isValid",
-          "issues",
-          "bundleChecksum",
-          "counts"
-        ],
-        "type": "object",
-        "properties": {
-          "isValid": {
-            "type": "boolean"
-          },
-          "issues": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ContentIssueDto"
-            }
-          },
-          "bundleChecksum": {
+          "revision": {
+            "maximum": 9223372036854776000,
+            "minimum": 0,
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
             "type": [
               "null",
+              "integer",
               "string"
-            ]
-          },
-          "counts": {
-            "$ref": "#/components/schemas/ContentCountsDto"
+            ],
+            "format": "int64"
           }
         }
       },
@@ -8755,31 +9153,6 @@
           },
           "b": {
             "$ref": "#/components/schemas/VersionSnapshotDto"
-          }
-        }
-      },
-      "VersionRefDto": {
-        "required": [
-          "id",
-          "versionNo",
-          "label"
-        ],
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "versionNo": {
-            "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "integer",
-              "string"
-            ],
-            "format": "int64"
-          },
-          "label": {
-            "type": "string"
           }
         }
       },

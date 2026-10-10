@@ -27,6 +27,7 @@ public static class DependencyInjection
         services.AddScoped<ISolverConfigurationSeeder, SolverConfigurationSeeder>();
         services.AddScoped<ContentEditor>();
         services.AddScoped<IContentVersionService, ContentVersionService>();
+        services.AddSingleton<IContentBundleValidator, ContentBundleValidator>();
         services.AddScoped<IItemService, ItemService>();
         services.AddScoped<ISkillService, SkillService>();
         services.AddScoped<ILootTableService, LootTableService>();
