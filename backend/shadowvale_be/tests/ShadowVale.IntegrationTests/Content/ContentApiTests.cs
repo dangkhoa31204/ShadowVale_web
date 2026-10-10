@@ -147,7 +147,7 @@ public class ContentApiTests(ApiFixture api) : IntegrationTest(api)
     }
 
     [DbFact]
-    public async Task NewVersionFromParent_CopiesContent_AndPublishingItArchivesTheOldOne()
+    public async Task NewVersionFromParent_CopiesContent_PublishingArchivesTheOldOne_AndRollbackRestoresIt()
     {
         var designer = await Api.CreateUserClientAsync(UserRole.Designer);
         var admin = await Api.CreateUserClientAsync(UserRole.Admin);
@@ -191,8 +191,23 @@ public class ContentApiTests(ApiFixture api) : IntegrationTest(api)
 
         (await GetVersion(admin, v1.Id)).Status.ShouldBe("Archived");
         (await GetVersion(admin, v2.Id)).Status.ShouldBe("Published");
-        var manifest = await Api.CreateGameClient().GetFromJsonAsync<JsonElement>("/api/game/content/manifest");
-        manifest.GetProperty("versionId").GetGuid().ShouldBe(v2.Id);
+        var game = Api.CreateGameClient();
+        (await game.GetFromJsonAsync<JsonElement>("/api/game/content/manifest")).GetProperty("versionId").GetGuid().ShouldBe(v2.Id);
+
+        // Rolling back needs a reason, then v1 is live again and v2 is archived
+        (await Act(admin, v1.Id, "rollback")).StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+        (await Act(designer, v1.Id, "rollback", new { reason = "Damage too high" })).StatusCode.ShouldBe(HttpStatusCode.Forbidden);
+        (await Read<ContentVersionDto>(await Act(admin, v1.Id, "rollback", new { reason = "Damage too high" }))).Status.ShouldBe("Published");
+        (await GetVersion(admin, v2.Id)).Status.ShouldBe("Archived");
+        (await game.GetFromJsonAsync<JsonElement>("/api/game/content/manifest")).GetProperty("versionId").GetGuid().ShouldBe(v1.Id);
+
+        var history = await Read<PagedResult<ContentPublicationDto>>(await admin.GetAsync("/api/content-publications"));
+        history.Items.Select(h => h.Action).ShouldBe(["Rollback", "Publish", "Publish"]);
+        var rollback = history.Items[0];
+        rollback.VersionLabel.ShouldBe("v1");
+        rollback.PreviousVersionNo.ShouldBe(v2.VersionNo);
+        rollback.ActorUsername!.ShouldStartWith("admin");
+        rollback.Reason.ShouldBe("Damage too high");
     }
 
     [DbFact]
@@ -246,6 +261,12 @@ public class ContentApiTests(ApiFixture api) : IntegrationTest(api)
         validated.ValidatedAt.ShouldNotBeNull();
         validated.BundleChecksum.ShouldNotBeNull();
 
+        // The validated bundle can be downloaded as the game would get it
+        var download = await designer.GetAsync($"{Versions}/{version.Id}/bundle");
+        download.StatusCode.ShouldBe(HttpStatusCode.OK);
+        download.Content.Headers.ContentType!.MediaType.ShouldBe("application/json");
+        JsonDocument.Parse(await download.Content.ReadAsStringAsync()).RootElement.GetProperty("items").GetArrayLength().ShouldBe(3);
+
         await Read<ItemDto>(await designer.PostAsJsonAsync($"{Versions}/{version.Id}/items",
             new CreateItemRequest { Code = "cloth", Name = "Cloth", Type = "Material" }), HttpStatusCode.Created);
 
@@ -253,6 +274,7 @@ public class ContentApiTests(ApiFixture api) : IntegrationTest(api)
         edited.Revision.ShouldBeGreaterThan(validated.Revision);
         edited.ValidatedAt.ShouldBeNull();
         edited.BundleChecksum.ShouldBeNull();
+        (await designer.GetAsync($"{Versions}/{version.Id}/bundle")).StatusCode.ShouldBe(HttpStatusCode.Conflict);
 
         // A write that still carries the old revision is refused
         (await designer.PostAsJsonAsync($"{Versions}/{version.Id}/submit", new { revision = validated.Revision }))
@@ -358,6 +380,9 @@ public class ContentApiTests(ApiFixture api) : IntegrationTest(api)
         (await Read<ContentValidationResultDto>(await Act(admin, draft.Id, "validate"))).IsValid.ShouldBeTrue();
         (await Delete(admin, draft.Id)).StatusCode.ShouldBe(HttpStatusCode.NoContent);
         (await GetVersion(admin, draft.Id)).Status.ShouldBe("Archived");
+
+        // A deleted draft was never live, so there is nothing to roll back to
+        (await Act(admin, draft.Id, "rollback", new { reason = "Mistake" })).StatusCode.ShouldBe(HttpStatusCode.Conflict);
     }
 
     private static async Task<HttpResponseMessage> Delete(HttpClient client, Guid id) =>

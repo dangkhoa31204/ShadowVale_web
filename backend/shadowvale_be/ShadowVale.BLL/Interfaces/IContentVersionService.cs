@@ -9,6 +9,9 @@ public interface IContentVersionService
     Task<ServiceResult<ContentVersionDto>> ApproveAsync(Guid id, ReviewContentVersionRequest request, Guid actorId, CancellationToken ct = default);
     Task<ServiceResult<ContentVersionDto>> RejectAsync(Guid id, ReviewContentVersionRequest request, Guid actorId, CancellationToken ct = default);
     Task<ServiceResult<ContentVersionDto>> PublishAsync(Guid id, PublishContentVersionRequest request, Guid actorId, CancellationToken ct = default);
+    Task<ServiceResult<ContentVersionDto>> RollbackAsync(Guid id, RollbackContentVersionRequest request, Guid actorId, CancellationToken ct = default);
+    // The validated bundle as stored, i.e. what the game would download once this version is published
+    Task<ServiceResult<string>> GetBundleAsync(Guid id, CancellationToken ct = default);
     Task<ServiceResult<PagedResult<ContentPublicationDto>>> SearchPublicationsAsync(ContentPublicationQuery query, CancellationToken ct = default);
     Task<ServiceResult<bool>> DeleteAsync(Guid id, DeleteContentVersionRequest request, CancellationToken ct = default);
     Task<ServiceResult<PagedResult<ContentVersionDto>>> SearchAsync(ContentVersionQuery query, CancellationToken ct = default);

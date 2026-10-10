@@ -58,6 +58,37 @@ public class AdminContentVersionTests
         await _repo.Received(1).PublishAsync(v, _actor, "Release", TestHelpers.Now, Arg.Any<CancellationToken>());
     }
 
+    [Fact]
+    public async Task Rollback_requires_a_reason_and_a_version_that_was_published_before()
+    {
+        var v = Version(ContentStatus.Archived); v.PublishedAt = null;
+        (await _service.RollbackAsync(v.Id, new() { Revision = 4, Reason = " " }, _actor)).Error!.Kind.ShouldBe(ServiceErrorKind.Validation);
+        (await _service.RollbackAsync(v.Id, new() { Revision = 4, Reason = "Bad release" }, _actor)).Error!.Code.ShouldBe("CONTENT_VERSION_NEVER_PUBLISHED");
+        (await _service.RollbackAsync(v.Id, new() { Revision = 3, Reason = "Bad release" }, _actor)).Error!.Kind.ShouldBe(ServiceErrorKind.Conflict);
+        await _repo.DidNotReceive().RollbackAsync(Arg.Any<ContentVersion>(), Arg.Any<Guid>(), Arg.Any<string>(), Arg.Any<DateTime>(), Arg.Any<CancellationToken>());
+
+        v.PublishedAt = TestHelpers.Now.AddDays(-1);
+        (await _service.RollbackAsync(v.Id, new() { Revision = 4, Reason = " Bad release " }, _actor)).Error.ShouldBeNull();
+        await _repo.Received(1).RollbackAsync(v, _actor, "Bad release", TestHelpers.Now, Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task Rollback_is_only_for_archived_versions()
+    {
+        var v = Version(ContentStatus.Approved); v.PublishedAt = TestHelpers.Now.AddDays(-1);
+        (await _service.RollbackAsync(v.Id, new() { Revision = 4, Reason = "Bad release" }, _actor)).Error!.Code.ShouldBe("CONTENT_VERSION_INVALID_STATUS");
+    }
+
+    [Fact]
+    public async Task Bundle_download_needs_a_validated_bundle()
+    {
+        var v = Version(ContentStatus.Draft);
+        (await _service.GetBundleAsync(v.Id)).Data.ShouldBe(v.Bundle);
+        v.Bundle = null;
+        (await _service.GetBundleAsync(v.Id)).Error!.Code.ShouldBe("CONTENT_VERSION_NOT_VALIDATED");
+        (await _service.GetBundleAsync(Guid.NewGuid())).Error!.Kind.ShouldBe(ServiceErrorKind.NotFound);
+    }
+
     [Theory]
     [InlineData(ContentStatus.InReview)]
     [InlineData(ContentStatus.Approved)]

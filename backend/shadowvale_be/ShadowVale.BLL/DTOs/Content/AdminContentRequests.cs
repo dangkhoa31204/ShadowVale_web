@@ -14,6 +14,12 @@ public sealed record PublishContentVersionRequest
     [Required, MaxLength(500)] public string Reason { get; init; } = "";
 }
 
+public sealed record RollbackContentVersionRequest
+{
+    [Required, Range(0, long.MaxValue)] public long? Revision { get; init; }
+    [Required, MaxLength(500)] public string Reason { get; init; } = "";
+}
+
 public sealed record ContentPublicationQuery
 {
     public Guid? ContentVersionId { get; init; }
@@ -22,4 +28,5 @@ public sealed record ContentPublicationQuery
 }
 
 public sealed record ContentPublicationDto(Guid Id, Guid ContentVersionId, Guid? PreviousVersionId,
-    string Action, Guid? ActorId, string Reason, DateTime CreatedAt);
+    string Action, Guid? ActorId, string Reason, DateTime CreatedAt,
+    long? VersionNo = null, string? VersionLabel = null, long? PreviousVersionNo = null, string? ActorUsername = null);

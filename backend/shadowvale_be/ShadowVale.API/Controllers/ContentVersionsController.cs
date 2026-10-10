@@ -99,6 +99,24 @@ public class ContentVersionsController(IContentVersionService service) : Control
     public async Task<ActionResult<ContentVersionDto>> Publish(Guid id, PublishContentVersionRequest request,
         CancellationToken ct) => Respond(await service.PublishAsync(id, request, User.GetUserId(), ct));
 
+    [HttpPost("{id:guid}/rollback")]
+    [Authorize(Roles = AppRoles.Admin)]
+    [EndpointSummary("POST /api/content-versions/{id}/rollback (ADMIN)")]
+    [EndpointDescription("Puts a previously published (now Archived) version back live with a required reason, archives the current Published version, and records a Rollback entry in the publication history in one transaction.")]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    public async Task<ActionResult<ContentVersionDto>> Rollback(Guid id, RollbackContentVersionRequest request,
+        CancellationToken ct) => Respond(await service.RollbackAsync(id, request, User.GetUserId(), ct));
+
+    [HttpGet("{id:guid}/bundle")]
+    [EndpointSummary("GET /api/content-versions/{id}/bundle (DESIGNER)")]
+    [EndpointDescription("Available to both Designer and Admin. Downloads the stored validated bundle, exactly what the game receives once the version is published. Returns 409 when the version has not been validated since its last edit.")]
+    [ProducesResponseType<System.Text.Json.JsonElement>(StatusCodes.Status200OK, "application/json")]
+    public async Task<IActionResult> GetBundle(Guid id, CancellationToken ct)
+    {
+        var result = await service.GetBundleAsync(id, ct);
+        return result.Error is not null ? ErrorResponse(result.Error) : Content(result.Data!, "application/json");
+    }
+
     [HttpGet("/api/content-publications")]
     [Authorize(Roles = AppRoles.Admin)]
     [EndpointSummary("GET /api/content-publications (ADMIN)")]

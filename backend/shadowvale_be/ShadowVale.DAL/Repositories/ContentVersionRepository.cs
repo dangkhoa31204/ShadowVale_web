@@ -58,8 +58,15 @@ public class ContentVersionRepository(ShadowValeDbContext context)
 
     public void AddContent(IEnumerable<BaseEntity> entities) => Context.AddRange(entities);
 
-    public async Task PublishAsync(ContentVersion version, Guid actorId, string reason, DateTime publishedAt,
-        CancellationToken ct = default)
+    public Task PublishAsync(ContentVersion version, Guid actorId, string reason, DateTime publishedAt,
+        CancellationToken ct = default) => GoLiveAsync(version, PublishAction.Publish, actorId, reason, publishedAt, ct);
+
+    public Task RollbackAsync(ContentVersion version, Guid actorId, string reason, DateTime publishedAt,
+        CancellationToken ct = default) => GoLiveAsync(version, PublishAction.Rollback, actorId, reason, publishedAt, ct);
+
+    // Makes the version the single Published one; the version it replaces is archived in the same transaction
+    private async Task GoLiveAsync(ContentVersion version, PublishAction action, Guid actorId, string reason,
+        DateTime publishedAt, CancellationToken ct)
     {
         await using var transaction = await Context.Database.BeginTransactionAsync(ct);
         // Serialize publication operations, including the first publication with no existing row to lock.
@@ -78,11 +85,12 @@ public class ContentVersionRepository(ShadowValeDbContext context)
         version.Status = ContentStatus.Published;
         version.PublishedById = actorId;
         version.PublishedAt = publishedAt;
+        version.ArchivedAt = null;
         version.Revision = checked(version.Revision + 1);
         Context.ContentPublicationHistory.Add(new ContentPublicationHistory
         {
             ContentVersionId = version.Id, PreviousVersionId = previous?.Id,
-            Action = PublishAction.Publish, ActorId = actorId, Reason = reason
+            Action = action, ActorId = actorId, Reason = reason
         });
         await Context.SaveChangesAsync(ct);
         await transaction.CommitAsync(ct);
@@ -95,7 +103,17 @@ public class ContentVersionRepository(ShadowValeDbContext context)
         if (versionId.HasValue) query = query.Where(h => h.ContentVersionId == versionId.Value);
         var total = await query.CountAsync(ct);
         var items = await query.OrderByDescending(h => h.CreatedAt).ThenByDescending(h => h.Id)
-            .Skip((page - 1) * pageSize).Take(pageSize).ToListAsync(ct);
+            .Skip((page - 1) * pageSize).Take(pageSize)
+            // Only the names needed to display a row; the versions' bundle JSON stays in the database.
+            .Select(h => new ContentPublicationHistory
+            {
+                Id = h.Id, ContentVersionId = h.ContentVersionId, PreviousVersionId = h.PreviousVersionId,
+                Action = h.Action, ActorId = h.ActorId, Reason = h.Reason, CreatedAt = h.CreatedAt,
+                ContentVersion = new ContentVersion { VersionNo = h.ContentVersion.VersionNo, Label = h.ContentVersion.Label },
+                PreviousVersion = h.PreviousVersion == null ? null
+                    : new ContentVersion { VersionNo = h.PreviousVersion.VersionNo, Label = h.PreviousVersion.Label },
+                Actor = h.Actor == null ? null : new User { Username = h.Actor.Username }
+            }).ToListAsync(ct);
         return (items, total);
     }
 }

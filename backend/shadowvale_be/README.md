@@ -117,7 +117,9 @@ JSONB được xuất thành object/array, không thành chuỗi JSON.
 Validation trả 200 với `{ id, revision, isValid, validatedAt, bundleChecksum, errors: [{ path, message }] }`.
 Bundle hợp lệ được lưu cùng SHA-256 của chính chuỗi JSON có thứ tự key ổn định;
 bundle không hợp lệ xóa bundle/checksum cũ và lưu lỗi. Đây chưa phải thao tác publish.
-Không có endpoint sửa status tùy ý hay rollback. API duyệt/publish dành cho Admin được mô tả bên dưới.
+Không có endpoint sửa status tùy ý. API duyệt/publish/rollback dành cho Admin được mô tả bên dưới.
+`GET /api/content-versions/{id}/bundle` (Admin/Designer) tải bundle đã validate đúng như game sẽ nhận;
+trả 409 nếu version chưa validate kể từ lần sửa gần nhất.
 Mọi API chỉnh sửa nội dung bổ sung sau này phải cập nhật revision của content version trong cùng transaction.
 
 ### Admin review and publication (Scalar)
@@ -150,7 +152,7 @@ validated bundle; always GET the latest revision before each action.
 Test first release: V1 validate -> submit -> approve -> publish -> publication history.
 Test update: compare V1 -> V2, then V2 validate -> submit -> approve -> publish; V1 becomes Archived.
 To test rejection without losing the update scenario, clone V2 before submission, validate and submit the
-clone, then reject it with a note. Reopen/rollback are not implemented; use a new clone for another review.
+clone, then reject it with a note. A Rejected version returns to Draft on its first content edit.
 Use Analyst/Designer on Admin endpoints for 403; stale revisions and repeated/wrong-state actions for 409.
 Current submit also permits Admin, useful when a Designer account is not available.
 
@@ -172,7 +174,12 @@ approve/reject/publish và publication history chỉ cho JWT role `Admin` (Desig
 - `POST /api/content-versions/{id}/publish` (ADMIN): `{ "revision": 5, "reason": "Weapon balance release" }`.
   Chỉ `Approved` -> `Published`, cần thông tin Admin đã duyệt; reason bắt buộc, tối đa 500 ký tự.
 - `GET /api/content-publications?contentVersionId={id}&page=1&pageSize=20` (ADMIN): lịch sử phân trang;
-  bỏ `contentVersionId` để xem tất cả. Mỗi row gồm version, previousVersion, action, actor, reason và createdAt.
+  bỏ `contentVersionId` để xem tất cả. Mỗi row gồm version, previousVersion, action, actor, reason và createdAt,
+  kèm `versionNo`, `versionLabel`, `previousVersionNo`, `actorUsername` để hiển thị. `action` là `Publish` hoặc `Rollback`.
+- `POST /api/content-versions/{id}/rollback` (ADMIN): `{ "revision": 7, "reason": "Damage too high" }`.
+  Chỉ version `Archived` **đã từng được publish** -> `Published` (Draft đã xóa không rollback được, trả 409).
+  Version đang Published bị archive, lịch sử ghi một dòng `Rollback`, tất cả trong một transaction.
+  Bundle được dùng lại nguyên trạng như lúc được duyệt, không validate lại. Reason bắt buộc, tối đa 500 ký tự.
 
 Các thao tác thành công trả 200 và DTO với revision mới. Metadata bổ sung `submittedAt`, `reviewedById`,
 `reviewedAt`, `reviewNote`, `publishedById`, `publishedAt`; các trường chưa có giá trị trả null.

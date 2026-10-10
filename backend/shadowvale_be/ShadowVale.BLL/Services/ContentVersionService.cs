@@ -89,8 +89,40 @@ public class ContentVersionService(IContentVersionRepository versions, IContentB
             return Invalid("Page", "Invalid pagination.");
         var (items, total) = await versions.SearchPublicationsAsync(query.ContentVersionId, query.Page, query.PageSize, ct);
         return new PagedResult<ContentPublicationDto>(items.Select(h => new ContentPublicationDto(h.Id,
-            h.ContentVersionId, h.PreviousVersionId, h.Action.ToString(), h.ActorId, h.Reason, h.CreatedAt)).ToArray(),
+            h.ContentVersionId, h.PreviousVersionId, h.Action.ToString(), h.ActorId, h.Reason, h.CreatedAt,
+            h.ContentVersion?.VersionNo, h.ContentVersion?.Label, h.PreviousVersion?.VersionNo, h.Actor?.Username)).ToArray(),
             query.Page, query.PageSize, total);
+    }
+
+    public async Task<ServiceResult<ContentVersionDto>> RollbackAsync(Guid id, RollbackContentVersionRequest request,
+        Guid actorId, CancellationToken ct = default)
+    {
+        if (string.IsNullOrWhiteSpace(request.Reason) || request.Reason.Length > 500)
+            return Invalid("Reason", "A rollback reason of 1-500 characters is required.");
+        var result = await FindInStatusAsync(id, request.Revision, ContentStatus.Archived, ct);
+        if (result.Error is not null) return result.Error;
+        var version = result.Data!;
+        // Archived also covers deleted drafts; only a version that was live before can go live again.
+        // Its stored bundle is served as it was approved, without revalidating against today's schema.
+        if (version.PublishedAt is null || version.Bundle is null || version.BundleChecksum is null)
+            return new ServiceError(ServiceErrorKind.Conflict, "CONTENT_VERSION_NEVER_PUBLISHED",
+                "Only a version that was published before can be rolled back to.");
+        try
+        {
+            await versions.RollbackAsync(version, actorId, request.Reason.Trim(), time.GetUtcNow().UtcDateTime, ct);
+        }
+        catch (DbUpdateConcurrencyException) { return Changed(); }
+        return ToDto(version);
+    }
+
+    public async Task<ServiceResult<string>> GetBundleAsync(Guid id, CancellationToken ct = default)
+    {
+        var version = await versions.GetByIdAsync(id, ct);
+        if (version is null) return Missing(id);
+        if (version.ValidatedAt is null || version.Bundle is null)
+            return new ServiceError(ServiceErrorKind.Conflict, "CONTENT_VERSION_NOT_VALIDATED",
+                "This version has no validated bundle. Validate it first; every content edit clears the bundle.");
+        return version.Bundle;
     }
 
     private async Task<ServiceResult<ContentVersion>> FindInStatusAsync(Guid id, long? revision,
