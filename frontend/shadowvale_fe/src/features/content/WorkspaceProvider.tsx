@@ -1,3 +1,4 @@
+import { useTranslation } from '../preferences/preferencesContext';
 import { useCallback, useEffect, useState, type ReactNode } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import { useToast } from '../../components/ui/Toast';
@@ -7,6 +8,7 @@ import type { Command, Workspace } from './types';
 import { isDemoMode } from '../../config/environment';
 import { DEMO_WORKSPACE_KEY } from '../../config/demo';
 export function WorkspaceProvider({ children }: { children: ReactNode }) {
+  const t = useTranslation();
   const { user } = useAuth(), toast = useToast();
   const [state, setState] = useState<Workspace | null>(null);
   const [error, setError] = useState('');
@@ -37,12 +39,12 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     setBusy(true);
     try {
       const next = await workspaceService.execute(command, user); setState(next);
-      toast.success('Workspace updated.'); return next;
+      toast.success(t('Workspace updated.')); return next;
     } catch (e) {
       toast.error(e instanceof Error ? e.message : 'Could not save changes.'); throw e;
     } finally { setBusy(false); }
   }
-  if (error) return <div className="portal-state"><h2>Workspace unavailable</h2><p>{error}</p><button className="sv-button" onClick={reload}>Try again</button></div>;
-  if (!state) return <div className="portal-state" role="status">Loading your workspace…</div>;
-  return <WorkspaceContext.Provider value={{ state, busy, execute, reload }}>{children}</WorkspaceContext.Provider>;
+  if (error && !state) return <div className="portal-state"><h2>{t("Workspace unavailable")}</h2><p>{error}</p><button className="sv-button" onClick={reload}>{t("Try again")}</button></div>;
+  if (!state) return <div className="portal-state" role="status">{t("Loading your workspace…")}</div>;
+  return <WorkspaceContext.Provider value={{ state, busy, execute, reload }}>{error && <div className="sv-alert sv-alert-error" role="alert">{error}<button className="sv-button" onClick={reload}>{t("Retry refresh")}</button></div>}{children}</WorkspaceContext.Provider>;
 }

@@ -1,14 +1,16 @@
 import React from 'react';
+import { useTranslation } from '../../../features/preferences/preferencesContext';
 import { useToast } from './useToast';
 
 export const ToastContainer: React.FC = () => {
+  const t = useTranslation();
   const { toasts, removeToast } = useToast();
 
   if (toasts.length === 0) return null;
 
   return (
     <div
-      className="fixed top-4 right-4 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none"
+      className="portal sv-toast-region fixed top-4 right-4 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none"
       role="region"
       aria-live="polite"
     >
@@ -52,7 +54,7 @@ export const ToastContainer: React.FC = () => {
         return (
           <div
             key={toast.id}
-            className={`pointer-events-auto bg-surface/95 backdrop-blur-md border ${borderColor} rounded shadow-2xl p-3 flex items-start gap-3 transition-all duration-300 transform translate-y-0 opacity-100 relative overflow-hidden`}
+            className={`sv-toast-card pointer-events-auto bg-surface/95 backdrop-blur-md border ${borderColor} rounded shadow-2xl p-3 flex items-start gap-3 transition-all duration-300 transform translate-y-0 opacity-100 relative overflow-hidden`}
           >
             {/* Left Accent indicator line */}
             <div className={`absolute top-0 left-0 bottom-0 w-1 ${accentColor}`} />
@@ -66,11 +68,11 @@ export const ToastContainer: React.FC = () => {
             <div className="flex-1 min-w-0">
               {toast.title && (
                 <h4 className={`font-data-mono text-[11px] font-bold uppercase tracking-wider ${textColor}`}>
-                  {toast.title}
+                  {t(toast.title)}
                 </h4>
               )}
               <p className="font-body-md text-xs text-on-surface mt-0.5 leading-relaxed break-words">
-                {toast.message}
+                {t(toast.message)}
               </p>
             </div>
 
@@ -78,7 +80,7 @@ export const ToastContainer: React.FC = () => {
               type="button"
               onClick={() => removeToast(toast.id)}
               className="text-on-surface-variant hover:text-on-surface p-1 rounded transition-colors"
-              aria-label="Close notification"
+              aria-label={t('Close notification')}
             >
               <span className="material-symbols-outlined text-sm">close</span>
             </button>

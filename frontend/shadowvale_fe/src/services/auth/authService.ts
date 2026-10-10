@@ -1,7 +1,9 @@
 import type { LoginCredentials, RegisterPayload, AuthResponse, PasswordResetPayload } from '../../types/auth';
 import type { Role, User } from '../../types/user';
 import { storageService } from '../storage/storageService';
-import { axiosClient } from '../api/axiosClient';
+import { axiosClient, authClient, withSessionLock } from '../api/axiosClient';
+import type { AuthResponse as ApiAuthResponse, UserDto } from '../api/contracts';
+import { userFromApi } from './userAdapter';
 import { isDemoMode } from '../../config/environment';
 import { DEMO_WORKSPACE_KEY } from '../../config/demo';
 
@@ -11,7 +13,7 @@ export const demoAccounts: { callsign: string; role: Role; name: string }[] = [
   { callsign: 'admin@shadowvale.dev', role: 'admin', name: 'Jordan Admin' },
 ];
 export const demoUser = (account: typeof demoAccounts[number]): User => ({
-  id: account.role, callsign: account.name, email: account.callsign, role: account.role,
+  id: account.role, username: account.role, fullName: account.name, callsign: account.name, email: account.callsign, role: account.role,
   tier: 'Internal team', clearanceLevel: account.role, createdAt: '2026-09-18T00:00:00Z',
 });
 function currentDemoUser(account: typeof demoAccounts[number]): User | null {
@@ -32,12 +34,10 @@ export const authService = {
       if (!user) throw new Error('This demo account has been removed or deactivated.');
       response = { token: `demo:${account.role}`, user };
     } else {
-      response = (await axiosClient.post<AuthResponse>('/auth/login', {
-        email: credentials.callsign, password: credentials.password,
-      })).data;
-      if (!response.token || !['designer', 'analyst', 'admin'].includes(response.user?.role)) {
-        throw new Error('This account does not have access to the internal portal.');
-      }
+      const data = (await authClient.post<ApiAuthResponse>('/auth/login', { usernameOrEmail: credentials.callsign, password: credentials.password })).data;
+      response = { token: data.accessToken, user: userFromApi(data.user) };
+      storageService.setSession({ token: data.accessToken, refreshToken: data.refreshToken, accessTokenExpiresAt: data.accessTokenExpiresAt, refreshTokenExpiresAt: data.refreshTokenExpiresAt, user: response.user, remember: credentials.rememberMe ?? false });
+      return response;
     }
     storageService.setAuth(response.token, response.user, credentials.rememberMe ?? false);
     return response;
@@ -47,10 +47,19 @@ export const authService = {
     throw new Error('Internal accounts are provisioned by an administrator.');
   },
   resetPassword: async (payload: PasswordResetPayload): Promise<{ success: boolean; message: string }> => {
-    if (isDemoMode) throw new Error('Password reset is unavailable in demo mode.');
-    return (await axiosClient.post('/auth/reset-password', payload)).data;
+    void payload;
+    throw new Error('Password recovery has no backend API. Contact your administrator.');
   },
-  logout: async (): Promise<void> => { storageService.clearAuth(); },
+  logout: async (): Promise<void> => {
+    try { await withSessionLock(async () => {
+      try { const session = storageService.getSession(); if (!isDemoMode && session?.refreshToken) await authClient.post('/auth/logout', { refreshToken: session.refreshToken }); }
+      finally { storageService.clearAuth(); }
+    }); } finally { storageService.clearAuth(); }
+  },
+  changePassword: async (currentPassword: string, newPassword: string) => {
+    if (isDemoMode) throw new Error('Password changes are unavailable in demo mode.');
+    await axiosClient.put('/auth/me/password', { currentPassword, newPassword }); storageService.clearAuth();
+  },
   getCurrentUser: async (): Promise<User | null> => {
     if (!storageService.getToken()) return null;
     if (isDemoMode) {
@@ -58,10 +67,6 @@ export const authService = {
       return account ? currentDemoUser(account) : null;
     }
     // Server validates signature, expiry and current role.
-    const user = (await axiosClient.get<User>('/auth/me')).data;
-    if (!user || typeof user.id !== 'string' || typeof user.callsign !== 'string' || !['designer', 'analyst', 'admin'].includes(user.role)) {
-      throw new Error('This account does not have access to the internal portal.');
-    }
-    return user;
+    return userFromApi((await axiosClient.get<UserDto>('/auth/me')).data);
   },
 };

@@ -1,0 +1,326 @@
+[
+  {
+    "method": "GET",
+    "url": "/api/analytics/overview"
+  },
+  {
+    "method": "GET",
+    "url": "/api/analytics/heatmap"
+  },
+  {
+    "method": "GET",
+    "url": "/api/analytics/funnel"
+  },
+  {
+    "method": "GET",
+    "url": "/api/analytics/weapons"
+  },
+  {
+    "method": "GET",
+    "url": "/api/analytics/playstyle"
+  },
+  {
+    "method": "GET",
+    "url": "/api/analytics/versions/compare"
+  },
+  {
+    "method": "GET",
+    "url": "/api/analytics/ai/comparison"
+  },
+  {
+    "method": "GET",
+    "url": "/api/analytics/ai/scalability"
+  },
+  {
+    "method": "GET",
+    "url": "/api/analytics/export/{dataset}"
+  },
+  {
+    "method": "POST",
+    "url": "/api/auth/login"
+  },
+  {
+    "method": "POST",
+    "url": "/api/auth/refresh"
+  },
+  {
+    "method": "POST",
+    "url": "/api/auth/logout"
+  },
+  {
+    "method": "GET",
+    "url": "/api/auth/me"
+  },
+  {
+    "method": "PUT",
+    "url": "/api/auth/me/password"
+  },
+  {
+    "method": "GET",
+    "url": "/api/content-versions/{versionId}/items"
+  },
+  {
+    "method": "POST",
+    "url": "/api/content-versions/{versionId}/items"
+  },
+  {
+    "method": "GET",
+    "url": "/api/content-versions/{versionId}/items/{id}"
+  },
+  {
+    "method": "PUT",
+    "url": "/api/content-versions/{versionId}/items/{id}"
+  },
+  {
+    "method": "DELETE",
+    "url": "/api/content-versions/{versionId}/items/{id}"
+  },
+  {
+    "method": "GET",
+    "url": "/api/content-versions/{versionId}/skills"
+  },
+  {
+    "method": "POST",
+    "url": "/api/content-versions/{versionId}/skills"
+  },
+  {
+    "method": "GET",
+    "url": "/api/content-versions/{versionId}/skills/{id}"
+  },
+  {
+    "method": "PUT",
+    "url": "/api/content-versions/{versionId}/skills/{id}"
+  },
+  {
+    "method": "DELETE",
+    "url": "/api/content-versions/{versionId}/skills/{id}"
+  },
+  {
+    "method": "GET",
+    "url": "/api/content-versions/{versionId}/loot-tables"
+  },
+  {
+    "method": "POST",
+    "url": "/api/content-versions/{versionId}/loot-tables"
+  },
+  {
+    "method": "GET",
+    "url": "/api/content-versions/{versionId}/loot-tables/{id}"
+  },
+  {
+    "method": "PUT",
+    "url": "/api/content-versions/{versionId}/loot-tables/{id}"
+  },
+  {
+    "method": "DELETE",
+    "url": "/api/content-versions/{versionId}/loot-tables/{id}"
+  },
+  {
+    "method": "GET",
+    "url": "/api/content-versions/{versionId}/enemy-types"
+  },
+  {
+    "method": "POST",
+    "url": "/api/content-versions/{versionId}/enemy-types"
+  },
+  {
+    "method": "GET",
+    "url": "/api/content-versions/{versionId}/enemy-types/{id}"
+  },
+  {
+    "method": "PUT",
+    "url": "/api/content-versions/{versionId}/enemy-types/{id}"
+  },
+  {
+    "method": "DELETE",
+    "url": "/api/content-versions/{versionId}/enemy-types/{id}"
+  },
+  {
+    "method": "GET",
+    "url": "/api/content-versions/{versionId}/maps"
+  },
+  {
+    "method": "POST",
+    "url": "/api/content-versions/{versionId}/maps"
+  },
+  {
+    "method": "GET",
+    "url": "/api/content-versions/{versionId}/maps/{id}"
+  },
+  {
+    "method": "PUT",
+    "url": "/api/content-versions/{versionId}/maps/{id}"
+  },
+  {
+    "method": "DELETE",
+    "url": "/api/content-versions/{versionId}/maps/{id}"
+  },
+  {
+    "method": "GET",
+    "url": "/api/content-versions/{versionId}/recipes"
+  },
+  {
+    "method": "POST",
+    "url": "/api/content-versions/{versionId}/recipes"
+  },
+  {
+    "method": "GET",
+    "url": "/api/content-versions/{versionId}/recipes/{id}"
+  },
+  {
+    "method": "PUT",
+    "url": "/api/content-versions/{versionId}/recipes/{id}"
+  },
+  {
+    "method": "DELETE",
+    "url": "/api/content-versions/{versionId}/recipes/{id}"
+  },
+  {
+    "method": "GET",
+    "url": "/api/content-versions/{versionId}/quests"
+  },
+  {
+    "method": "POST",
+    "url": "/api/content-versions/{versionId}/quests"
+  },
+  {
+    "method": "GET",
+    "url": "/api/content-versions/{versionId}/quests/{id}"
+  },
+  {
+    "method": "PUT",
+    "url": "/api/content-versions/{versionId}/quests/{id}"
+  },
+  {
+    "method": "DELETE",
+    "url": "/api/content-versions/{versionId}/quests/{id}"
+  },
+  {
+    "method": "GET",
+    "url": "/api/content-versions"
+  },
+  {
+    "method": "POST",
+    "url": "/api/content-versions"
+  },
+  {
+    "method": "GET",
+    "url": "/api/content-versions/{id}"
+  },
+  {
+    "method": "PUT",
+    "url": "/api/content-versions/{id}"
+  },
+  {
+    "method": "DELETE",
+    "url": "/api/content-versions/{id}"
+  },
+  {
+    "method": "GET",
+    "url": "/api/content-versions/{id}/compare"
+  },
+  {
+    "method": "POST",
+    "url": "/api/content-versions/{id}/validate"
+  },
+  {
+    "method": "POST",
+    "url": "/api/content-versions/{id}/submit"
+  },
+  {
+    "method": "POST",
+    "url": "/api/content-versions/{id}/approve"
+  },
+  {
+    "method": "POST",
+    "url": "/api/content-versions/{id}/reject"
+  },
+  {
+    "method": "POST",
+    "url": "/api/content-versions/{id}/publish"
+  },
+  {
+    "method": "POST",
+    "url": "/api/content-versions/{id}/rollback"
+  },
+  {
+    "method": "GET",
+    "url": "/api/content-versions/{id}/bundle"
+  },
+  {
+    "method": "GET",
+    "url": "/api/content-publications"
+  },
+  {
+    "method": "GET",
+    "url": "/api/game/content/manifest"
+  },
+  {
+    "method": "GET",
+    "url": "/api/game/content/bundle"
+  },
+  {
+    "method": "GET",
+    "url": "/api/game/content/versions/{versionId}/bundle"
+  },
+  {
+    "method": "POST",
+    "url": "/api/game/sessions"
+  },
+  {
+    "method": "PUT",
+    "url": "/api/game/sessions/{sessionId}"
+  },
+  {
+    "method": "GET",
+    "url": "/api/meta/enums"
+  },
+  {
+    "method": "GET",
+    "url": "/api/solver-configurations"
+  },
+  {
+    "method": "POST",
+    "url": "/api/solver-configurations"
+  },
+  {
+    "method": "GET",
+    "url": "/api/solver-configurations/{id}"
+  },
+  {
+    "method": "PUT",
+    "url": "/api/solver-configurations/{id}"
+  },
+  {
+    "method": "DELETE",
+    "url": "/api/solver-configurations/{id}"
+  },
+  {
+    "method": "POST",
+    "url": "/api/solver-configurations/{id}/clone"
+  },
+  {
+    "method": "PATCH",
+    "url": "/api/solver-configurations/{id}/active"
+  },
+  {
+    "method": "GET",
+    "url": "/api/users"
+  },
+  {
+    "method": "POST",
+    "url": "/api/users"
+  },
+  {
+    "method": "GET",
+    "url": "/api/users/{id}"
+  },
+  {
+    "method": "PUT",
+    "url": "/api/users/{id}"
+  },
+  {
+    "method": "PUT",
+    "url": "/api/users/{id}/password"
+  }
+]

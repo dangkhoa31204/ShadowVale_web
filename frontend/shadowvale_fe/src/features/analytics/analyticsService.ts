@@ -1,5 +1,5 @@
 import { isDemoMode } from '../../config/environment';
-import { axiosClient } from '../../services/api/axiosClient';
+
 
 export type SessionOutcome = 'in_progress' | 'completed' | 'died' | 'quit' | 'crashed';
 export type SolverFamily = 'classical' | 'quantum_inspired' | 'quantum_hardware';
@@ -38,7 +38,7 @@ const encounters: EncounterOutcome[] = ['player_captured', 'player_escaped', 'sq
 const uuid = (n: number) => `00000000-0000-4000-8000-${String(n).padStart(12, '0')}`;
 export const analyticsService = {
   load: async (days: number, versionId: string, demoVersionIds: string[] = []): Promise<AnalyticsData> => {
-    if (!isDemoMode) return (await axiosClient.get<AnalyticsData>('/telemetry/analytics', { params: { days, content_version_id: versionId === 'all' ? undefined : versionId } })).data;
+    if (!isDemoMode) throw new Error('Use the aggregate analytics API service.');
     const now = Date.now(), versions = demoVersionIds.length ? demoVersionIds : [uuid(1), uuid(2)];
     const solver_configurations: SolverConfiguration[] = algorithms.map((algorithm, i) => ({
       id: uuid(100 + i), code: algorithm + '_default', name: algorithm.replaceAll('_', ' '), algorithm, family: families[i],

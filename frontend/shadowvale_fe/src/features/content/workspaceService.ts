@@ -1,7 +1,7 @@
 import schema from './contracts/content.schema.json';
 import seed from './contracts/demo-bundle.json';
 import { isDemoMode } from '../../config/environment';
-import { axiosClient } from '../../services/api/axiosClient';
+import { contentApi } from './contentApi';
 import { demoAccounts, demoUser } from '../../services/auth/authService';
 import type { Command, ContentBundle, Draft, DraftStatus, Workspace } from './types';
 import type { User } from '../../types/user';
@@ -37,7 +37,7 @@ async function initialWorkspace(): Promise<Workspace> {
 }
 export const workspaceService = {
   load: async (): Promise<Workspace> => {
-    if (!isDemoMode) return (await axiosClient.get<Workspace>('/internal/workspace')).data;
+    if (!isDemoMode) return contentApi.workspace();
     const saved = localStorage.getItem(DEMO_WORKSPACE_KEY);
     if (saved) {
       const state = JSON.parse(saved) as Workspace;
@@ -48,7 +48,7 @@ export const workspaceService = {
     localStorage.setItem(DEMO_WORKSPACE_KEY, JSON.stringify(state)); return state;
   },
   execute: async (command: Command, actor: User): Promise<Workspace> => {
-    if (!isDemoMode) return (await axiosClient.post<Workspace>('/internal/commands', command)).data;
+    if (!isDemoMode) return contentApi.execute(command);
     const state = await workspaceService.load();
     const currentActor = state.users.find(user => user.id === actor.id && user.active);
     if (!currentActor) throw new Error('Your account no longer has access to this workspace.');

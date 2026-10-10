@@ -1,3 +1,4 @@
+import { useTranslation } from '../preferences/preferencesContext';
 import { useEffect, useRef, useState } from 'react';
 import { Link, useBlocker, useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
@@ -10,6 +11,12 @@ import { Empty, Icon, PageHeading, Status } from '../shared/ui';
 import { NumericControl } from '../shared/NumericControl';
 import { validateChangeReport } from '../changeReports/reportValidation';
 import './editor.css';
+import { isDemoMode } from '../../config/environment';
+import { apiFields, validateEditor, rebindEditorImport } from './apiModel';
+import { contentApi } from './contentApi';
+import { errorMessage } from '../../services/api/errors';
+import { editorFieldErrors } from './apiFieldErrors';
+import type { EnumsDto } from '../../services/api/contracts';
 
 function referenceOptions(field: FieldDefinition, bundle: ContentBundle) {
   if (!field.reference) return [];
@@ -22,6 +29,7 @@ function referenceOptions(field: FieldDefinition, bundle: ContentBundle) {
 /** Choose real FK values for relation keys instead of adding a made-up *_copy item code. */
 function newRecord(collection: CollectionKey, bundle: ContentBundle, source?: ContentRecord): ContentRecord {
   const candidate = source ? structuredClone(source) : createContentRecord(collection, bundle);
+  delete candidate.api_id;
   const keys = collectionIdentity[collection];
   const existing = new Set(bundle[collection].map(row => recordIdentity(collection, row)));
   if (keys.includes('id')) candidate.id = crypto.randomUUID();
@@ -59,14 +67,19 @@ function newRecord(collection: CollectionKey, bundle: ContentBundle, source?: Co
   return candidate;
 }
 
-function DraftEditor({ draft }: { draft: Draft }) {
-  const { user } = useAuth(), { busy, execute } = useWorkspace(), toast = useToast();
+function DraftEditor({ draft, enums }: { draft: Draft; enums?: EnumsDto }) {
+  const t = useTranslation();
+  const { user } = useAuth(), { busy, execute, reload } = useWorkspace(), toast = useToast();
+  const navigate = useNavigate();
   const [bundle, setBundle] = useState<ContentBundle>(() => structuredClone(draft.bundle));
   const [label, setLabel] = useState(draft.label || draft.title), [changelog, setChangelog] = useState(draft.changelog || '');
   const [category, setCategory] = useState<CollectionKey>('weapons'), [selected, setSelected] = useState(0);
   const [dirty, setDirty] = useState(false), [parseError, setParseError] = useState(''), [search, setSearch] = useState('');
   const blocker = useBlocker(({ currentLocation, nextLocation }) => (dirty || !!parseError) && currentLocation.pathname !== nextLocation.pathname);
-  const errors = [...(!label.trim() ? ['Enter a version label.'] : []), ...validateBundle(bundle), ...validateChangeReport(draft.changeReport)];
+  const [apiError, setApiError] = useState('');
+  const [serverFields, setServerFields] = useState<Record<string, string>>({});
+  const [validating, setValidating] = useState(false);
+  const errors = [...(!label.trim() ? ['Enter a version label.'] : []), ...(isDemoMode ? [...validateBundle(bundle), ...validateChangeReport(draft.changeReport)] : validateEditor(bundle))];
   const submitErrors = [...(parseError ? [parseError] : []), ...errors];
   const [showValidation, setShowValidation] = useState(false);
   const validationRef = useRef<HTMLDivElement>(null);
@@ -77,7 +90,7 @@ function DraftEditor({ draft }: { draft: Draft }) {
     }
   }, [showValidation]);
   const owner = user?.role === 'designer' && draft.authorId === user.id;
-  const editable = draft.status === 'draft' && owner;
+  const editable = (draft.status === 'draft' || (!isDemoMode && draft.status === 'rejected')) && owner;
   const record = bundle[category][selected];
   const categoryInfo = collections.find(collection => collection.key === category)!;
   useEffect(() => {
@@ -107,6 +120,8 @@ function DraftEditor({ draft }: { draft: Draft }) {
     }
     if (parseError) { toast.error(parseError); return; }
     if (!label.trim()) { toast.error('Enter a version label.'); return; }
+    if (!isDemoMode && errors.length) { setApiError(errors.join('\n')); return; }
+    setApiError(''); setServerFields({});
     try {
       let current = draft;
       if (dirty) {
@@ -115,41 +130,47 @@ function DraftEditor({ draft }: { draft: Draft }) {
       }
       if (submit) await execute({ type: 'submitDraft', id: current.id, revision: current.revision });
       setDirty(false);
-    } catch { /* Workspace displays the error. */ }
+    } catch (error) { setApiError(errorMessage(error)); setServerFields(editorFieldErrors(error, bundle)); }
   }
   return <div className="sv-editor">
-    {blocker.state === 'blocked' && <div className="sv-modal-backdrop"><section className="sv-modal" role="dialog" aria-modal="true" aria-labelledby="unsaved-title"><h2 id="unsaved-title">Leave unsaved changes?</h2><p>Save this version or discard your changes.</p><div><button className="sv-button" onClick={() => blocker.reset()}>Keep editing</button><button className="sv-button sv-button-danger" onClick={() => blocker.proceed()}>Discard & leave</button></div></section></div>}
-    <div className="sv-editor-toolbar"><div><Status value={draft.status} /><span className="sv-mono">Revision {draft.revision}</span>{dirty && <span className="sv-unsaved">Unsaved changes</span>}</div><div>
-      <Link className="sv-button" to={'/admin/change-reports/' + draft.id}><Icon name="description" />Change report</Link>
-      {draft.status === 'rejected' && owner && <button className="sv-button sv-button-primary" disabled={busy} onClick={() => { void execute({ type: 'editRejectedDraft', id: draft.id, revision: draft.revision }).catch(() => {}); }}><Icon name="edit" />Resume draft</button>}
-      {editable && <><button className="sv-button" disabled={busy || !dirty || !!parseError || !label.trim()} onClick={() => save()}><Icon name="save" />Save draft</button><button className="sv-button sv-button-primary" disabled={busy} aria-describedby={showValidation && submitErrors.length ? 'content-submit-errors' : undefined} onClick={() => save(true)}><Icon name="send" />Submit for review</button></>}
+    {blocker.state === 'blocked' && <div className="sv-modal-backdrop"><section className="sv-modal" role="dialog" aria-modal="true" aria-labelledby="unsaved-title"><h2 id="unsaved-title">{t("Leave unsaved changes?")}</h2><p>{t("Save this version or discard your changes.")}</p><div><button className="sv-button" onClick={() => blocker.reset()}>{t("Keep editing")}</button><button className="sv-button sv-button-danger" onClick={() => blocker.proceed()}>{t("Discard & leave")}</button></div></section></div>}
+    <div className="sv-editor-toolbar"><div><Status value={draft.status} /><span className="sv-mono">{t("Revision")} {draft.revision}</span>{dirty && <span className="sv-unsaved">{t("Unsaved changes")}</span>}</div><div>
+      <Link className="sv-button" to={'/admin/change-reports/' + draft.id}><Icon name="description" />{t("Change report")}</Link>
+      {!isDemoMode && draft.status === 'rejected' && owner && <button className="sv-button" disabled={busy} onClick={()=>void execute({type:'createDraft',title:label+' revision',label:label+' revision',sourceReleaseId:draft.id}).then(workspace=>navigate('/admin/content/'+workspace.drafts[0].id)).catch(()=>{})}>{t("Clone returned version")}</button>}
+      {isDemoMode && draft.status === 'rejected' && owner && <button className="sv-button sv-button-primary" disabled={busy} onClick={() => { void execute({ type: 'editRejectedDraft', id: draft.id, revision: draft.revision }).catch(() => {}); }}><Icon name="edit" />{t("Resume draft")}</button>}
+      {editable && <>{!isDemoMode && <button className="sv-button" disabled={busy || validating || dirty || !!parseError || draft.status === 'rejected'} onClick={async () => { setValidating(true); try { const report = await contentApi.validate(draft.id, draft.revision); if(report.isValid)toast.success('Validation passed.'); setApiError(report.isValid ? 'Validation passed.' : report.errors.map(i => i.path + ': ' + i.message).join('\n')); await reload(); } catch (e) { setApiError(errorMessage(e)); } finally { setValidating(false); } }}>{t("Validate saved content")}</button>}<button className="sv-button" disabled={busy || !dirty || !!parseError || !label.trim()} onClick={() => save()}><Icon name="save" />{t("Save draft")}</button><button className="sv-button sv-button-primary" disabled={busy || (!isDemoMode && draft.status === 'rejected' && !dirty)} aria-describedby={showValidation && submitErrors.length ? 'content-submit-errors' : undefined} onClick={() => save(true)}><Icon name="send" />{t("Submit for review")}</button></>}
     </div></div>
-    {editable && showValidation && submitErrors.length > 0 && <div ref={validationRef} id="content-submit-errors" className="sv-alert sv-alert-error" role="alert" tabIndex={-1}><strong>Check this content before sending</strong><ul style={{ listStyle: 'disc', paddingLeft: 20, marginTop: 8 }}>{submitErrors.map((error, index) => <li key={index}>{error}</li>)}</ul>{validateChangeReport(draft.changeReport).length > 0 && <Link to={'/admin/change-reports/' + draft.id}>Complete change report</Link>}</div>}
-    {draft.note && <div className="sv-alert"><strong>Review note</strong><p>{draft.note}</p></div>}
-    {!editable && <div className="sv-alert">{draft.status === 'rejected' && owner ? 'Resume this draft to make the requested changes.' : 'This content version is read-only.'}</div>}
+    {apiError && <div className={'sv-alert ' + (apiError === 'Validation passed.' ? 'sv-alert-success' : 'sv-alert-error')} role={apiError === 'Validation passed.' ? 'status' : 'alert'} style={{ whiteSpace: 'pre-wrap' }}>{apiError}</div>}
+    {!isDemoMode && draft.status === 'rejected' && <div className="sv-alert">{t("Change a content record and save to return to Draft, or clone this version.")}</div>}
+    {editable && showValidation && submitErrors.length > 0 && <div ref={validationRef} id="content-submit-errors" className="sv-alert sv-alert-error" role="alert" tabIndex={-1}><strong>{t("Check this content before sending")}</strong><ul style={{ listStyle: 'disc', paddingLeft: 20, marginTop: 8 }}>{submitErrors.map((error, index) => <li key={index}>{error}</li>)}</ul>{validateChangeReport(draft.changeReport).length > 0 && <Link to={'/admin/change-reports/' + draft.id}>{t("Complete change report")}</Link>}</div>}
+    {!!draft.validation_errors?.length && <div className="sv-alert sv-alert-error" role="alert"><strong>{t("BE validation")}</strong>{draft.validation_errors.map((message,i)=><p key={i}>{message}</p>)}</div>}
+    {draft.note && <div className="sv-alert"><strong>{t("Review note")}</strong><p>{draft.note}</p></div>}
+    {!editable && <div className="sv-alert">{draft.status === 'rejected' && owner ? t("Resume this draft to make the requested changes.") : t("This content version is read-only.")}</div>}
     <div className="sv-editor-meta sv-form">
-      <label>Version label<input value={label} disabled={!editable} onChange={event => { setLabel(event.target.value); setBundle({ ...bundle, label: event.target.value }); setDirty(true); }} /></label>
-      <div className="sv-version-number"><small>Version number</small><strong>#{draft.version_no}</strong></div><div><small>Schema version</small><strong>{bundle.schema_version}</strong></div>
-      <label className="sv-changelog">Changelog<textarea rows={2} value={changelog} disabled={!editable} placeholder="What changed in this version?" onChange={event => { setChangelog(event.target.value); setBundle({ ...bundle, changelog: event.target.value }); setDirty(true); }} /></label>
+      <label>{t("Version label")}<input maxLength={200} aria-invalid={!!serverFields['meta:label']} value={label} disabled={!editable} onChange={event => { setLabel(event.target.value); setBundle({ ...bundle, label: event.target.value }); setDirty(true); }} /><small role="alert">{serverFields['meta:label']}</small></label>
+      <div className="sv-version-number"><small>{t("Version number")}</small><strong>#{draft.version_no}</strong></div><div><small>{t("Schema version")}</small><strong>{bundle.schema_version}</strong></div>
+      <label className="sv-changelog">{t("Changelog")}<textarea rows={2} maxLength={4000} aria-invalid={!!serverFields['meta:changelog']} value={changelog} disabled={!editable} placeholder={t("What changed in this version?")} onChange={event => { setChangelog(event.target.value); setBundle({ ...bundle, changelog: event.target.value }); setDirty(true); }} /><small role="alert">{serverFields['meta:changelog']}</small></label>
     </div>
-    <div className="sv-content-tabs" role="tablist" aria-label="Content table">{collections.map(collection => <button role="tab" aria-selected={category === collection.key} key={collection.key} className={category === collection.key ? 'is-active' : ''} onClick={() => chooseCategory(collection.key)}><Icon name={collection.icon} />{collection.label}<span>{bundle[collection.key].length}</span></button>)}</div>
-    <div className="sv-content-columns"><aside className="sv-records"><div className="sv-records-heading"><strong>{categoryInfo.label}</strong>{editable && <button title="New record" aria-label="New record" onClick={() => addRecord()} disabled={!!parseError}><Icon name="add" /></button>}</div>
-      <label className="sv-search"><Icon name="search" /><input aria-label="Search content" placeholder="Search records…" value={search} onChange={event => setSearch(event.target.value)} /></label>
+    <div className="sv-content-tabs" role="tablist" aria-label={t("Content table")}>{collections.map(collection => <button role="tab" aria-selected={category === collection.key} key={collection.key} className={category === collection.key ? 'is-active' : ''} onClick={() => chooseCategory(collection.key)}><Icon name={collection.icon} />{t(collection.label)}<span>{bundle[collection.key].length}</span></button>)}</div>
+    <div className="sv-content-columns"><aside className="sv-records"><div className="sv-records-heading"><strong>{t(categoryInfo.label)}</strong>{editable && <button title={t("New record")} aria-label={t("New record")} onClick={() => addRecord()} disabled={!!parseError}><Icon name="add" /></button>}</div>
+      <label className="sv-search"><Icon name="search" /><input aria-label={t("Search content")} placeholder={t("Search records…")} value={search} onChange={event => setSearch(event.target.value)} /></label>
       <div>{bundle[category].map((row, i) => ({ row, i })).filter(({ row }) => `${recordLabel(category, row, bundle)} ${recordIdentity(category, row)}`.toLowerCase().includes(search.toLowerCase())).map(({ row, i }) => <button key={i} className={'sv-record ' + (i === selected ? 'is-active' : '')} onClick={() => { if (!parseError) setSelected(i); }}><span><strong>{recordLabel(category, row, bundle)}</strong><small>{recordIdentity(category, row)}</small></span><Icon name="chevron_right" /></button>)}</div>
-    </aside><div className="sv-record-detail">{record ? <RecordEditor key={category + ':' + selected} collection={category} bundle={bundle} record={record} editable={editable} onChange={updateRecord} onError={setParseError} /> : <Empty title="No records" description={'Add a ' + categoryInfo.label.toLowerCase() + ' record to this version.'} />}
-      {editable && <div className="sv-record-actions">{record ? <><button className="sv-button" disabled={!!parseError} onClick={() => addRecord(true)}><Icon name="content_copy" />Duplicate record</button><button className="sv-button sv-button-danger" disabled={!!parseError} onClick={() => {
-        if (!window.confirm('Remove this record? Related references must be updated before submitting.')) return;
+    </aside><div className="sv-record-detail">{record ? <RecordEditor key={category + ':' + selected} collection={category} bundle={bundle} record={record} editable={editable} enums={enums} serverErrors={Object.fromEntries(Object.entries(serverFields).filter(([key]) => key.startsWith(category + ':' + selected + ':')).map(([key, message]) => [key.split(':').at(-1)!, message]))} onChange={updateRecord} onError={setParseError} /> : <Empty title={t("No records")} description={t('Add a record to this version: {collection}.', { collection: t(categoryInfo.label).toLowerCase() })} />}
+      {editable && <div className="sv-record-actions">{record ? <><button className="sv-button" disabled={!!parseError} onClick={() => addRecord(true)}><Icon name="content_copy" />{t("Duplicate record")}</button><button className="sv-button sv-button-danger" disabled={!!parseError} onClick={() => {
+        if (!window.confirm(t('Remove this record? Related references must be updated before submitting.'))) return;
         setBundle({ ...bundle, [category]: bundle[category].filter((_, i) => i !== selected) }); setSelected(0); setDirty(true);
-      }}><Icon name="delete" />Remove record</button></> : <button className="sv-button sv-button-primary" onClick={() => addRecord()}><Icon name="add" />Add record</button>}</div>}
+      }}><Icon name="delete" />{t("Remove record")}</button></> : <button className="sv-button sv-button-primary" onClick={() => addRecord()}><Icon name="add" />{t("Add record")}</button>}</div>}
     </div></div>
-    <div className={'sv-validation ' + (errors.length || parseError ? 'has-errors' : '')}><Icon name={errors.length || parseError ? 'error' : 'verified'} /><div><strong>{errors.length || parseError ? 'Check content before submitting' : 'Content is ready for review'}</strong>{(errors.length > 0 || parseError) && <ul>{[...(parseError ? [parseError] : []), ...errors].slice(0, 12).map((error, i) => <li key={i}>{error}</li>)}</ul>}</div></div>
-    {editable && <details className="sv-bundle-import"><summary>Import content JSON</summary><input aria-label="Import JSON bundle" type="file" accept=".json,application/json" onChange={async event => {
+    <div className={'sv-validation ' + (errors.length || parseError ? 'has-errors' : '')}><Icon name={errors.length || parseError ? 'error' : 'verified'} /><div><strong>{errors.length || parseError ? t("Check content before submitting") : t("Content is ready for review")}</strong>{(errors.length > 0 || parseError) && <ul>{[...(parseError ? [parseError] : []), ...errors].slice(0, 12).map((error, i) => <li key={i}>{error}</li>)}</ul>}</div></div>
+    {editable && <details className="sv-bundle-import"><summary>{t("Import editor JSON")}</summary><input aria-label={t("Import JSON bundle")} type="file" accept=".json,application/json" onChange={async event => {
       const file = event.target.files?.[0]; if (!file) return;
       try {
-        const imported: unknown = JSON.parse(await file.text()), issues = validateBundle(imported);
+        const imported: unknown = JSON.parse(await file.text());
+        if (!imported || typeof imported !== 'object' || !collections.every(c => Array.isArray((imported as ContentBundle)[c.key]))) throw new Error('Choose an editor JSON file with all 14 content lists. Only the JSON downloaded from the BE is an authoritative validated runtime bundle.');
+        const issues = isDemoMode ? validateBundle(imported) : validateEditor(imported as ContentBundle);
         if (issues.length) throw new Error(issues.slice(0, 3).join('; '));
         if (!window.confirm('Replace this draft content with the imported records?')) return;
-        const data = imported as ContentBundle;
+        const data = isDemoMode ? imported as ContentBundle : rebindEditorImport(imported as ContentBundle, bundle);
         const contentId = bundle.content_version_id || draft.id;
         for (const collection of collections) for (const row of data[collection.key]) {
           if (Object.hasOwn(row, 'content_version_id')) row.content_version_id = contentId;
@@ -163,16 +184,18 @@ function DraftEditor({ draft }: { draft: Draft }) {
 }
 
 function StringArrayField({ field, value, disabled, onChange }: { field: FieldDefinition; value: JsonValue; disabled: boolean; onChange: (value: JsonValue) => void }) {
+  const t = useTranslation();
   const current = Array.isArray(value) ? value.join(', ') : '';
   const [edit, setEdit] = useState({ current, text: current });
   if (edit.current !== current) setEdit({ current, text: current });
-  return <label>{field.label}<input value={edit.text} disabled={disabled} placeholder="Separate codes with commas" onChange={event => {
+  return <label>{t(field.label)}<input value={edit.text} disabled={disabled} placeholder={t("Separate codes with commas")} onChange={event => {
     const text = event.target.value, values = text.split(',').map(item => item.trim()).filter(Boolean);
     setEdit({ current: values.join(', '), text }); onChange(values);
-  }} /><small className="sv-field-help">Comma-separated values</small></label>;
+  }} /><small className="sv-field-help">{t("Comma-separated values")}</small></label>;
 }
 
-function RecordEditor({ collection, bundle, record, editable, onChange, onError }: { collection: CollectionKey; bundle: ContentBundle; record: ContentRecord; editable: boolean; onChange: (row: ContentRecord) => void; onError: (message: string) => void }) {
+function RecordEditor({ collection, bundle, record, editable, enums, serverErrors, onChange, onError }: { collection: CollectionKey; bundle: ContentBundle; record: ContentRecord; editable: boolean; enums?: EnumsDto; serverErrors: Record<string, string>; onChange: (row: ContentRecord) => void; onError: (message: string) => void }) {
+  const t = useTranslation();
   const [raw, setRaw] = useState(() => JSON.stringify(record, null, 2));
   const [formRevision, setFormRevision] = useState(0);
   const fieldErrors = useRef<Record<string, string>>({});
@@ -183,31 +206,32 @@ function RecordEditor({ collection, bundle, record, editable, onChange, onError 
   function field(key: string, value: JsonValue) {
     const next = { ...record, [key]: value }; setRaw(JSON.stringify(next, null, 2)); report('JSON', ''); report(key, ''); onChange(next);
   }
-  const definitions = schemaFields[collection];
-  return <><div className="sv-record-title"><div><span className="sv-eyebrow">{collections.find(item => item.key === collection)?.label}</span><h2>{recordLabel(collection, record, bundle)}</h2></div><span className="sv-mono">{recordIdentity(collection, record)}</span></div>
+  const definitions = (isDemoMode ? schemaFields[collection] : apiFields(collection, enums)).map(f => ({ ...f, readOnly: f.readOnly || (!isDemoMode && !!record.api_id && ['code', 'item_type'].includes(f.key)) }));
+  return <><div className="sv-record-title"><div><span className="sv-eyebrow">{t(collections.find(item => item.key === collection)?.label || '')}</span><h2>{recordLabel(collection, record, bundle)}</h2></div><span className="sv-mono">{recordIdentity(collection, record)}</span></div>
     <div className="sv-field-grid sv-form">{definitions.filter(definition => definition.type !== 'json' && !['content_version_id', 'created_at', 'updated_at'].includes(definition.key)).map(definition => {
       const value = Object.hasOwn(record, definition.key) ? record[definition.key] : definition.defaultValue ?? null;
       const disabled = !editable || definition.readOnly;
-      if (definition.type === 'number') return <NumericControl key={definition.key + ':' + formRevision} label={definition.label} value={typeof value === 'number' ? value : null} disabled={disabled} nullable={definition.nullable}
+      if (definition.type === 'number') return <NumericControl key={definition.key + ':' + formRevision} label={t(definition.label)} serverError={serverErrors[definition.key]} value={typeof value === 'number' ? value : null} disabled={disabled} nullable={definition.nullable}
         min={definition.min} max={definition.max} step={definition.step} sliderMin={definition.sliderMin} sliderMax={definition.sliderMax} unit={definition.unit}
         onChange={value => field(definition.key, value)} onError={message => report(definition.label, message)} />;
       if (definition.type === 'string-array') return <StringArrayField key={definition.key + ':' + formRevision} field={definition} value={value} disabled={!!disabled} onChange={value => field(definition.key, value)} />;
       if (definition.type === 'enum' || definition.type === 'boolean' || definition.type === 'reference') {
         const options = definition.type === 'reference' ? referenceOptions(definition, bundle) : definition.type === 'boolean' ? [{ value: 'true', label: 'Yes' }, { value: 'false', label: 'No' }] : (definition.options ?? []).map(value => ({ value, label: value.replaceAll('_', ' ').replace(/^./, char => char.toUpperCase()) }));
         const selected = value === null ? '' : String(value);
-        return <label key={definition.key}>{definition.label}<select disabled={disabled} value={selected} onChange={event => field(definition.key, definition.type === 'boolean' ? event.target.value === 'true' : event.target.value || null)}>
-          {definition.type !== 'boolean' && <option value="">{definition.nullable ? 'None' : 'Choose ' + definition.label.toLowerCase()}</option>}
-          {selected && !options.some(option => option.value === selected) && <option value={selected}>{selected} · missing reference</option>}
-          {options.map(option => <option key={option.value} value={option.value}>{option.label}{definition.type === 'reference' ? ` (${option.value})` : ''}</option>)}
-        </select></label>;
+        return <label key={definition.key}>{t(definition.label)}<select aria-invalid={!!serverErrors[definition.key]} disabled={disabled} value={selected} onChange={event => field(definition.key, definition.type === 'boolean' ? event.target.value === 'true' : event.target.value || null)}>
+          {definition.type !== 'boolean' && <option value="">{definition.nullable ? t('None') : t('Choose') + ' ' + t(definition.label)}</option>}
+          {selected && !options.some(option => option.value === selected) && <option value={selected}>{selected} {t("· missing reference")}</option>}
+          {options.map(option => <option key={option.value} value={option.value}>{definition.type === 'reference' ? option.label : t(option.label)}{definition.type === 'reference' ? ` (${option.value})` : ''}</option>)}
+        </select><small role="alert">{serverErrors[definition.key]}</small></label>;
       }
-      return <label key={definition.key}>{definition.label}<input type="text" value={String(value ?? '')} disabled={disabled} required={definition.required} pattern={definition.pattern} onChange={event => field(definition.key, definition.nullable && !event.target.value ? null : event.target.value)} /></label>;
+      return <label key={definition.key}>{t(definition.label)}<input aria-invalid={!!serverErrors[definition.key]} type="text" value={String(value ?? '')} disabled={disabled} required={definition.required} pattern={definition.pattern} maxLength={definition.maxLength} onChange={event => field(definition.key, definition.nullable && !event.target.value ? null : event.target.value)} /><small role="alert">{serverErrors[definition.key]}</small></label>;
     })}</div>
-    <details className="sv-json-editor"><summary>Advanced JSON{definitions.some(field => field.type === 'json') ? ' · ' + definitions.filter(field => field.type === 'json').map(field => field.label).join(', ') : ''}</summary><textarea aria-label="Record JSON" spellCheck={false} disabled={!editable} value={raw} onChange={event => {
+    <details className="sv-json-editor"><summary>{t("Advanced JSON")} {definitions.some(field => field.type === 'json') ? ' · ' + definitions.filter(field => field.type === 'json').map(field => t(field.label)).join(', ') : ''}</summary><textarea aria-label={t("Record JSON")} spellCheck={false} disabled={!editable} value={raw} onChange={event => {
       const value = event.target.value; setRaw(value);
       try {
         const parsed: unknown = JSON.parse(value);
         if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) throw new Error('Record must be a JSON object.');
+        if (!isDemoMode && (parsed as ContentRecord).api_id !== record.api_id) throw new Error('API resource ID is read-only.');
         for (const definition of definitions.filter(field => field.readOnly)) if (JSON.stringify((parsed as ContentRecord)[definition.key]) !== JSON.stringify(record[definition.key])) throw new Error(definition.label + ' is read-only.');
         fieldErrors.current = {}; setFormRevision(revision => revision + 1); onError(''); onChange(parsed as ContentRecord);
       } catch (error) { report('JSON', error instanceof Error ? error.message : 'Invalid JSON.'); }
@@ -215,7 +239,8 @@ function RecordEditor({ collection, bundle, record, editable, onChange, onError 
 }
 
 export function ContentPage() {
-  const { state, execute, busy } = useWorkspace(), { user } = useAuth();
+  const t = useTranslation();
+  const { state, execute, busy, reload } = useWorkspace(), { user } = useAuth(), toast = useToast();
   const { draftId } = useParams(), navigate = useNavigate();
   const [newLabel, setNewLabel] = useState(''), [creating, setCreating] = useState(false);
   const drafts = state.drafts.filter(draft => draft.authorId === user?.id);
@@ -227,9 +252,16 @@ export function ContentPage() {
       setCreating(false); setNewLabel(''); navigate('/admin/content/' + next.drafts[0].id);
     } catch { /* Workspace displays the error. */ }
   }
-  return <div className="sv-page"><PageHeading eyebrow="CONTENT VERSIONS" title="Content authoring" description="Edit game balancing and content tables." action={<button className="sv-button sv-button-primary" onClick={() => setCreating(!creating)}><Icon name="add" />Create content version</button>} />
-    {creating && <form className="sv-inline-form sv-panel sv-form" onSubmit={create}><label>Version label<input required autoFocus value={newLabel} onChange={event => setNewLabel(event.target.value)} placeholder="e.g. Map 02 balance pass" /></label><button className="sv-button sv-button-primary" disabled={busy || !newLabel.trim()}>Clone published version</button><button className="sv-button" type="button" onClick={() => setCreating(false)}>Cancel</button></form>}
+  return <div className="sv-page"><PageHeading eyebrow={t("CONTENT VERSIONS")} title={t("Content authoring")} description={t("Edit game balancing and content tables.")} action={<button className="sv-button sv-button-primary" onClick={() => setCreating(!creating)}><Icon name="add" />{t("Create content version")}</button>} />
+    {creating && <form className="sv-inline-form sv-panel sv-form" onSubmit={create}><label>{t("Version label")}<input required autoFocus value={newLabel} onChange={event => setNewLabel(event.target.value)} placeholder={t("e.g. Map 02 balance pass")} /></label><button className="sv-button sv-button-primary" disabled={busy || !newLabel.trim()}>{t("Clone published version")}</button><button className="sv-button" type="button" onClick={() => setCreating(false)}>{t("Cancel")}</button></form>}
+    {!isDemoMode && selected && selected.status === 'draft' && <div className="sv-row-actions"><button className="sv-button sv-button-danger" disabled={busy} onClick={async () => { if (!window.confirm('Delete version #' + selected.version_no + '?')) return; try { await contentApi.deleteVersion(selected.id, selected.revision); await reload(); navigate('/admin/content'); } catch (error) { toast.error(errorMessage(error)); } }}>{t("Delete version")}</button></div>}
     <div className="sv-draft-picker">{drafts.map(draft => <Link key={draft.id} to={'/admin/content/' + draft.id} className={selected?.id === draft.id ? 'is-active' : ''}><span>#{draft.version_no} · {draft.label || draft.title}</span><Status value={draft.status} /></Link>)}</div>
-    {selected ? <DraftEditor key={selected.id + ':' + selected.revision} draft={selected} /> : <Empty title={draftId ? 'Content version not found' : 'Create your first content version'} description="Clone the published version to begin editing." />}
+    {selected ? isDemoMode ? <DraftEditor key={selected.id + ':' + selected.revision} draft={selected} /> : <ApiDraftEditor key={selected.id + ':' + selected.revision + ':' + selected.status + ':' + selected.updatedAt} id={selected.id} /> : <Empty title={draftId ? t("Content version not found") : t("Create your first content version")} description={t("Clone the published version to begin editing.")} />}
   </div>;
+}
+function ApiDraftEditor({ id }: { id: string }) {
+  const t = useTranslation();
+  const [loaded, setLoaded] = useState<{ draft: Draft; enums: EnumsDto } | null>(null), [error, setError] = useState(''), [retry, setRetry] = useState(0);
+  useEffect(() => { let active = true; Promise.all([contentApi.editor(id), contentApi.enums()]).then(([draft, enums]) => { if (active) { setLoaded({ draft, enums }); setError(''); } }).catch(e => { if (active) setError(errorMessage(e)); }); return () => { active = false; }; }, [id, retry]);
+  return error ? <div className="sv-alert sv-alert-error">{error}<button className="sv-button" onClick={() => setRetry(retry + 1)}>{t("Retry")}</button></div> : loaded ? <DraftEditor draft={loaded.draft} enums={loaded.enums} /> : <div className="sv-empty" role="status">{t("Loading content…")}</div>;
 }
