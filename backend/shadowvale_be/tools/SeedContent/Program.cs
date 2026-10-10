@@ -7,6 +7,10 @@ using ShadowVale.BLL.Services;
 using ShadowVale.DAL.Data;
 using ShadowVale.DAL.Entities;
 using ShadowVale.DAL.Repositories;
+using Microsoft.Extensions.Options;
+using ShadowVale.BLL.Options;
+using System.Net.Http.Headers;
+using System.Net;
 
 // Opt-in development fixtures. Never changes existing content, users, or the Published version.
 var write = args.Contains("--seed");
@@ -34,6 +38,54 @@ try
     var current = await db.ContentVersions.AsNoTracking().Where(v => v.Status == ContentStatus.Published)
         .Select(v => new { v.Id, v.Label, v.Revision }).ToListAsync();
     Console.WriteLine(JsonSerializer.Serialize(new { ActiveAuthorRoles = users.Select(u => u.Role.ToString()), Published = current }));
+    if (args.Contains("--http-logout-check"))
+    {
+        var secretsFile = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+            "Microsoft", "UserSecrets", "cd94e605-7641-4a65-ad08-1e0dcc677072", "secrets.json");
+        var secrets = File.Exists(secretsFile) ? JsonSerializer.Deserialize<Dictionary<string, string>>(await File.ReadAllTextAsync(secretsFile))! : new();
+        string Setting(string key, string fallback = "") => Environment.GetEnvironmentVariable(key.Replace(":", "__"))
+            ?? secrets.GetValueOrDefault(key, fallback);
+        var tokenService = new TokenService(Options.Create(new JwtOptions { Key = Setting("Jwt:Key"),
+            Issuer = Setting("Jwt:Issuer", "ShadowVale.API"), Audience = Setting("Jwt:Audience", "ShadowVale.Web") }), TimeProvider.System);
+        var user = await db.Users.FirstAsync(u => u.IsActive && u.Role == UserRole.Admin);
+        var sessions = Enumerable.Range(0, 2).Select(_ =>
+        {
+            var token = tokenService.CreateRefreshToken();
+            return (Raw: token.Token, Row: new RefreshToken { UserId = user.Id, TokenHash = token.TokenHash, ExpiresAt = token.ExpiresAt });
+        }).ToArray();
+        await db.RefreshTokens.AddRangeAsync(sessions.Select(s => s.Row));
+        await db.SaveChangesAsync();
+        try
+        {
+            using var http = new HttpClient(new HttpClientHandler { UseProxy = false })
+                { BaseAddress = new Uri(Setting("API:LogoutCheckUrl", "http://127.0.0.1:5191")) };
+            var access = tokenService.CreateAccessToken(user, sessions[0].Row.Id).Token;
+            async Task Check(string path, HttpStatusCode expected)
+            {
+                using var request = new HttpRequestMessage(HttpMethod.Get, path);
+                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", access);
+                using var response = await http.SendAsync(request);
+                Console.WriteLine($"GET {path}: {(int)response.StatusCode}; expected {(int)expected}");
+                if (response.StatusCode != expected) throw new InvalidOperationException("HTTP logout verification failed.");
+            }
+            await Check("/api/users", HttpStatusCode.OK);
+            await Check("/api/content-versions", HttpStatusCode.OK);
+            using var logout = await http.PostAsync("/api/auth/logout", new StringContent(
+                JsonSerializer.Serialize(new { refreshToken = sessions[0].Raw }), Encoding.UTF8, "application/json"));
+            if (logout.StatusCode != HttpStatusCode.NoContent) throw new InvalidOperationException("Logout failed.");
+            await Check("/api/users", HttpStatusCode.Unauthorized);
+            await Check("/api/content-versions", HttpStatusCode.Unauthorized);
+            access = tokenService.CreateAccessToken(user, sessions[1].Row.Id).Token;
+            await Check("/api/users", HttpStatusCode.OK);
+            Console.WriteLine("HTTP logout verified; unrelated session remains active.");
+        }
+        finally
+        {
+            var sessionIds = sessions.Select(s => s.Row.Id).ToArray();
+            await db.RefreshTokens.Where(s => sessionIds.Contains(s.Id)).ExecuteDeleteAsync();
+        }
+        return;
+    }
     var ids = new[] { Guid.Parse("019a0000-0000-7000-8000-000000000001"), Guid.Parse("019a0000-0000-7000-8000-000000000002") };
     if (!write && !repair)
     {
