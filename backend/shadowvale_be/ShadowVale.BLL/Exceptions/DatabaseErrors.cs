@@ -1,4 +1,4 @@
-using Npgsql;
+using ShadowVale.DAL.Data;
 
 namespace ShadowVale.BLL.Exceptions;
 
@@ -30,23 +30,16 @@ public static class DatabaseErrors
         }
     }
 
-    // EF wraps the Npgsql error in DbUpdateException; raw SQL throws it directly
-    public static AppException? Map(Exception exception)
-    {
-        var postgres = exception as PostgresException ?? exception.InnerException as PostgresException;
-        if (postgres is null)
-            return null;
-
-        return postgres.SqlState switch
+    // The DAL recognises the database error (DataErrors); this only decides what it means for the caller
+    public static AppException? Map(Exception exception) =>
+        DataErrors.Classify(exception) switch
         {
-            PostgresErrorCodes.UniqueViolation => new ConflictException("The record already exists."),
-            PostgresErrorCodes.ForeignKeyViolation => new ConflictException("The record references, or is referenced by, another record."),
-            PostgresErrorCodes.CheckViolation or PostgresErrorCodes.NotNullViolation =>
-                new ValidationException("request", "The data breaks a database rule."),
-            // Class 22: data exceptions (value out of range, invalid JSON text, bad datetime...)
-            _ when postgres.SqlState.StartsWith("22", StringComparison.Ordinal) =>
-                new ValidationException("request", "The data has an invalid value."),
+            DataErrorKind.ConcurrencyConflict =>
+                new ConflictException("Someone else changed this record at the same time. Reload it and try again."),
+            DataErrorKind.UniqueViolation => new ConflictException("The record already exists."),
+            DataErrorKind.ForeignKeyViolation => new ConflictException("The record references, or is referenced by, another record."),
+            DataErrorKind.RuleViolation => new ValidationException("request", "The data breaks a database rule."),
+            DataErrorKind.InvalidValue => new ValidationException("request", "The data has an invalid value."),
             _ => null
         };
-    }
 }

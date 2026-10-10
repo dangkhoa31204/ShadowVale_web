@@ -12,5 +12,10 @@ public class MetaService : IMetaService
         Enum.GetNames<SolverFamily>(),
         Enum.GetNames<SessionOutcome>(),
         Enum.GetNames<EncounterOutcome>(),
-        Enum.GetNames<SessionSource>().Select(s => s.ToLowerInvariant()).ToArray());
+        Enum.GetNames<SessionSource>().Select(s => s.ToLowerInvariant()).ToArray(),
+        Enum.GetNames<ItemType>(),
+        Enum.GetNames<ItemRarity>(),
+        Enum.GetNames<WeaponClass>(),
+        Enum.GetNames<SkillType>(),
+        Enum.GetNames<ContentStatus>());
 }
