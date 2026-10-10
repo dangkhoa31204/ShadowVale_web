@@ -60,6 +60,24 @@ Admin không tự hạ role hay tự khóa tài khoản của chính mình đư�
 
 ## Content versions (Admin / Designer)
 
+User management validation and session behavior:
+- `PUT /api/users/{id}` requires an explicit boolean `isActive`; omission/null returns 400.
+- User list pagination accepts page 1-1000000 and pageSize 1-100; out-of-range requests return 400.
+- Concurrent duplicate usernames/emails return 409, including email updates.
+- Role/state updates and password resets commit together with refresh-token revocation; failure rolls back both.
+- Each validated JWT is checked against the current user in PostgreSQL. Missing/inactive users and obsolete role
+  claims receive 401 and must log in again; unchanged roles still receive normal endpoint authorization checks.
+  Each access token also contains `sid`, the ID of its associated refresh-token row. The API verifies that row
+  belongs to the user, has not expired, and is not revoked. Logout of the current refresh token makes its paired
+  access token return 401 on the next authenticated request; other devices remain active.
+  Refresh rotates both tokens and invalidates the old access/refresh pair. FE must replace both tokens atomically
+  and logout with the latest refresh token. Unknown/already-revoked logout remains idempotent (204).
+  Role changes, account deactivation and password resets revoke refresh rows, so their access tokens also stop
+  working. This adds database checks to authenticated requests. Older access tokens without sid require login
+  again after this update. No database schema migration is required.
+- `tests/admin_api_smoke.py` uses optional `API_SMOKE_ADMIN_TOKEN`, `API_SMOKE_DESIGNER_TOKEN`,
+  `API_SMOKE_ANALYST_TOKEN` from active database users; fabricated JWTs no longer simulate valid sessions.
+
 API này dùng JWT, cho phép role `Admin` và `Designer`:
 
 - `GET /api/content-versions?search=&status=Draft&page=1&pageSize=20`: danh sách metadata, không tải toàn bộ bundle.

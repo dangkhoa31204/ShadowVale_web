@@ -4,6 +4,7 @@ namespace ShadowVale.DAL.Repositories.Interfaces;
 
 public interface IUserRepository : IGenericRepository<User>
 {
+    Task ExecuteInTransactionAsync(Func<Task> operation, CancellationToken ct = default);
     // Inputs are expected to be lower-cased already (see User)
     Task<User?> GetByUsernameOrEmailAsync(string usernameOrEmail, CancellationToken ct = default);
     Task<bool> UsernameExistsAsync(string username, CancellationToken ct = default);

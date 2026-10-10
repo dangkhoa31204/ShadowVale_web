@@ -70,7 +70,24 @@ builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi(options => options.AddDocumentTransformer<BearerSecuritySchemeTransformer>());
 
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer();
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
+{
+    options.Events = new JwtBearerEvents
+    {
+        OnTokenValidated = async context =>
+        {
+            var subject = context.Principal?.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
+            var role = context.Principal?.FindFirst(TokenService.RoleClaim)?.Value;
+            var session = context.Principal?.FindFirst(TokenService.SessionClaim)?.Value;
+            if (!Guid.TryParse(subject, out var userId) || !Guid.TryParse(session, out var sessionId) || role is null ||
+                !await context.HttpContext.RequestServices.GetRequiredService<IUserService>()
+                    .IsAccessAllowedAsync(userId, role, context.HttpContext.RequestAborted) ||
+                !await context.HttpContext.RequestServices.GetRequiredService<IAuthService>()
+                    .IsSessionActiveAsync(sessionId, userId, context.HttpContext.RequestAborted))
+                context.Fail("The account or login session is no longer valid. Log in again.");
+        }
+    };
+});
 builder.Services.AddOptions<JwtBearerOptions>(JwtBearerDefaults.AuthenticationScheme)
     .Configure<IOptions<JwtOptions>>((bearer, jwtOptions) =>
     {

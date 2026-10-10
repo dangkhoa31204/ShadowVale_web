@@ -19,6 +19,9 @@ public class AuthService(
     // Same message for unknown user and wrong password, so the API does not reveal which usernames exist
     private const string InvalidRefreshToken = "Invalid or expired refresh token.";
 
+    public Task<bool> IsSessionActiveAsync(Guid sessionId, Guid userId, CancellationToken ct = default) =>
+        refreshTokens.IsSessionActiveAsync(sessionId, userId, Now, ct);
+
     public async Task<LoginResult> LoginAsync(LoginRequest request, CancellationToken ct = default)
     {
         var user = await users.GetByUsernameOrEmailAsync(UserMappings.NormalizeIdentifier(request.UsernameOrEmail), ct);
@@ -96,15 +99,16 @@ public class AuthService(
 
     private async Task<AuthResponse> IssueTokensAsync(User user, CancellationToken ct)
     {
-        var (accessToken, accessExpiresAt) = tokenService.CreateAccessToken(user);
         var (refreshToken, refreshHash, refreshExpiresAt) = tokenService.CreateRefreshToken();
 
-        await refreshTokens.AddAsync(new RefreshToken
+        var session = new RefreshToken
         {
             UserId = user.Id,
             TokenHash = refreshHash,
             ExpiresAt = refreshExpiresAt
-        }, ct);
+        };
+        var (accessToken, accessExpiresAt) = tokenService.CreateAccessToken(user, session.Id);
+        await refreshTokens.AddAsync(session, ct);
 
         // Repositories share the scoped DbContext, so this also saves pending User changes
         await refreshTokens.SaveChangesAsync(ct);

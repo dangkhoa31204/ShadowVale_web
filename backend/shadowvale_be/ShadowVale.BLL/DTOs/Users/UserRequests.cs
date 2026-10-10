@@ -7,7 +7,7 @@ public sealed record UserQuery
     public string? Search { get; init; }
     public string? Role { get; init; }
     public bool? IsActive { get; init; }
-    [Range(1, int.MaxValue)] public int Page { get; init; } = 1;
+    [Range(1, 1000000)] public int Page { get; init; } = 1;
     [Range(1, 100)] public int PageSize { get; init; } = 20;
 }
 
@@ -29,7 +29,7 @@ public sealed record UpdateUserRequest
     [Required, EmailAddress, MaxLength(256)] public string Email { get; init; } = "";
     [MaxLength(100)] public string? FullName { get; init; }
     [Required] public string Role { get; init; } = "";
-    public bool IsActive { get; init; }
+    [Required] public bool? IsActive { get; init; }
 }
 
 public sealed record ResetPasswordRequest

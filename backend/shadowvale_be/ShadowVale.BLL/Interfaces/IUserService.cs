@@ -5,6 +5,7 @@ namespace ShadowVale.BLL.Interfaces;
 
 public interface IUserService
 {
+    Task<bool> IsAccessAllowedAsync(Guid userId, string role, CancellationToken ct = default);
     Task<PagedResult<UserDto>> GetUsersAsync(UserQuery query, CancellationToken ct = default);
     Task<UserDto> GetByIdAsync(Guid id, CancellationToken ct = default);
     Task<UserDto> CreateAsync(CreateUserRequest request, CancellationToken ct = default);

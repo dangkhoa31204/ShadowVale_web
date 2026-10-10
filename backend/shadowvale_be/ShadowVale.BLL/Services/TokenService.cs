@@ -14,11 +14,12 @@ public class TokenService(IOptions<JwtOptions> options, TimeProvider time) : ITo
 {
     // Claim names the API's JwtBearer setup reads back (NameClaimType / RoleClaimType)
     public const string RoleClaim = "role";
+    public const string SessionClaim = "sid";
 
     private readonly JwtOptions _options = options.Value;
     private readonly JsonWebTokenHandler _handler = new();
 
-    public (string Token, DateTime ExpiresAt) CreateAccessToken(User user)
+    public (string Token, DateTime ExpiresAt) CreateAccessToken(User user, Guid? sessionId = null)
     {
         var now = time.GetUtcNow().UtcDateTime;
         var expiresAt = now.AddMinutes(_options.AccessTokenMinutes);
@@ -41,6 +42,8 @@ public class TokenService(IOptions<JwtOptions> options, TimeProvider time) : ITo
             SigningCredentials = new SigningCredentials(
                 new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_options.Key)), SecurityAlgorithms.HmacSha256)
         };
+
+        if (sessionId.HasValue) descriptor.Claims[SessionClaim] = sessionId.Value.ToString();
 
         return (_handler.CreateToken(descriptor), expiresAt);
     }

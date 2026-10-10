@@ -7,6 +7,12 @@ namespace ShadowVale.DAL.Repositories;
 
 public class UserRepository(ShadowValeDbContext context) : GenericRepository<User>(context), IUserRepository
 {
+    public async Task ExecuteInTransactionAsync(Func<Task> operation, CancellationToken ct = default)
+    {
+        await using var transaction = await Context.Database.BeginTransactionAsync(ct);
+        await operation();
+        await transaction.CommitAsync(ct);
+    }
     public Task<User?> GetByUsernameOrEmailAsync(string usernameOrEmail, CancellationToken ct = default) =>
         DbSet.FirstOrDefaultAsync(u => u.Username == usernameOrEmail || u.Email == usernameOrEmail, ct);
 
@@ -22,6 +28,8 @@ public class UserRepository(ShadowValeDbContext context) : GenericRepository<Use
     public async Task<(List<User> Items, int TotalCount)> SearchAsync(
         string? search, UserRole? role, bool? isActive, int page, int pageSize, CancellationToken ct = default)
     {
+        if (page is < 1 or > 1000000 || pageSize is < 1 or > 100)
+            throw new ArgumentOutOfRangeException(nameof(page), "Invalid pagination.");
         var query = DbSet.AsNoTracking();
 
         if (!string.IsNullOrWhiteSpace(search))
