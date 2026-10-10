@@ -1,0 +1,11 @@
+**/bin/
+**/obj/
+**/.vs/
+**/*.user
+**/appsettings.Development.json
+tests/
+.git
+.gitignore
+Dockerfile
+.dockerignore
+README.md

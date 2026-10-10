@@ -11,7 +11,6 @@ public class CoordinationResultConfiguration : IEntityTypeConfiguration<Coordina
         builder.Property(r => r.MapCode).HasMaxLength(64);
         builder.Property(r => r.SquadTag).HasMaxLength(50);
         builder.Property(r => r.TaskType).IsEnumText();
-        builder.Property(r => r.EncounterOutcome).IsEnumText();
         builder.Property(r => r.Assignment).IsJsonb();
 
         builder.HasOne(r => r.Session).WithMany(s => s.CoordinationResults).HasForeignKey(r => r.SessionId).OnDelete(DeleteBehavior.Cascade);

@@ -295,15 +295,6 @@ namespace ShadowVale.DAL.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
 
-                    b.Property<string>("EncounterOutcome")
-                        .HasMaxLength(30)
-                        .HasColumnType("character varying(30)")
-                        .HasColumnName("encounter_outcome");
-
-                    b.Property<double?>("EscapeTimeMs")
-                        .HasColumnType("double precision")
-                        .HasColumnName("escape_time_ms");
-
                     b.Property<string>("MapCode")
                         .HasMaxLength(64)
                         .HasColumnType("character varying(64)")
@@ -692,7 +683,7 @@ namespace ShadowVale.DAL.Migrations
                         .HasColumnType("character varying(50)")
                         .HasColumnName("client_version");
 
-                    b.Property<Guid>("ContentVersionId")
+                    b.Property<Guid?>("ContentVersionId")
                         .HasColumnType("uuid")
                         .HasColumnName("content_version_id");
 
@@ -703,6 +694,11 @@ namespace ShadowVale.DAL.Migrations
                     b.Property<DateTime?>("EndedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("ended_at");
+
+                    b.Property<string>("MapCode")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("map_code");
 
                     b.Property<string>("Outcome")
                         .IsRequired()
@@ -720,9 +716,28 @@ namespace ShadowVale.DAL.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("player_id");
 
+                    b.Property<Guid?>("SolverConfigurationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("solver_configuration_id");
+
+                    b.Property<string>("Source")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
+                        .HasDefaultValue("human")
+                        .HasColumnName("source");
+
                     b.Property<DateTime>("StartedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("started_at");
+
+                    b.Property<string>("Stats")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("stats")
+                        .HasDefaultValueSql("'{}'::jsonb");
 
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("timestamp with time zone")
@@ -734,8 +749,17 @@ namespace ShadowVale.DAL.Migrations
                     b.HasIndex("ContentVersionId")
                         .HasDatabaseName("ix_game_sessions_content_version_id");
 
+                    b.HasIndex("MapCode")
+                        .HasDatabaseName("ix_game_sessions_map_code");
+
                     b.HasIndex("PlayerId")
                         .HasDatabaseName("ix_game_sessions_player_id");
+
+                    b.HasIndex("SolverConfigurationId")
+                        .HasDatabaseName("ix_game_sessions_solver_configuration_id");
+
+                    b.HasIndex("Source")
+                        .HasDatabaseName("ix_game_sessions_source");
 
                     b.HasIndex("StartedAt")
                         .HasDatabaseName("ix_game_sessions_started_at");
@@ -743,6 +767,8 @@ namespace ShadowVale.DAL.Migrations
                     b.ToTable("game_sessions", "shadowvale", t =>
                         {
                             t.HasCheckConstraint("ck_game_sessions_ended_after_started", "ended_at IS NULL OR ended_at >= started_at");
+
+                            t.HasCheckConstraint("ck_game_sessions_source", "source IN ('human', 'replay')");
                         });
                 });
 
@@ -1830,7 +1856,6 @@ namespace ShadowVale.DAL.Migrations
                         .WithMany()
                         .HasForeignKey("ContentVersionId")
                         .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired()
                         .HasConstraintName("fk_game_sessions_content_versions_content_version_id");
 
                     b.HasOne("ShadowVale.DAL.Entities.Player", "Player")
@@ -1839,9 +1864,17 @@ namespace ShadowVale.DAL.Migrations
                         .OnDelete(DeleteBehavior.SetNull)
                         .HasConstraintName("fk_game_sessions_players_player_id");
 
+                    b.HasOne("ShadowVale.DAL.Entities.SolverConfiguration", "SolverConfiguration")
+                        .WithMany()
+                        .HasForeignKey("SolverConfigurationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_game_sessions_solver_configurations_solver_configuration_id");
+
                     b.Navigation("ContentVersion");
 
                     b.Navigation("Player");
+
+                    b.Navigation("SolverConfiguration");
                 });
 
             modelBuilder.Entity("ShadowVale.DAL.Entities.Item", b =>

@@ -11,14 +11,15 @@
     <PackageReference Include="Microsoft.IdentityModel.JsonWebTokens" Version="8.19.2" />
   </ItemGroup>
 
+  <ItemGroup>
+    <!-- Copy of the game's fallback bundle (StreamingAssets/Content/fallback_bundle.json), used only by DemoDataSeeder -->
+    <EmbeddedResource Include="Seeding\demo_bundle.json" LogicalName="ShadowVale.BLL.Seeding.demo_bundle.json" />
+  </ItemGroup>
+
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
-
-  <ItemGroup>
-    <EmbeddedResource Include="Schemas\content-bundle-1.0.schema.json" />
-  </ItemGroup>
 
 </Project>

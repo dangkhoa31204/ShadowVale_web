@@ -10,8 +10,6 @@ public class GenericRepository<T>(ShadowValeDbContext context) : IGenericReposit
     protected readonly ShadowValeDbContext Context = context;
     protected readonly DbSet<T> DbSet = context.Set<T>();
 
-    public IQueryable<T> Query() => DbSet.AsQueryable();
-
     public Task<T?> GetByIdAsync(Guid id, CancellationToken ct = default) =>
         DbSet.FirstOrDefaultAsync(e => e.Id == id, ct);
 

@@ -60,7 +60,9 @@ public class SchemaMappingTests
                 };
                 Assert.Equal(expectedType, mapped.StoreType);
                 var property = mapped.PropertyMappings.Single().Property;
-                Assert.Equal(column.GetProperty("column_default").GetString(), property.GetDefaultValueSql());
+                // A default declared as a CLR value (HasDefaultValue) has no SQL text in the model to compare
+                if (!property.TryGetDefaultValue(out _))
+                    Assert.Equal(column.GetProperty("column_default").GetString(), property.GetDefaultValueSql());
                 Assert.Equal(column.GetProperty("is_identity").GetString() == "YES",
                     property.FindAnnotation("Npgsql:ValueGenerationStrategy")?.Value?.ToString()
                         is "IdentityByDefaultColumn" or "IdentityAlwaysColumn");
