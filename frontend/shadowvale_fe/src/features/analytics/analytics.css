@@ -1,0 +1,7 @@
+
+.sv-version-comparison { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:24px; align-items:start; }
+.sv-version-comparison .sv-stats-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+.sv-version-comparison .sv-dashboard-columns { grid-template-columns:1fr; }
+@media(max-width:1000px) { .sv-version-comparison { grid-template-columns:1fr; } }
+
+.sv-version-guid { overflow-wrap:anywhere; color:#94a3b8; font-size:12px; margin:8px 0 16px; }

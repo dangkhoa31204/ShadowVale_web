@@ -2,7 +2,8 @@ import { useEffect, useState, type ReactNode } from 'react';
 import type { User } from '../types/user';
 import type { LoginCredentials, RegisterPayload } from '../types/auth';
 import { authService } from '../services/auth/authService';
-import { storageService, AUTH_CHANGED_EVENT } from '../services/storage/storageService';
+import { storageService, AUTH_CHANGED_EVENT, SESSION_KEY } from '../services/storage/storageService';
+import { statusOf } from '../services/api/errors';
 import { AuthContext } from './authContextValue';
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
@@ -13,12 +14,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     let active = true;
     authService.getCurrentUser().then(user => {
       if (active) { setUser(user); if (!user) storageService.clearAuth(false); }
-    }).catch(() => {
-      if (active) { setSessionError('Could not validate your session. Please sign in again.'); storageService.clearAuth(false); }
+    }).catch(error => {
+      if (active) { setSessionError('Could not validate your session. Retry signing in when the API is available.'); if (statusOf(error) === 401) storageService.clearAuth(false); }
     }).finally(() => { if (active) setIsLoading(false); });
-    const clear = () => setUser(null);
+    const clear = () => setUser(storageService.getUser());
     const sync = (event: StorageEvent) => {
-      if ((event.key === 'shadowvale_token' || event.key === null) && !storageService.getToken()) clear();
+      if (event.key === SESSION_KEY || event.key === null) clear();
     };
     window.addEventListener(AUTH_CHANGED_EVENT, clear); window.addEventListener('storage', sync);
     return () => {

@@ -1,5 +1,10 @@
 # Game delivery — frontend contract
 
+> API mode hiện tại: BE chưa có Git/CI/build/artifact endpoints. Các adapter API
+> bị khóa rõ ràng; màn Admin hiển thị trạng thái unavailable. Nội dung còn lại
+> mô tả demo và hợp đồng đề xuất, không phải API đã được triển khai.
+> Xem [integration gaps](../../../docs/API_INTEGRATION_GAPS.md).
+
 Phần này chỉ triển khai bố cục và tương tác frontend cho Admin: **Review content →
 Game changes** và **Publish versions → Game bundle**. Dùng giao diện TailAdmin
 đã điều chỉnh cho bố cục web hiện tại.

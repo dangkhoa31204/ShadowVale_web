@@ -3,7 +3,7 @@ import { InternalLayout } from '../layouts/InternalLayout';
 import { ProtectedRoute } from './guards/ProtectedRoute';
 import { permissions, type Permission } from '../features/auth/access';
 import { HomeRedirect } from '../features/auth/RoleHome';
-import { Dashboard, Content, ChangeReports, Reviews, Releases, Analytics } from './routePages';
+import { Dashboard, Content, ChangeReports, Reviews, Releases, Analytics, Users, Profile, ChangePassword } from './routePages';
 function guard(permission: Permission, element: React.ReactNode) {
   return <ProtectedRoute allowedRoles={permissions[permission]}>{element}</ProtectedRoute>;
 }
@@ -19,6 +19,9 @@ export const adminRoutes: RouteObject = {
     { path: 'change-reports/:draftId', element: guard('author', <ChangeReports />) },
     { path: 'reviews', element: guard('review', <Reviews />) },
     { path: 'releases', element: guard('versions', <Releases />) },
+    { path: 'users', element: guard('users', <Users />) },
+    { path: 'profile', element: <Profile /> },
+    { path: 'change-password', element: <ChangePassword /> },
     { path: 'analytics', element: guard('analytics', <Analytics />) },
     { path: 'assets', element: <Navigate to="/admin/content" replace /> },
     { path: 'entity-editor', element: <Navigate to="/admin/content" replace /> },

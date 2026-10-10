@@ -1,5 +1,5 @@
 import { isDemoMode } from '../../config/environment';
-import { axiosClient } from '../../services/api/axiosClient';
+import { storageService } from '../../services/storage/storageService';
 import { validateEvidenceFile } from './reportValidation';
 import type { EvidenceImage } from './types';
 
@@ -31,16 +31,13 @@ export const evidenceService = {
     // Decode before accepting the file so a renamed non-image never becomes evidence.
     const bitmap = await createImageBitmap(file).catch(() => { throw new Error('This file cannot be opened as an image.'); });
     bitmap.close();
-    if (!isDemoMode) {
-      const form = new FormData(); form.append('image', file);
-      return (await axiosClient.post<EvidenceImage>('/internal/content-versions/' + encodeURIComponent(draftId) + '/evidence', form)).data;
-    }
-    const image = { id: crypto.randomUUID(), file_name: file.name, media_type: file.type, size_bytes: file.size };
+
+    const image = { id: isDemoMode ? crypto.randomUUID() : storageService.getUser()!.id + ':' + draftId + ':' + crypto.randomUUID(), file_name: file.name, media_type: file.type, size_bytes: file.size };
     await storeImage(image.id, file);
     return image;
   },
   load: async (image: EvidenceImage): Promise<Blob> => {
-    if (!isDemoMode) return (await axiosClient.get<Blob>('/internal/evidence/' + encodeURIComponent(image.id), { responseType: 'blob' })).data;
+    if (!isDemoMode && !image.id.startsWith(storageService.getUser()?.id + ':')) throw new Error('This image belongs to another local account.');
     const db = await evidenceDatabase();
     return new Promise<Blob>((resolve, reject) => {
       const request = db.transaction('images').objectStore('images').get(image.id);

@@ -1,3 +1,4 @@
+import { useTranslation } from '../preferences/preferencesContext';
 import { useEffect, useState } from 'react';
 import { analyticsService, emptyAnalytics, type AnalyticsData, type CoordinationTask, type SolverFamily } from './analyticsService';
 import { isDemoMode } from '../../config/environment';
@@ -10,8 +11,11 @@ function mean(values: number[], digits = 1) { return values.length ? (values.red
 const familyLabels: Record<SolverFamily, string> = { classical: 'Classical', quantum_inspired: 'Quantum inspired', quantum_hardware: 'Quantum hardware' };
 const taskLabels: Record<CoordinationTask, string> = { route_coverage: 'Route coverage', cover_assignment: 'Cover assignment', flanking: 'Flanking' };
 const outcomeLabels = { in_progress: 'In progress', completed: 'Completed', died: 'Died', quit: 'Quit', crashed: 'Crashed' };
+import { ApiAnalyticsPage } from './ApiAnalyticsPage';
 
-export function InternalAnalyticsPage() {
+export function InternalAnalyticsPage() { return isDemoMode ? <DemoAnalyticsPage /> : <ApiAnalyticsPage />; }
+function DemoAnalyticsPage() {
+  const t = useTranslation();
   const { state } = useWorkspace();
   const [days, setDays] = useState(7), [version, setVersion] = useState('all');
   const [telemetry, setTelemetry] = useState<AnalyticsData>(emptyAnalytics), [loading, setLoading] = useState(true), [error, setError] = useState('');
@@ -47,14 +51,14 @@ export function InternalAnalyticsPage() {
   const exportData = { game_sessions: sessions, telemetry_events: events, solver_configurations: configurations, coordination_results: results };
 
   return <div className="sv-page">
-    <PageHeading eyebrow="ANALYST" title="Analytics" description="Sessions, telemetry events and squad coordination." action={<button className="sv-button" disabled={loading || !!error || !sessions.length} onClick={() => downloadJson(exportData, 'shadowvale-telemetry-' + days + 'd.json')}><Icon name="download" />Export JSON</button>} />
-    {isDemoMode && <div className="sv-alert">Demo data · sample sessions and events.</div>}
+    <PageHeading eyebrow={t("ANALYST")} title={t("Analytics")} description={t("Sessions, telemetry events and squad coordination.")} action={<button className="sv-button" disabled={loading || !!error || !sessions.length} onClick={() => downloadJson(exportData, 'shadowvale-telemetry-' + days + 'd.json')}><Icon name="download" />{t("Export JSON")}</button>} />
+    {isDemoMode && <div className="sv-alert">{t("Demo data · sample sessions and events.")}</div>}
     <div className="sv-analytics-filters sv-form">
-      <div className="sv-segmented">{[7, 30].map(d => <button className={days === d ? 'is-active' : ''} key={d} onClick={() => { if (d !== days) { setLoading(true); setDays(d); } }}>{d} days</button>)}</div>
-      <label>Content version<select value={version} onChange={e => { setLoading(true); setVersion(e.target.value); setMapFilter('all'); }}><option value="all">All versions</option>{state.releases.map(r => <option key={r.id} value={r.id}>#{r.version_no} · {r.label}</option>)}</select></label>
-      <label>Map<select value={mapFilter} onChange={e => setMapFilter(e.target.value)}><option value="all">All maps</option>{maps.map(m => <option key={m} value={m}>{mapName(m)}</option>)}</select></label>
+      <div className="sv-segmented">{[7, 30].map(d => <button className={days === d ? 'is-active' : ''} key={d} onClick={() => { if (d !== days) { setLoading(true); setDays(d); } }}>{d} {t("days")}</button>)}</div>
+      <label>{t("Content version")}<select value={version} onChange={e => { setLoading(true); setVersion(e.target.value); setMapFilter('all'); }}><option value="all">{t("All versions")}</option>{state.releases.map(r => <option key={r.id} value={r.id}>#{r.version_no} · {r.label}</option>)}</select></label>
+      <label>{t("Map")}<select value={mapFilter} onChange={e => setMapFilter(e.target.value)}><option value="all">{t("All maps")}</option>{maps.map(m => <option key={m} value={m}>{mapName(m)}</option>)}</select></label>
     </div>
-    {loading ? <div className="portal-state" role="status">Loading telemetry…</div> : error ? <div className="sv-alert sv-alert-error" role="alert">{error}<button className="sv-button" onClick={() => { setLoading(true); setRetry(retry + 1); }}>Try again</button></div> : !sessions.length ? <Empty title="No telemetry" description="Choose another date range, content version or map." /> : <>
+    {loading ? <div className="portal-state" role="status">{t("Loading telemetry…")}</div> : error ? <div className="sv-alert sv-alert-error" role="alert">{error}<button className="sv-button" onClick={() => { setLoading(true); setRetry(retry + 1); }}>{t("Try again")}</button></div> : !sessions.length ? <Empty title={t("No telemetry")} description={t("Choose another date range, content version or map.")} /> : <>
       <div className="sv-stats-grid">{[
         { label: 'Game sessions', value: sessions.length, detail: 'game_sessions' },
         { label: 'Session completion', value: percent(closedSessions.filter(s => s.outcome === 'completed').length, closedSessions.length), detail: 'Completed / ended sessions' },
@@ -62,37 +66,37 @@ export function InternalAnalyticsPage() {
         { label: 'Within time budget', value: percent(results.filter(r => r.within_budget).length, results.length), detail: 'coordination_results.within_budget' },
       ].map(s => <article className="sv-stat" key={s.label}><span>{s.label}</span><strong>{s.value}</strong><small>{s.detail}</small></article>)}</div>
       <div className="sv-dashboard-columns">
-        <section className="sv-panel"><div className="sv-panel-heading"><div><h2>Session outcomes</h2><p>game_sessions.outcome</p></div></div><div className="sv-bars">{Object.entries(outcomeLabels).map(([outcome, label]) => {
+        <section className="sv-panel"><div className="sv-panel-heading"><div><h2>{t("Session outcomes")}</h2><p>{t("game_sessions.outcome")}</p></div></div><div className="sv-bars">{Object.entries(outcomeLabels).map(([outcome, label]) => {
           const count = sessions.filter(s => s.outcome === outcome).length;
           return <div key={outcome}><div><strong>{label}</strong><span>{count} · {percent(count, sessions.length)}</span></div><div className="sv-bar-track"><span style={{ width: (100 * count / sessions.length) + '%' }} /></div></div>;
         })}</div></section>
-        <section className="sv-panel"><div className="sv-panel-heading"><div><h2>Weapon usage</h2><p>shot_fired · payload.weapon_code → weapons.item_code</p></div></div>{shots.length ? <div className="sv-bars">{weaponCodes.map(code => {
+        <section className="sv-panel"><div className="sv-panel-heading"><div><h2>{t("Weapon usage")}</h2><p>{t("shot_fired · payload.weapon_code → weapons.item_code")}</p></div></div>{shots.length ? <div className="sv-bars">{weaponCodes.map(code => {
           const count = shots.filter(e => e.payload.weapon_code === code).length;
-          return <div key={code}><div><strong>{itemName(code)} <small className="sv-mono">{code}</small></strong><span>{count} shots · {percent(count, shots.length)}</span></div><div className="sv-bar-track"><span style={{ width: (100 * count / shots.length) + '%' }} /></div></div>;
-        })}</div> : <Empty title="No weapon events" description="Weapon usage comes from shot_fired telemetry." />}</section>
+          return <div key={code}><div><strong>{itemName(code)} <small className="sv-mono">{code}</small></strong><span>{count} {t("shots ·")} {percent(count, shots.length)}</span></div><div className="sv-bar-track"><span style={{ width: (100 * count / shots.length) + '%' }} /></div></div>;
+        })}</div> : <Empty title={t("No weapon events")} description={t("Weapon usage comes from shot_fired telemetry.")} />}</section>
       </div>
       <section className="sv-panel">
-        <div className="sv-panel-heading"><div><h2>Solver comparison</h2><p>solver_configurations · coordination_results</p></div><Icon name="neurology" /></div>
+        <div className="sv-panel-heading"><div><h2>{t("Solver comparison")}</h2><p>{t("solver_configurations · coordination_results")}</p></div><Icon name="neurology" /></div>
         <div className="sv-analytics-filters sv-form">
-          <label>Solver family<select value={familyFilter} onChange={e => setFamilyFilter(e.target.value)}><option value="all">All families</option>{Object.entries(familyLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
-          <label>Coordination task<select value={taskFilter} onChange={e => setTaskFilter(e.target.value)}><option value="all">All tasks</option>{Object.entries(taskLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
+          <label>{t("Solver family")}<select value={familyFilter} onChange={e => setFamilyFilter(e.target.value)}><option value="all">{t("All families")}</option>{Object.entries(familyLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
+          <label>{t("Coordination task")}<select value={taskFilter} onChange={e => setTaskFilter(e.target.value)}><option value="all">{t("All tasks")}</option>{Object.entries(taskLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
         </div>
-        <div className="sv-table-wrap"><table className="sv-table"><thead><tr><th>Algorithm / configuration</th><th>Results</th><th>Capture rate</th><th>Escape time (ms)</th><th>Coordination score</th><th>Latency p95 (ms)</th><th>Within budget</th><th>Fallback</th></tr></thead><tbody>{configurations.map(config => {
+        <div className="sv-table-wrap"><table className="sv-table"><thead><tr><th>{t("Algorithm / configuration")}</th><th>{t("Results")}</th><th>{t("Capture rate")}</th><th>{t("Escape time (ms)")}</th><th>{t("Coordination score")}</th><th>{t("Latency p95 (ms)")}</th><th>{t("Within budget")}</th><th>{t("Fallback")}</th></tr></thead><tbody>{configurations.map(config => {
           const rows = results.filter(r => r.solver_configuration_id === config.id), validEncounters = rows.filter(r => r.encounter_outcome !== null && r.encounter_outcome !== 'aborted');
           const latencies = rows.map(r => r.solve_latency_ms).sort((a, b) => a - b);
           return <tr key={config.id}><td><strong className="sv-mono">{config.algorithm}</strong><small>{config.code} · {familyLabels[config.family]}</small></td><td>{rows.length}</td><td>{percent(validEncounters.filter(r => r.encounter_outcome === 'player_captured').length, validEncounters.length)}</td><td>{mean(rows.flatMap(r => r.encounter_outcome === 'player_escaped' && r.escape_time_ms !== null ? [r.escape_time_ms] : []), 0)}</td><td>{mean(rows.flatMap(r => r.coordination_score !== null ? [r.coordination_score] : []), 2)}</td><td>{latencies.length ? latencies[Math.ceil(latencies.length * .95) - 1].toFixed(1) : '—'}</td><td>{percent(rows.filter(r => r.within_budget).length, rows.length)}</td><td>{percent(rows.filter(r => r.used_fallback).length, rows.length)}</td></tr>;
         })}</tbody></table></div>
       </section>
       <div className="sv-dashboard-columns">
-        <section className="sv-panel"><div className="sv-panel-heading"><div><h2>Death locations</h2><p>player_died · pos_x / pos_y</p></div></div>{mapFilter === 'all' ? <Empty title="Select a map" description="Choose one map to view spatial events." /> : <div className="sv-heatmap-area"><div className="sv-heatmap" aria-label="Player death heatmap">{Array.from({ length: 48 }, (_, i) => {
+        <section className="sv-panel"><div className="sv-panel-heading"><div><h2>{t("Death locations")}</h2><p>{t("player_died · pos_x / pos_y")}</p></div></div>{mapFilter === 'all' ? <Empty title={t("Select a map")} description={t("Choose one map to view spatial events.")} /> : <div className="sv-heatmap-area"><div className="sv-heatmap" aria-label={t("Player death heatmap")}>{Array.from({ length: 48 }, (_, i) => {
           const x = i % 8, y = Math.floor(i / 8), count = deaths.filter(d => Math.min(7, Math.floor((d.pos_x! - minX) / cellWidth)) === x && Math.min(5, Math.floor((d.pos_y! - minY) / cellHeight)) === y).length;
           return <div key={i} title={`X ${(minX + x * cellWidth).toFixed(1)}–${(minX + (x + 1) * cellWidth).toFixed(1)}, Y ${(minY + y * cellHeight).toFixed(1)}–${(minY + (y + 1) * cellHeight).toFixed(1)}: ${count} deaths`} style={{ backgroundColor: count ? `rgba(249, 149, 90, ${Math.min(.95, .25 + count * .18)})` : '#202931' }}>{count || '·'}</div>;
-        })}</div><small>0 deaths <span className="sv-heat-legend" /> More deaths</small></div>}</section>
-        <section className="sv-panel"><div className="sv-panel-heading"><div><h2>Skill event levels</h2><p>skill_level_changed · payload.skill_code / level</p></div></div>{skills.length ? <div className="sv-bars">{(['shooting', 'engineering', 'stealth'] as const).map(skill => {
+        })}</div><small>{t("0 deaths")}<span className="sv-heat-legend" /> {t("More deaths")}</small></div>}</section>
+        <section className="sv-panel"><div className="sv-panel-heading"><div><h2>{t("Skill event levels")}</h2><p>{t("skill_level_changed · payload.skill_code / level")}</p></div></div>{skills.length ? <div className="sv-bars">{(['shooting', 'engineering', 'stealth'] as const).map(skill => {
           const values = skills.filter(e => e.payload.skill_code === skill).map(e => Number(e.payload.level));
           const maxLevel = Number(activeBundle?.skills.find(s => s.code === skill)?.max_level || 10);
-          return <div key={skill}><div><strong>{skill}</strong><span>Level {mean(values)} · {values.length} events</span></div><div className="sv-bar-track"><span style={{ width: Math.min(100, Number(mean(values)) / maxLevel * 100 || 0) + '%' }} /></div></div>;
-        })}</div> : <Empty title="No skill events" description="Skill levels are kept in the player's local save." />}<p className="sv-table-note">Event averages only. Player skill and quest progress remain in local saves.</p></section>
+          return <div key={skill}><div><strong>{skill}</strong><span>{t("Level")} {mean(values)} · {values.length} {t("events")}</span></div><div className="sv-bar-track"><span style={{ width: Math.min(100, Number(mean(values)) / maxLevel * 100 || 0) + '%' }} /></div></div>;
+        })}</div> : <Empty title={t("No skill events")} description={t("Skill levels are kept in the player's local save.")} />}<p className="sv-table-note">{t("Event averages only. Player skill and quest progress remain in local saves.")}</p></section>
       </div>
     </>}
   </div>;

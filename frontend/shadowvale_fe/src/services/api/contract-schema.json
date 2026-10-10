@@ -1,0 +1,4697 @@
+{
+  "AiComparisonRowDto": {
+    "required": [
+      "contentVersionId",
+      "contentVersionLabel",
+      "groupKey",
+      "groupLabel",
+      "family",
+      "sessions",
+      "encounters",
+      "captures",
+      "escapes",
+      "captureRate",
+      "avgEscapeSeconds",
+      "medianEscapeSeconds",
+      "replans",
+      "avgCoordinationScore",
+      "latencyP50Ms",
+      "latencyP95Ms",
+      "latencyP99Ms",
+      "withinBudgetRate",
+      "fallbackRate"
+    ],
+    "type": "object",
+    "properties": {
+      "contentVersionId": {
+        "type": [
+          "null",
+          "string"
+        ],
+        "format": "uuid"
+      },
+      "contentVersionLabel": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "groupKey": {
+        "type": "string"
+      },
+      "groupLabel": {
+        "type": "string"
+      },
+      "family": {
+        "type": "string"
+      },
+      "sessions": {
+        "pattern": "^-?(?:0|[1-9]\\d*)$",
+        "type": [
+          "integer",
+          "string"
+        ],
+        "format": "int64"
+      },
+      "encounters": {
+        "pattern": "^-?(?:0|[1-9]\\d*)$",
+        "type": [
+          "integer",
+          "string"
+        ],
+        "format": "int64"
+      },
+      "captures": {
+        "pattern": "^-?(?:0|[1-9]\\d*)$",
+        "type": [
+          "integer",
+          "string"
+        ],
+        "format": "int64"
+      },
+      "escapes": {
+        "pattern": "^-?(?:0|[1-9]\\d*)$",
+        "type": [
+          "integer",
+          "string"
+        ],
+        "format": "int64"
+      },
+      "captureRate": {
+        "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?(?:[eE][+-]?\\d+)?$",
+        "type": [
+          "null",
+          "number",
+          "string"
+        ],
+        "format": "double"
+      },
+      "avgEscapeSeconds": {
+        "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?(?:[eE][+-]?\\d+)?$",
+        "type": [
+          "null",
+          "number",
+          "string"
+        ],
+        "format": "double"
+      },
+      "medianEscapeSeconds": {
+        "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?(?:[eE][+-]?\\d+)?$",
+        "type": [
+          "null",
+          "number",
+          "string"
+        ],
+        "format": "double"
+      },
+      "replans": {
+        "pattern": "^-?(?:0|[1-9]\\d*)$",
+        "type": [
+          "integer",
+          "string"
+        ],
+        "format": "int64"
+      },
+      "avgCoordinationScore": {
+        "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?(?:[eE][+-]?\\d+)?$",
+        "type": [
+          "null",
+          "number",
+          "string"
+        ],
+        "format": "double"
+      },
+      "latencyP50Ms": {
+        "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?(?:[eE][+-]?\\d+)?$",
+        "type": [
+          "null",
+          "number",
+          "string"
+        ],
+        "format": "double"
+      },
+      "latencyP95Ms": {
+        "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?(?:[eE][+-]?\\d+)?$",
+        "type": [
+          "null",
+          "number",
+          "string"
+        ],
+        "format": "double"
+      },
+      "latencyP99Ms": {
+        "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?(?:[eE][+-]?\\d+)?$",
+        "type": [
+          "null",
+          "number",
+          "string"
+        ],
+        "format": "double"
+      },
+      "withinBudgetRate": {
+        "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?(?:[eE][+-]?\\d+)?$",
+        "type": [
+          "null",
+          "number",
+          "string"
+        ],
+        "format": "double"
+      },
+      "fallbackRate": {
+        "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?(?:[eE][+-]?\\d+)?$",
+        "type": [
+          "null",
+          "number",
+          "string"
+        ],
+        "format": "double"
+      }
+    }
+  },
+  "ApiError": {
+    "type": "object",
+    "properties": {
+      "type": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "title": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "status": {
+        "pattern": "^-?(?:0|[1-9]\\d*)$",
+        "type": [
+          "null",
+          "integer",
+          "string"
+        ],
+        "format": "int32"
+      },
+      "detail": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "instance": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "errors": {
+        "type": "object",
+        "additionalProperties": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "code": {
+        "type": "string"
+      },
+      "message": {
+        "type": "string"
+      },
+      "traceId": {
+        "type": "string"
+      }
+    }
+  },
+  "AssignedSolver": {
+    "type": "object",
+    "properties": {
+      "configurationId": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "code": {
+        "type": "string"
+      },
+      "variant": {
+        "type": "string"
+      },
+      "params": {
+        "type": "object"
+      },
+      "quboWeights": {
+        "type": "object",
+        "additionalProperties": {
+          "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?(?:[eE][+-]?\\d+)?$",
+          "type": [
+            "number",
+            "string"
+          ],
+          "format": "double"
+        }
+      },
+      "timeBudgetMs": {
+        "pattern": "^-?(?:0|[1-9]\\d*)$",
+        "type": [
+          "integer",
+          "string"
+        ],
+        "format": "int32"
+      }
+    }
+  },
+  "AuthResponse": {
+    "required": [
+      "accessToken",
+      "accessTokenExpiresAt",
+      "refreshToken",
+      "refreshTokenExpiresAt",
+      "user"
+    ],
+    "type": "object",
+    "properties": {
+      "accessToken": {
+        "type": "string"
+      },
+      "accessTokenExpiresAt": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "refreshToken": {
+        "type": "string"
+      },
+      "refreshTokenExpiresAt": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "user": {
+        "$ref": "#/components/schemas/UserDto"
+      }
+    }
+  },
+  "ChangePasswordRequest": {
+    "required": [
+      "currentPassword",
+      "newPassword"
+    ],
+    "type": "object",
+    "properties": {
+      "currentPassword": {
+        "type": "string"
+      },
+      "newPassword": {
+        "maxLength": 128,
+        "minLength": 8,
+        "type": "string"
+      }
+    }
+  },
+  "CloneSolverConfigurationRequest": {
+    "required": [
+      "code",
+      "name"
+    ],
+    "type": "object",
+    "properties": {
+      "code": {
+        "maxLength": 64,
+        "pattern": "^[a-z][a-z0-9_]*$",
+        "type": "string"
+      },
+      "name": {
+        "maxLength": 100,
+        "type": "string"
+      }
+    }
+  },
+  "ConsumableDto": {
+    "required": [
+      "healHp",
+      "restoreStamina",
+      "useTimeSeconds",
+      "cures",
+      "extraEffects"
+    ],
+    "type": "object",
+    "properties": {
+      "healHp": {
+        "pattern": "^-?(?:0|[1-9]\\d*)$",
+        "type": [
+          "integer",
+          "string"
+        ],
+        "format": "int32"
+      },
+      "restoreStamina": {
+        "pattern": "^-?(?:0|[1-9]\\d*)$",
+        "type": [
+          "integer",
+          "string"
+        ],
+        "format": "int32"
+      },
+      "useTimeSeconds": {
+        "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
+        "type": [
+          "number",
+          "string"
+        ],
+        "format": "double"
+      },
+      "cures": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "extraEffects": {
+        "$ref": "#/components/schemas/JsonElement"
+      }
+    }
+  },
+  "ConsumableRequest": {
+    "type": "object",
+    "properties": {
+      "healHp": {
+        "maximum": 100000,
+        "minimum": 0,
+        "pattern": "^-?(?:0|[1-9]\\d*)$",
+        "type": [
+          "integer",
+          "string"
+        ],
+        "format": "int32"
+      },
+      "restoreStamina": {
+        "maximum": 100000,
+        "minimum": 0,
+        "pattern": "^-?(?:0|[1-9]\\d*)$",
+        "type": [
+          "integer",
+          "string"
+        ],
+        "format": "int32"
+      },
+      "useTimeSeconds": {
+        "maximum": 999,
+        "minimum": 0,
+        "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
+        "type": [
+          "number",
+          "string"
+        ],
+        "format": "double"
+      },
+      "cures": {
+        "type": [
+          "null",
+          "array"
+        ],
+        "items": {
+          "type": "string"
+        }
+      },
+      "extraEffects": {
+        "oneOf": [
+          {
+            "type": "null"
+          },
+          {
+            "$ref": "#/components/schemas/JsonElement"
+          }
+        ]
+      }
+    }
+  },
+  "ContentManifest": {
+    "type": "object",
+    "properties": {
+      "versionId": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "versionNo": {
+        "pattern": "^-?(?:0|[1-9]\\d*)$",
+        "type": [
+          "integer",
+          "string"
+        ],
+        "format": "int64"
+      },
+      "label": {
+        "type": "string"
+      },
+      "schemaVersion": {
+        "type": "string"
+      },
+      "checksum": {
+        "type": "string"
+      },
+      "publishedAt": {
+        "type": "string",
+        "format": "date-time"
+      }
+    }
+  },
+  "CoordinationResultDto": {
+    "type": "object",
+    "properties": {
+      "id": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "variant": {
+        "type": "string"
+      },
+      "usedFallback": {
+        "type": "boolean"
+      },
+      "taskType": {
+        "type": "string"
+      },
+      "squadTag": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "mapCode": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "numAgents": {
+        "pattern": "^-?(?:0|[1-9]\\d*)$",
+        "type": [
+          "integer",
+          "string"
+        ],
+        "format": "int32"
+      },
+      "numNodes": {
+        "pattern": "^-?(?:0|[1-9]\\d*)$",
+        "type": [
+          "integer",
+          "string"
+        ],
+        "format": "int32"
+      },
+      "numQuboVars": {
+        "pattern": "^-?(?:0|[1-9]\\d*)$",
+        "type": [
+          "null",
+          "integer",
+          "string"
+        ],
+        "format": "int32"
+      },
+      "objectiveValue": {
+        "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?(?:[eE][+-]?\\d+)?$",
+        "type": [
+          "null",
+          "number",
+          "string"
+        ],
+        "format": "double"
+      },
+      "solveLatencyMs": {
+        "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?(?:[eE][+-]?\\d+)?$",
+        "type": [
+          "number",
+          "string"
+        ],
+        "format": "double"
+      },
+      "withinBudget": {
+        "type": "boolean"
+      },
+      "assignment": {
+        "type": [
+          "null",
+          "object"
+        ]
+      },
+      "coordinationScore": {
+        "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?(?:[eE][+-]?\\d+)?$",
+        "type": [
+          "null",
+          "number",
+          "string"
+        ],
+        "format": "double"
+      },
+      "triggeredAt": {
+        "type": "string",
+        "format": "date-time"
+      }
+    }
+  },
+  "CraftingRecipeDto": {
+    "required": [
+      "id",
+      "code",
+      "name",
+      "outputItemCode",
+      "outputQuantity",
+      "craftTimeSeconds",
+      "requiredSkillCode",
+      "requiredSkillLevel",
+      "station",
+      "ingredients",
+      "updatedAt"
+    ],
+    "type": "object",
+    "properties": {
+      "id": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "code": {
+        "type": "string"
+      },
+      "name": {
+        "type": "string"
+      },
+      "outputItemCode": {
+        "type": "string"
+      },
+      "outputQuantity": {
+        "pattern": "^-?(?:0|[1-9]\\d*)$",
+        "type": [
+          "integer",
+          "string"
+        ],
+        "format": "int32"
+      },
+      "craftTimeSeconds": {
+        "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
+        "type": [
+          "number",
+          "string"
+        ],
+        "format": "double"
+      },
+      "requiredSkillCode": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "requiredSkillLevel": {
+        "pattern": "^-?(?:0|[1-9]\\d*)$",
+        "type": [
+          "integer",
+          "string"
+        ],
+        "format": "int32"
+      },
+      "station": {
+        "type": "string"
+      },
+      "ingredients": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/IngredientDto"
+        }
+      },
+      "updatedAt": {
+        "type": "string",
+        "format": "date-time"
+      }
+    }
+  },
+  "CreateContentVersionRequest": {
+    "required": [
+      "label",
+      "schemaVersion"
+    ],
+    "type": "object",
+    "properties": {
+      "label": {
+        "maxLength": 200,
+        "type": "string"
+      },
+      "changelog": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "parentVersionId": {
+        "type": [
+          "null",
+          "string"
+        ],
+        "format": "uuid"
+      },
+      "schemaVersion": {
+        "maxLength": 20,
+        "type": "string"
+      }
+    }
+  },
+  "CreateCraftingRecipeRequest": {
+    "required": [
+      "code",
+      "name",
+      "outputItemCode",
+      "station",
+      "ingredients"
+    ],
+    "type": "object",
+    "properties": {
+      "code": {
+        "maxLength": 64,
+        "pattern": "^[a-z][a-z0-9_]*$",
+        "type": "string"
+      },
+      "name": {
+        "maxLength": 100,
+        "type": "string"
+      },
+      "outputItemCode": {
+        "type": "string"
+      },
+      "outputQuantity": {
+        "maximum": 100000,
+        "minimum": 1,
+        "pattern": "^-?(?:0|[1-9]\\d*)$",
+        "type": [
+          "integer",
+          "string"
+        ],
+        "format": "int32"
+      },
+      "craftTimeSeconds": {
+        "maximum": 9999,
+        "minimum": 0,
+        "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
+        "type": [
+          "number",
+          "string"
+        ],
+        "format": "double"
+      },
+      "requiredSkillCode": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "requiredSkillLevel": {
+        "maximum": 100,
+        "minimum": 0,
+        "pattern": "^-?(?:0|[1-9]\\d*)$",
+        "type": [
+          "integer",
+          "string"
+        ],
+        "format": "int32"
+      },
+      "station": {
+        "maxLength": 50,
+        "type": "string"
+      },
+      "ingredients": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/IngredientRequest"
+        }
+      }
+    }
+  },
+  "CreateEnemyTypeRequest": {
+    "required": [
+      "code",
+      "name",
+      "archetype"
+    ],
+    "type": "object",
+    "properties": {
+      "code": {
+        "maxLength": 64,
+        "pattern": "^[a-z][a-z0-9_]*$",
+        "type": "string"
+      },
+      "name": {
+        "maxLength": 100,
+        "type": "string"
+      },
+      "archetype": {
+        "maxLength": 50,
+        "type": "string"
+      },
+      "isBoss": {
+        "type": "boolean"
+      },
+      "maxHp": {
+        "maximum": 1000000,
+        "minimum": 1,
+        "pattern": "^-?(?:0|[1-9]\\d*)$",
+        "type": [
+          "integer",
+          "string"
+        ],
+        "format": "int32"
+      },
+      "moveSpeed": {
+        "maximum": 100,
+        "minimum": 0,
+        "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
+        "type": [
+          "number",
+          "string"
+        ],
+        "format": "double"
+      },
+      "visionRange": {
+        "maximum": 1000,
+        "minimum": 0,
+        "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
+        "type": [
+          "number",
+          "string"
+        ],
+        "format": "double"
+      },
+      "visionAngleDegrees": {
+        "maximum": 360,
+        "minimum": 1,
+        "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
+        "type": [
+          "number",
+          "string"
+        ],
+        "format": "double"
+      },
+      "hearingRange": {
+        "maximum": 1000,
+        "minimum": 0,
+        "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
+        "type": [
+          "number",
+          "string"
+        ],
+        "format": "double"
+      },
+      "accuracy": {
+        "maximum": 1,
+        "minimum": 0,
+        "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
+        "type": [
+          "number",
+          "string"
+        ],
+        "format": "double"
+      },
+      "weaponItemCode": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "lootTableCode": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "fsmParams": {
+        "oneOf": [
+          {
+            "type": "null"
+          },
+          {
+            "$ref": "#/components/schemas/JsonElement"
+          }
+        ]
+      }
+    }
+  },
+  "CreateItemRequest": {
+    "required": [
+      "code",
+      "name",
+      "type"
+    ],
+    "type": "object",
+    "properties": {
+      "code": {
+        "maxLength": 64,
+        "pattern": "^[a-z][a-z0-9_]*$",
+        "type": "string"
+      },
+      "name": {
+        "maxLength": 100,
+        "type": "string"
+      },
+      "description": {
+        "maxLength": 1000,
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "type": {
+        "type": "string"
+      },
+      "rarity": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "maxStack": {
+        "maximum": 100000,
+        "minimum": 1,
+        "pattern": "^-?(?:0|[1-9]\\d*)$",
+        "type": [
+          "integer",
+          "string"
+        ],
+        "format": "int32"
+      },
+      "weight": {
+        "maximum": 9999.99,
+        "minimum": 0,
+        "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
+        "type": [
+          "number",
+          "string"
+        ],
+        "format": "double"
+      },
+      "baseValue": {
+        "maximum": 100000000,
+        "minimum": 0,
+        "pattern": "^-?(?:0|[1-9]\\d*)$",
+        "type": [
+          "integer",
+          "string"
+        ],
+        "format": "int32"
+      },
+      "stats": {
+        "oneOf": [
+          {
+            "type": "null"
+          },
+          {
+            "$ref": "#/components/schemas/JsonElement"
+          }
+        ]
+      },
+      "iconKey": {
+        "maxLength": 200,
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "weapon": {
+        "oneOf": [
+          {
+            "type": "null"
+          },
+          {
+            "$ref": "#/components/schemas/WeaponRequest"
+          }
+        ]
+      },
+      "consumable": {
+        "oneOf": [
+          {
+            "type": "null"
+          },
+          {
+            "$ref": "#/components/schemas/ConsumableRequest"
+          }
+        ]
+      }
+    }
+  },
+  "CreateLootTableRequest": {
+    "required": [
+      "code",
+      "name",
+      "entries"
+    ],
+    "type": "object",
+    "properties": {
+      "code": {
+        "maxLength": 64,
+        "pattern": "^[a-z][a-z0-9_]*$",
+        "type": "string"
+      },
+      "name": {
+        "maxLength": 100,
+        "type": "string"
+      },
+      "rollsMin": {
+        "maximum": 100,
+        "minimum": 0,
+        "pattern": "^-?(?:0|[1-9]\\d*)$",
+        "type": [
+          "integer",
+          "string"
+        ],
+        "format": "int32"
+      },
+      "rollsMax": {
+        "maximum": 100,
+        "minimum": 0,
+        "pattern": "^-?(?:0|[1-9]\\d*)$",
+        "type": [
+          "integer",
+          "string"
+        ],
+        "format": "int32"
+      },
+      "entries": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/LootEntryRequest"
+        }
+      }
+    }
+  },
+  "CreateMapRequest": {
+    "required": [
+      "code",
+      "name",
+      "sceneKey"
+    ],
+    "type": "object",
+    "properties": {
+      "code": {
+        "maxLength": 64,
+        "pattern": "^[a-z][a-z0-9_]*$",
+        "type": "string"
+      },
+      "name": {
+        "maxLength": 100,
+        "type": "string"
+      },
+      "sceneKey": {
+        "maxLength": 100,
+        "type": "string"
+      },
+      "isSafeCamp": {
+        "type": "boolean"
+      },
+      "sortOrder": {
+        "pattern": "^-?(?:0|[1-9]\\d*)$",
+        "type": [
+          "integer",
+          "string"
+        ],
+        "format": "int32"
+      },
+      "navGraph": {
+        "oneOf": [
+          {
+            "type": "null"
+          },
+          {
+            "$ref": "#/components/schemas/JsonElement"
+          }
+        ]
+      },
+      "layout": {
+        "oneOf": [
+          {
+            "type": "null"
+          },
+          {
+            "$ref": "#/components/schemas/JsonElement"
+          }
+        ]
+      },
+      "enemyPlacements": {
+        "type": [
+          "null",
+          "array"
+        ],
+        "items": {
+          "$ref": "#/components/schemas/EnemyPlacementRequest"
+        }
+      },
+      "lootTables": {
+        "type": [
+          "null",
+          "array"
+        ],
+        "items": {
+          "$ref": "#/components/schemas/MapLootTableRequest"
+        }
+      }
+    }
+  },
+  "CreateQuestRequest": {
+    "required": [
+      "code",
+      "title"
+    ],
+    "type": "object",
+    "properties": {
+      "code": {
+        "maxLength": 64,
+        "pattern": "^[a-z][a-z0-9_]*$",
+        "type": "string"
+      },
+      "title": {
+        "maxLength": 200,
+        "type": "string"
+      },
+      "description": {
+        "maxLength": 2000,
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "isMain": {
+        "type": "boolean"
+      },
+      "sortOrder": {
+        "pattern": "^-?(?:0|[1-9]\\d*)$",
+        "type": [
+          "integer",
+          "string"
+        ],
+        "format": "int32"
+      },
+      "objectives": {
+        "oneOf": [
+          {
+            "type": "null"
+          },
+          {
+            "$ref": "#/components/schemas/JsonElement"
+          }
+        ]
+      },
+      "prerequisites": {
+        "type": [
+          "null",
+          "array"
+        ],
+        "items": {
+          "type": "string"
+        }
+      },
+      "rewardXp": {
+        "maximum": 10000000,
+        "minimum": 0,
+        "pattern": "^-?(?:0|[1-9]\\d*)$",
+        "type": [
+          "integer",
+          "string"
+        ],
+        "format": "int32"
+      },
+      "rewards": {
+        "type": [
+          "null",
+          "array"
+        ],
+        "items": {
+          "$ref": "#/components/schemas/QuestRewardRequest"
+        }
+      }
+    }
+  },
+  "CreateSkillRequest": {
+    "required": [
+      "code",
+      "name",
+      "type"
+    ],
+    "type": "object",
+    "properties": {
+      "code": {
+        "maxLength": 64,
+        "pattern": "^[a-z][a-z0-9_]*$",
+        "type": "string"
+      },
+      "name": {
+        "maxLength": 100,
+        "type": "string"
+      },
+      "type": {
+        "type": "string"
+      },
+      "maxLevel": {
+        "maximum": 100,
+        "minimum": 1,
+        "pattern": "^-?(?:0|[1-9]\\d*)$",
+        "type": [
+          "integer",
+          "string"
+        ],
+        "format": "int32"
+      },
+      "xpCurve": {
+        "oneOf": [
+          {
+            "type": "null"
+          },
+          {
+            "$ref": "#/components/schemas/JsonElement"
+          }
+        ]
+      },
+      "effects": {
+        "oneOf": [
+          {
+            "type": "null"
+          },
+          {
+            "$ref": "#/components/schemas/JsonElement"
+          }
+        ]
+      }
+    }
+  },
+  "CreateSolverConfigurationRequest": {
+    "required": [
+      "code",
+      "name",
+      "algorithm"
+    ],
+    "type": "object",
+    "properties": {
+      "code": {
+        "maxLength": 64,
+        "pattern": "^[a-z][a-z0-9_]*$",
+        "type": "string"
+      },
+      "name": {
+        "maxLength": 100,
+        "type": "string"
+      },
+      "algorithm": {
+        "type": "string"
+      },
+      "library": {
+        "maxLength": 50,
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "params": {
+        "type": [
+          "null",
+          "object"
+        ]
+      },
+      "quboWeights": {
+        "type": [
+          "null",
+          "object"
+        ]
+      },
+      "timeBudgetMs": {
+        "maximum": 10000,
+        "minimum": 1,
+        "pattern": "^-?(?:0|[1-9]\\d*)$",
+        "type": [
+          "integer",
+          "string"
+        ],
+        "format": "int32"
+      }
+    }
+  },
+  "CreateUserRequest": {
+    "required": [
+      "username",
+      "email",
+      "password",
+      "role"
+    ],
+    "type": "object",
+    "properties": {
+      "username": {
+        "pattern": "^[a-zA-Z0-9_.-]{3,50}$",
+        "type": "string"
+      },
+      "email": {
+        "maxLength": 256,
+        "type": "string"
+      },
+      "fullName": {
+        "maxLength": 100,
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "password": {
+        "maxLength": 128,
+        "minLength": 8,
+        "type": "string"
+      },
+      "role": {
+        "type": "string"
+      }
+    }
+  },
+  "DailyCountDto": {
+    "required": [
+      "day",
+      "sessions"
+    ],
+    "type": "object",
+    "properties": {
+      "day": {
+        "type": "string",
+        "format": "date"
+      },
+      "sessions": {
+        "pattern": "^-?(?:0|[1-9]\\d*)$",
+        "type": [
+          "integer",
+          "string"
+        ],
+        "format": "int64"
+      }
+    }
+  },
+  "DeleteContentVersionRequest": {
+    "required": [
+      "revision"
+    ],
+    "type": "object",
+    "properties": {
+      "revision": {
+        "maximum": 9223372036854776000,
+        "minimum": 0,
+        "pattern": "^-?(?:0|[1-9]\\d*)$",
+        "type": [
+          "null",
+          "integer",
+          "string"
+        ],
+        "format": "int64"
+      }
+    }
+  },
+  "EncounterStats": {
+    "type": "object",
+    "properties": {
+      "index": {
+        "pattern": "^-?(?:0|[1-9]\\d*)$",
+        "type": [
+          "integer",
+          "string"
+        ],
+        "format": "int32"
+      },
+      "outcome": {
+        "type": "string"
+      },
+      "startedAt": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "endedAt": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "numAgents": {
+        "pattern": "^-?(?:0|[1-9]\\d*)$",
+        "type": [
+          "integer",
+          "string"
+        ],
+        "format": "int32"
+      },
+      "numReplans": {
+        "pattern": "^-?(?:0|[1-9]\\d*)$",
+        "type": [
+          "integer",
+          "string"
+        ],
+        "format": "int32"
+      },
+      "numFallbacks": {
+        "pattern": "^-?(?:0|[1-9]\\d*)$",
+        "type": [
+          "integer",
+          "string"
+        ],
+        "format": "int32"
+      },
+      "coordinationScore": {
+        "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?(?:[eE][+-]?\\d+)?$",
+        "type": [
+          "null",
+          "number",
+          "string"
+        ],
+        "format": "double"
+      }
+    }
+  },
+  "EnemyPlacementDto": {
+    "required": [
+      "enemyTypeCode",
+      "squadTag",
+      "posX",
+      "posY",
+      "facingDegrees",
+      "patrolRoute",
+      "spawnCondition"
+    ],
+    "type": "object",
+    "properties": {
+      "enemyTypeCode": {
+        "type": "string"
+      },
+      "squadTag": {
+        "type": "string"
+      },
+      "posX": {
+        "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
+        "type": [
+          "number",
+          "string"
+        ],
+        "format": "double"
+      },
+      "posY": {
+        "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
+        "type": [
+          "number",
+          "string"
+        ],
+        "format": "double"
+      },
+      "facingDegrees": {
+        "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
+        "type": [
+          "number",
+          "string"
+        ],
+        "format": "double"
+      },
+      "patrolRoute": {
+        "$ref": "#/components/schemas/JsonElement"
+      },
+      "spawnCondition": {
+        "oneOf": [
+          {
+            "type": "null"
+          },
+          {
+            "$ref": "#/components/schemas/JsonElement"
+          }
+        ]
+      }
+    }
+  },
+  "EnemyPlacementRequest": {
+    "required": [
+      "enemyTypeCode",
+      "squadTag"
+    ],
+    "type": "object",
+    "properties": {
+      "enemyTypeCode": {
+        "type": "string"
+      },
+      "squadTag": {
+        "maxLength": 50,
+        "type": "string"
+      },
+      "posX": {
+        "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
+        "type": [
+          "number",
+          "string"
+        ],
+        "format": "double"
+      },
+      "posY": {
+        "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
+        "type": [
+          "number",
+          "string"
+        ],
+        "format": "double"
+      },
+      "facingDegrees": {
+        "maximum": 360,
+        "minimum": 0,
+        "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
+        "type": [
+          "number",
+          "string"
+        ],
+        "format": "double"
+      },
+      "patrolRoute": {
+        "oneOf": [
+          {
+            "type": "null"
+          },
+          {
+            "$ref": "#/components/schemas/JsonElement"
+          }
+        ]
+      },
+      "spawnCondition": {
+        "oneOf": [
+          {
+            "type": "null"
+          },
+          {
+            "$ref": "#/components/schemas/JsonElement"
+          }
+        ]
+      }
+    }
+  },
+  "EnemyTypeDto": {
+    "required": [
+      "id",
+      "code",
+      "name",
+      "archetype",
+      "isBoss",
+      "maxHp",
+      "moveSpeed",
+      "visionRange",
+      "visionAngleDegrees",
+      "hearingRange",
+      "accuracy",
+      "weaponItemCode",
+      "lootTableCode",
+      "fsmParams",
+      "updatedAt"
+    ],
+    "type": "object",
+    "properties": {
+      "id": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "code": {
+        "type": "string"
+      },
+      "name": {
+        "type": "string"
+      },
+      "archetype": {
+        "type": "string"
+      },
+      "isBoss": {
+        "type": "boolean"
+      },
+      "maxHp": {
+        "pattern": "^-?(?:0|[1-9]\\d*)$",
+        "type": [
+          "integer",
+          "string"
+        ],
+        "format": "int32"
+      },
+      "moveSpeed": {
+        "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
+        "type": [
+          "number",
+          "string"
+        ],
+        "format": "double"
+      },
+      "visionRange": {
+        "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
+        "type": [
+          "number",
+          "string"
+        ],
+        "format": "double"
+      },
+      "visionAngleDegrees": {
+        "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
+        "type": [
+          "number",
+          "string"
+        ],
+        "format": "double"
+      },
+      "hearingRange": {
+        "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
+        "type": [
+          "number",
+          "string"
+        ],
+        "format": "double"
+      },
+      "accuracy": {
+        "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
+        "type": [
+          "number",
+          "string"
+        ],
+        "format": "double"
+      },
+      "weaponItemCode": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "lootTableCode": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "fsmParams": {
+        "$ref": "#/components/schemas/JsonElement"
+      },
+      "updatedAt": {
+        "type": "string",
+        "format": "date-time"
+      }
+    }
+  },
+  "EnumsDto": {
+    "required": [
+      "solverAlgorithms",
+      "solverFamilies",
+      "sessionOutcomes",
+      "encounterOutcomes",
+      "sessionSources",
+      "itemTypes",
+      "itemRarities",
+      "weaponClasses",
+      "skillTypes",
+      "contentStatuses"
+    ],
+    "type": "object",
+    "properties": {
+      "solverAlgorithms": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "solverFamilies": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "sessionOutcomes": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "encounterOutcomes": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "sessionSources": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "itemTypes": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "itemRarities": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "weaponClasses": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "skillTypes": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "contentStatuses": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      }
+    }
+  },
+  "FunnelDto": {
+    "required": [
+      "sessionsStarted",
+      "objectives",
+      "missionsCompleted",
+      "completionRate"
+    ],
+    "type": "object",
+    "properties": {
+      "sessionsStarted": {
+        "pattern": "^-?(?:0|[1-9]\\d*)$",
+        "type": [
+          "integer",
+          "string"
+        ],
+        "format": "int64"
+      },
+      "objectives": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/FunnelStepDto"
+        }
+      },
+      "missionsCompleted": {
+        "pattern": "^-?(?:0|[1-9]\\d*)$",
+        "type": [
+          "integer",
+          "string"
+        ],
+        "format": "int64"
+      },
+      "completionRate": {
+        "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?(?:[eE][+-]?\\d+)?$",
+        "type": [
+          "null",
+          "number",
+          "string"
+        ],
+        "format": "double"
+      }
+    }
+  },
+  "FunnelStepDto": {
+    "required": [
+      "objectiveIndex",
+      "sessions",
+      "shareOfStarted"
+    ],
+    "type": "object",
+    "properties": {
+      "objectiveIndex": {
+        "pattern": "^-?(?:0|[1-9]\\d*)$",
+        "type": [
+          "integer",
+          "string"
+        ],
+        "format": "int32"
+      },
+      "sessions": {
+        "pattern": "^-?(?:0|[1-9]\\d*)$",
+        "type": [
+          "integer",
+          "string"
+        ],
+        "format": "int64"
+      },
+      "shareOfStarted": {
+        "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?(?:[eE][+-]?\\d+)?$",
+        "type": [
+          "null",
+          "number",
+          "string"
+        ],
+        "format": "double"
+      }
+    }
+  },
+  "HeatCellDto": {
+    "required": [
+      "x",
+      "y",
+      "count"
+    ],
+    "type": "object",
+    "properties": {
+      "x": {
+        "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?(?:[eE][+-]?\\d+)?$",
+        "type": [
+          "number",
+          "string"
+        ],
+        "format": "double"
+      },
+      "y": {
+        "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?(?:[eE][+-]?\\d+)?$",
+        "type": [
+          "number",
+          "string"
+        ],
+        "format": "double"
+      },
+      "count": {
+        "pattern": "^-?(?:0|[1-9]\\d*)$",
+        "type": [
+          "integer",
+          "string"
+        ],
+        "format": "int64"
+      }
+    }
+  },
+  "HeatmapDto": {
+    "required": [
+      "mapCode",
+      "cellSize",
+      "eventTypes",
+      "cells"
+    ],
+    "type": "object",
+    "properties": {
+      "mapCode": {
+        "type": "string"
+      },
+      "cellSize": {
+        "pattern": "^-?(?:0|[1-9]\\d*)$",
+        "type": [
+          "integer",
+          "string"
+        ],
+        "format": "int32"
+      },
+      "eventTypes": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "cells": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/HeatCellDto"
+        }
+      }
+    }
+  },
+  "HistogramBucketDto": {
+    "required": [
+      "from",
+      "to",
+      "sessions"
+    ],
+    "type": "object",
+    "properties": {
+      "from": {
+        "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?(?:[eE][+-]?\\d+)?$",
+        "type": [
+          "number",
+          "string"
+        ],
+        "format": "double"
+      },
+      "to": {
+        "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?(?:[eE][+-]?\\d+)?$",
+        "type": [
+          "number",
+          "string"
+        ],
+        "format": "double"
+      },
+      "sessions": {
+        "pattern": "^-?(?:0|[1-9]\\d*)$",
+        "type": [
+          "integer",
+          "string"
+        ],
+        "format": "int64"
+      }
+    }
+  },
+  "IngredientDto": {
+    "required": [
+      "itemCode",
+      "quantity"
+    ],
+    "type": "object",
+    "properties": {
+      "itemCode": {
+        "type": "string"
+      },
+      "quantity": {
+        "pattern": "^-?(?:0|[1-9]\\d*)$",
+        "type": [
+          "integer",
+          "string"
+        ],
+        "format": "int32"
+      }
+    }
+  },
+  "IngredientRequest": {
+    "required": [
+      "itemCode"
+    ],
+    "type": "object",
+    "properties": {
+      "itemCode": {
+        "type": "string"
+      },
+      "quantity": {
+        "maximum": 100000,
+        "minimum": 1,
+        "pattern": "^-?(?:0|[1-9]\\d*)$",
+        "type": [
+          "integer",
+          "string"
+        ],
+        "format": "int32"
+      }
+    }
+  },
+  "ItemCounts": {
+    "type": "object",
+    "properties": {
+      "accepted": {
+        "pattern": "^-?(?:0|[1-9]\\d*)$",
+        "type": [
+          "integer",
+          "string"
+        ],
+        "format": "int32"
+      },
+      "duplicate": {
+        "pattern": "^-?(?:0|[1-9]\\d*)$",
+        "type": [
+          "integer",
+          "string"
+        ],
+        "format": "int32"
+      },
+      "rejected": {
+        "pattern": "^-?(?:0|[1-9]\\d*)$",
+        "type": [
+          "integer",
+          "string"
+        ],
+        "format": "int32"
+      }
+    }
+  },
+  "ItemDto": {
+    "required": [
+      "id",
+      "code",
+      "name",
+      "description",
+      "type",
+      "rarity",
+      "maxStack",
+      "weight",
+      "baseValue",
+      "stats",
+      "iconKey",
+      "weapon",
+      "consumable",
+      "updatedAt"
+    ],
+    "type": "object",
+    "properties": {
+      "id": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "code": {
+        "type": "string"
+      },
+      "name": {
+        "type": "string"
+      },
+      "description": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "type": {
+        "type": "string"
+      },
+      "rarity": {
+        "type": "string"
+      },
+      "maxStack": {
+        "pattern": "^-?(?:0|[1-9]\\d*)$",
+        "type": [
+          "integer",
+          "string"
+        ],
+        "format": "int32"
+      },
+      "weight": {
+        "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
+        "type": [
+          "number",
+          "string"
+        ],
+        "format": "double"
+      },
+      "baseValue": {
+        "pattern": "^-?(?:0|[1-9]\\d*)$",
+        "type": [
+          "integer",
+          "string"
+        ],
+        "format": "int32"
+      },
+      "stats": {
+        "$ref": "#/components/schemas/JsonElement"
+      },
+      "iconKey": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "weapon": {
+        "oneOf": [
+          {
+            "type": "null"
+          },
+          {
+            "$ref": "#/components/schemas/AuthoringWeaponDto"
+          }
+        ]
+      },
+      "consumable": {
+        "oneOf": [
+          {
+            "type": "null"
+          },
+          {
+            "$ref": "#/components/schemas/ConsumableDto"
+          }
+        ]
+      },
+      "updatedAt": {
+        "type": "string",
+        "format": "date-time"
+      }
+    }
+  },
+  "JsonElement": {},
+  "LoginRequest": {
+    "required": [
+      "usernameOrEmail",
+      "password"
+    ],
+    "type": "object",
+    "properties": {
+      "usernameOrEmail": {
+        "maxLength": 256,
+        "type": "string"
+      },
+      "password": {
+        "maxLength": 128,
+        "type": "string"
+      }
+    }
+  },
+  "LootEntryDto": {
+    "required": [
+      "itemCode",
+      "tier",
+      "weight",
+      "minQuantity",
+      "maxQuantity"
+    ],
+    "type": "object",
+    "properties": {
+      "itemCode": {
+        "type": "string"
+      },
+      "tier": {
+        "pattern": "^-?(?:0|[1-9]\\d*)$",
+        "type": [
+          "integer",
+          "string"
+        ],
+        "format": "int16"
+      },
+      "weight": {
+        "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
+        "type": [
+          "number",
+          "string"
+        ],
+        "format": "double"
+      },
+      "minQuantity": {
+        "pattern": "^-?(?:0|[1-9]\\d*)$",
+        "type": [
+          "integer",
+          "string"
+        ],
+        "format": "int32"
+      },
+      "maxQuantity": {
+        "pattern": "^-?(?:0|[1-9]\\d*)$",
+        "type": [
+          "integer",
+          "string"
+        ],
+        "format": "int32"
+      }
+    }
+  },
+  "LootEntryRequest": {
+    "required": [
+      "itemCode"
+    ],
+    "type": "object",
+    "properties": {
+      "itemCode": {
+        "type": "string"
+      },
+      "tier": {
+        "maximum": 10,
+        "minimum": 1,
+        "pattern": "^-?(?:0|[1-9]\\d*)$",
+        "type": [
+          "integer",
+          "string"
+        ],
+        "format": "int16"
+      },
+      "weight": {
+        "maximum": 1000000,
+        "minimum": 0.0001,
+        "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
+        "type": [
+          "number",
+          "string"
+        ],
+        "format": "double"
+      },
+      "minQuantity": {
+        "maximum": 100000,
+        "minimum": 1,
+        "pattern": "^-?(?:0|[1-9]\\d*)$",
+        "type": [
+          "integer",
+          "string"
+        ],
+        "format": "int32"
+      },
+      "maxQuantity": {
+        "maximum": 100000,
+        "minimum": 1,
+        "pattern": "^-?(?:0|[1-9]\\d*)$",
+        "type": [
+          "integer",
+          "string"
+        ],
+        "format": "int32"
+      }
+    }
+  },
+  "LootTableDto": {
+    "required": [
+      "id",
+      "code",
+      "name",
+      "rollsMin",
+      "rollsMax",
+      "entries",
+      "updatedAt"
+    ],
+    "type": "object",
+    "properties": {
+      "id": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "code": {
+        "type": "string"
+      },
+      "name": {
+        "type": "string"
+      },
+      "rollsMin": {
+        "pattern": "^-?(?:0|[1-9]\\d*)$",
+        "type": [
+          "integer",
+          "string"
+        ],
+        "format": "int32"
+      },
+      "rollsMax": {
+        "pattern": "^-?(?:0|[1-9]\\d*)$",
+        "type": [
+          "integer",
+          "string"
+        ],
+        "format": "int32"
+      },
+      "entries": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/LootEntryDto"
+        }
+      },
+      "updatedAt": {
+        "type": "string",
+        "format": "date-time"
+      }
+    }
+  },
+  "MapDto": {
+    "required": [
+      "id",
+      "code",
+      "name",
+      "sceneKey",
+      "isSafeCamp",
+      "sortOrder",
+      "navGraph",
+      "layout",
+      "enemyPlacements",
+      "lootTables",
+      "updatedAt"
+    ],
+    "type": "object",
+    "properties": {
+      "id": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "code": {
+        "type": "string"
+      },
+      "name": {
+        "type": "string"
+      },
+      "sceneKey": {
+        "type": "string"
+      },
+      "isSafeCamp": {
+        "type": "boolean"
+      },
+      "sortOrder": {
+        "pattern": "^-?(?:0|[1-9]\\d*)$",
+        "type": [
+          "integer",
+          "string"
+        ],
+        "format": "int32"
+      },
+      "navGraph": {
+        "$ref": "#/components/schemas/JsonElement"
+      },
+      "layout": {
+        "$ref": "#/components/schemas/JsonElement"
+      },
+      "enemyPlacements": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/EnemyPlacementDto"
+        }
+      },
+      "lootTables": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/MapLootTableDto"
+        }
+      },
+      "updatedAt": {
+        "type": "string",
+        "format": "date-time"
+      }
+    }
+  },
+  "MapLootTableDto": {
+    "required": [
+      "lootTableCode",
+      "containerTag"
+    ],
+    "type": "object",
+    "properties": {
+      "lootTableCode": {
+        "type": "string"
+      },
+      "containerTag": {
+        "type": "string"
+      }
+    }
+  },
+  "MapLootTableRequest": {
+    "required": [
+      "lootTableCode",
+      "containerTag"
+    ],
+    "type": "object",
+    "properties": {
+      "lootTableCode": {
+        "type": "string"
+      },
+      "containerTag": {
+        "maxLength": 50,
+        "type": "string"
+      }
+    }
+  },
+  "MapSummaryDto": {
+    "required": [
+      "id",
+      "code",
+      "name",
+      "sceneKey",
+      "isSafeCamp",
+      "sortOrder",
+      "enemyCount",
+      "lootTableCount",
+      "updatedAt"
+    ],
+    "type": "object",
+    "properties": {
+      "id": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "code": {
+        "type": "string"
+      },
+      "name": {
+        "type": "string"
+      },
+      "sceneKey": {
+        "type": "string"
+      },
+      "isSafeCamp": {
+        "type": "boolean"
+      },
+      "sortOrder": {
+        "pattern": "^-?(?:0|[1-9]\\d*)$",
+        "type": [
+          "integer",
+          "string"
+        ],
+        "format": "int32"
+      },
+      "enemyCount": {
+        "pattern": "^-?(?:0|[1-9]\\d*)$",
+        "type": [
+          "integer",
+          "string"
+        ],
+        "format": "int32"
+      },
+      "lootTableCount": {
+        "pattern": "^-?(?:0|[1-9]\\d*)$",
+        "type": [
+          "integer",
+          "string"
+        ],
+        "format": "int32"
+      },
+      "updatedAt": {
+        "type": "string",
+        "format": "date-time"
+      }
+    }
+  },
+  "OutcomeShareDto": {
+    "required": [
+      "outcome",
+      "sessions",
+      "share"
+    ],
+    "type": "object",
+    "properties": {
+      "outcome": {
+        "type": "string"
+      },
+      "sessions": {
+        "pattern": "^-?(?:0|[1-9]\\d*)$",
+        "type": [
+          "integer",
+          "string"
+        ],
+        "format": "int64"
+      },
+      "share": {
+        "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?(?:[eE][+-]?\\d+)?$",
+        "type": [
+          "number",
+          "string"
+        ],
+        "format": "double"
+      }
+    }
+  },
+  "OverviewDto": {
+    "required": [
+      "sessions",
+      "players",
+      "unfinishedSessions",
+      "avgDurationSeconds",
+      "medianDurationSeconds",
+      "outcomes",
+      "sessionsPerDay"
+    ],
+    "type": "object",
+    "properties": {
+      "sessions": {
+        "pattern": "^-?(?:0|[1-9]\\d*)$",
+        "type": [
+          "integer",
+          "string"
+        ],
+        "format": "int64"
+      },
+      "players": {
+        "pattern": "^-?(?:0|[1-9]\\d*)$",
+        "type": [
+          "integer",
+          "string"
+        ],
+        "format": "int64"
+      },
+      "unfinishedSessions": {
+        "pattern": "^-?(?:0|[1-9]\\d*)$",
+        "type": [
+          "integer",
+          "string"
+        ],
+        "format": "int64"
+      },
+      "avgDurationSeconds": {
+        "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?(?:[eE][+-]?\\d+)?$",
+        "type": [
+          "null",
+          "number",
+          "string"
+        ],
+        "format": "double"
+      },
+      "medianDurationSeconds": {
+        "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?(?:[eE][+-]?\\d+)?$",
+        "type": [
+          "null",
+          "number",
+          "string"
+        ],
+        "format": "double"
+      },
+      "outcomes": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/OutcomeShareDto"
+        }
+      },
+      "sessionsPerDay": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/DailyCountDto"
+        }
+      }
+    }
+  },
+  "PagedResultOfUserDto": {
+    "required": [
+      "items",
+      "page",
+      "pageSize",
+      "totalCount"
+    ],
+    "type": "object",
+    "properties": {
+      "items": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/UserDto"
+        }
+      },
+      "page": {
+        "pattern": "^-?(?:0|[1-9]\\d*)$",
+        "type": [
+          "integer",
+          "string"
+        ],
+        "format": "int32"
+      },
+      "pageSize": {
+        "pattern": "^-?(?:0|[1-9]\\d*)$",
+        "type": [
+          "integer",
+          "string"
+        ],
+        "format": "int32"
+      },
+      "totalCount": {
+        "pattern": "^-?(?:0|[1-9]\\d*)$",
+        "type": [
+          "integer",
+          "string"
+        ],
+        "format": "int32"
+      },
+      "totalPages": {
+        "pattern": "^-?(?:0|[1-9]\\d*)$",
+        "type": [
+          "integer",
+          "string"
+        ],
+        "format": "int32"
+      }
+    }
+  },
+  "PlaystyleDto": {
+    "required": [
+      "finishedSessions",
+      "sessionsWithoutKills",
+      "avgStealthRatio",
+      "medianStealthRatio",
+      "avgTimesDetected",
+      "medianTimesDetected",
+      "stealthRatioHistogram"
+    ],
+    "type": "object",
+    "properties": {
+      "finishedSessions": {
+        "pattern": "^-?(?:0|[1-9]\\d*)$",
+        "type": [
+          "integer",
+          "string"
+        ],
+        "format": "int64"
+      },
+      "sessionsWithoutKills": {
+        "pattern": "^-?(?:0|[1-9]\\d*)$",
+        "type": [
+          "integer",
+          "string"
+        ],
+        "format": "int64"
+      },
+      "avgStealthRatio": {
+        "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?(?:[eE][+-]?\\d+)?$",
+        "type": [
+          "null",
+          "number",
+          "string"
+        ],
+        "format": "double"
+      },
+      "medianStealthRatio": {
+        "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?(?:[eE][+-]?\\d+)?$",
+        "type": [
+          "null",
+          "number",
+          "string"
+        ],
+        "format": "double"
+      },
+      "avgTimesDetected": {
+        "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?(?:[eE][+-]?\\d+)?$",
+        "type": [
+          "null",
+          "number",
+          "string"
+        ],
+        "format": "double"
+      },
+      "medianTimesDetected": {
+        "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?(?:[eE][+-]?\\d+)?$",
+        "type": [
+          "null",
+          "number",
+          "string"
+        ],
+        "format": "double"
+      },
+      "stealthRatioHistogram": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/HistogramBucketDto"
+        }
+      }
+    }
+  },
+  "ProblemDetails": {
+    "type": "object",
+    "properties": {
+      "type": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "title": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "status": {
+        "pattern": "^-?(?:0|[1-9]\\d*)$",
+        "type": [
+          "null",
+          "integer",
+          "string"
+        ],
+        "format": "int32"
+      },
+      "detail": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "instance": {
+        "type": [
+          "null",
+          "string"
+        ]
+      }
+    }
+  },
+  "PublishContentVersionRequest": {
+    "required": [
+      "revision",
+      "reason"
+    ],
+    "type": "object",
+    "properties": {
+      "revision": {
+        "maximum": 9223372036854776000,
+        "minimum": 0,
+        "pattern": "^-?(?:0|[1-9]\\d*)$",
+        "type": [
+          "null",
+          "integer",
+          "string"
+        ],
+        "format": "int64"
+      },
+      "reason": {
+        "maxLength": 500,
+        "type": "string"
+      }
+    }
+  },
+  "QuestDto": {
+    "required": [
+      "id",
+      "code",
+      "title",
+      "description",
+      "isMain",
+      "sortOrder",
+      "objectives",
+      "prerequisites",
+      "rewardXp",
+      "rewards",
+      "updatedAt"
+    ],
+    "type": "object",
+    "properties": {
+      "id": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "code": {
+        "type": "string"
+      },
+      "title": {
+        "type": "string"
+      },
+      "description": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "isMain": {
+        "type": "boolean"
+      },
+      "sortOrder": {
+        "pattern": "^-?(?:0|[1-9]\\d*)$",
+        "type": [
+          "integer",
+          "string"
+        ],
+        "format": "int32"
+      },
+      "objectives": {
+        "$ref": "#/components/schemas/JsonElement"
+      },
+      "prerequisites": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "rewardXp": {
+        "pattern": "^-?(?:0|[1-9]\\d*)$",
+        "type": [
+          "integer",
+          "string"
+        ],
+        "format": "int32"
+      },
+      "rewards": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/QuestRewardDto"
+        }
+      },
+      "updatedAt": {
+        "type": "string",
+        "format": "date-time"
+      }
+    }
+  },
+  "QuestRewardDto": {
+    "required": [
+      "itemCode",
+      "quantity"
+    ],
+    "type": "object",
+    "properties": {
+      "itemCode": {
+        "type": "string"
+      },
+      "quantity": {
+        "pattern": "^-?(?:0|[1-9]\\d*)$",
+        "type": [
+          "integer",
+          "string"
+        ],
+        "format": "int32"
+      }
+    }
+  },
+  "QuestRewardRequest": {
+    "required": [
+      "itemCode"
+    ],
+    "type": "object",
+    "properties": {
+      "itemCode": {
+        "type": "string"
+      },
+      "quantity": {
+        "maximum": 100000,
+        "minimum": 1,
+        "pattern": "^-?(?:0|[1-9]\\d*)$",
+        "type": [
+          "integer",
+          "string"
+        ],
+        "format": "int32"
+      }
+    }
+  },
+  "RefreshTokenRequest": {
+    "required": [
+      "refreshToken"
+    ],
+    "type": "object",
+    "properties": {
+      "refreshToken": {
+        "type": "string"
+      }
+    }
+  },
+  "ResetPasswordRequest": {
+    "required": [
+      "newPassword"
+    ],
+    "type": "object",
+    "properties": {
+      "newPassword": {
+        "maxLength": 128,
+        "minLength": 8,
+        "type": "string"
+      }
+    }
+  },
+  "ReviewContentVersionRequest": {
+    "required": [
+      "revision"
+    ],
+    "type": "object",
+    "properties": {
+      "revision": {
+        "maximum": 9223372036854776000,
+        "minimum": 0,
+        "pattern": "^-?(?:0|[1-9]\\d*)$",
+        "type": [
+          "null",
+          "integer",
+          "string"
+        ],
+        "format": "int64"
+      },
+      "reviewNote": {
+        "maxLength": 2000,
+        "type": [
+          "null",
+          "string"
+        ]
+      }
+    }
+  },
+  "RollbackContentVersionRequest": {
+    "required": [
+      "revision",
+      "reason"
+    ],
+    "type": "object",
+    "properties": {
+      "revision": {
+        "maximum": 9223372036854776000,
+        "minimum": 0,
+        "pattern": "^-?(?:0|[1-9]\\d*)$",
+        "type": [
+          "null",
+          "integer",
+          "string"
+        ],
+        "format": "int64"
+      },
+      "reason": {
+        "maxLength": 500,
+        "type": "string"
+      }
+    }
+  },
+  "SaveCraftingRecipeRequest": {
+    "required": [
+      "name",
+      "outputItemCode",
+      "station",
+      "ingredients"
+    ],
+    "type": "object",
+    "properties": {
+      "name": {
+        "maxLength": 100,
+        "type": "string"
+      },
+      "outputItemCode": {
+        "type": "string"
+      },
+      "outputQuantity": {
+        "maximum": 100000,
+        "minimum": 1,
+        "pattern": "^-?(?:0|[1-9]\\d*)$",
+        "type": [
+          "integer",
+          "string"
+        ],
+        "format": "int32"
+      },
+      "craftTimeSeconds": {
+        "maximum": 9999,
+        "minimum": 0,
+        "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
+        "type": [
+          "number",
+          "string"
+        ],
+        "format": "double"
+      },
+      "requiredSkillCode": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "requiredSkillLevel": {
+        "maximum": 100,
+        "minimum": 0,
+        "pattern": "^-?(?:0|[1-9]\\d*)$",
+        "type": [
+          "integer",
+          "string"
+        ],
+        "format": "int32"
+      },
+      "station": {
+        "maxLength": 50,
+        "type": "string"
+      },
+      "ingredients": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/IngredientRequest"
+        }
+      }
+    }
+  },
+  "SaveEnemyTypeRequest": {
+    "required": [
+      "name",
+      "archetype"
+    ],
+    "type": "object",
+    "properties": {
+      "name": {
+        "maxLength": 100,
+        "type": "string"
+      },
+      "archetype": {
+        "maxLength": 50,
+        "type": "string"
+      },
+      "isBoss": {
+        "type": "boolean"
+      },
+      "maxHp": {
+        "maximum": 1000000,
+        "minimum": 1,
+        "pattern": "^-?(?:0|[1-9]\\d*)$",
+        "type": [
+          "integer",
+          "string"
+        ],
+        "format": "int32"
+      },
+      "moveSpeed": {
+        "maximum": 100,
+        "minimum": 0,
+        "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
+        "type": [
+          "number",
+          "string"
+        ],
+        "format": "double"
+      },
+      "visionRange": {
+        "maximum": 1000,
+        "minimum": 0,
+        "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
+        "type": [
+          "number",
+          "string"
+        ],
+        "format": "double"
+      },
+      "visionAngleDegrees": {
+        "maximum": 360,
+        "minimum": 1,
+        "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
+        "type": [
+          "number",
+          "string"
+        ],
+        "format": "double"
+      },
+      "hearingRange": {
+        "maximum": 1000,
+        "minimum": 0,
+        "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
+        "type": [
+          "number",
+          "string"
+        ],
+        "format": "double"
+      },
+      "accuracy": {
+        "maximum": 1,
+        "minimum": 0,
+        "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
+        "type": [
+          "number",
+          "string"
+        ],
+        "format": "double"
+      },
+      "weaponItemCode": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "lootTableCode": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "fsmParams": {
+        "oneOf": [
+          {
+            "type": "null"
+          },
+          {
+            "$ref": "#/components/schemas/JsonElement"
+          }
+        ]
+      }
+    }
+  },
+  "SaveItemRequest": {
+    "required": [
+      "name",
+      "type"
+    ],
+    "type": "object",
+    "properties": {
+      "name": {
+        "maxLength": 100,
+        "type": "string"
+      },
+      "description": {
+        "maxLength": 1000,
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "type": {
+        "type": "string"
+      },
+      "rarity": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "maxStack": {
+        "maximum": 100000,
+        "minimum": 1,
+        "pattern": "^-?(?:0|[1-9]\\d*)$",
+        "type": [
+          "integer",
+          "string"
+        ],
+        "format": "int32"
+      },
+      "weight": {
+        "maximum": 9999.99,
+        "minimum": 0,
+        "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
+        "type": [
+          "number",
+          "string"
+        ],
+        "format": "double"
+      },
+      "baseValue": {
+        "maximum": 100000000,
+        "minimum": 0,
+        "pattern": "^-?(?:0|[1-9]\\d*)$",
+        "type": [
+          "integer",
+          "string"
+        ],
+        "format": "int32"
+      },
+      "stats": {
+        "oneOf": [
+          {
+            "type": "null"
+          },
+          {
+            "$ref": "#/components/schemas/JsonElement"
+          }
+        ]
+      },
+      "iconKey": {
+        "maxLength": 200,
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "weapon": {
+        "oneOf": [
+          {
+            "type": "null"
+          },
+          {
+            "$ref": "#/components/schemas/WeaponRequest"
+          }
+        ]
+      },
+      "consumable": {
+        "oneOf": [
+          {
+            "type": "null"
+          },
+          {
+            "$ref": "#/components/schemas/ConsumableRequest"
+          }
+        ]
+      }
+    }
+  },
+  "SaveLootTableRequest": {
+    "required": [
+      "name",
+      "entries"
+    ],
+    "type": "object",
+    "properties": {
+      "name": {
+        "maxLength": 100,
+        "type": "string"
+      },
+      "rollsMin": {
+        "maximum": 100,
+        "minimum": 0,
+        "pattern": "^-?(?:0|[1-9]\\d*)$",
+        "type": [
+          "integer",
+          "string"
+        ],
+        "format": "int32"
+      },
+      "rollsMax": {
+        "maximum": 100,
+        "minimum": 0,
+        "pattern": "^-?(?:0|[1-9]\\d*)$",
+        "type": [
+          "integer",
+          "string"
+        ],
+        "format": "int32"
+      },
+      "entries": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/LootEntryRequest"
+        }
+      }
+    }
+  },
+  "SaveMapRequest": {
+    "required": [
+      "name",
+      "sceneKey"
+    ],
+    "type": "object",
+    "properties": {
+      "name": {
+        "maxLength": 100,
+        "type": "string"
+      },
+      "sceneKey": {
+        "maxLength": 100,
+        "type": "string"
+      },
+      "isSafeCamp": {
+        "type": "boolean"
+      },
+      "sortOrder": {
+        "pattern": "^-?(?:0|[1-9]\\d*)$",
+        "type": [
+          "integer",
+          "string"
+        ],
+        "format": "int32"
+      },
+      "navGraph": {
+        "oneOf": [
+          {
+            "type": "null"
+          },
+          {
+            "$ref": "#/components/schemas/JsonElement"
+          }
+        ]
+      },
+      "layout": {
+        "oneOf": [
+          {
+            "type": "null"
+          },
+          {
+            "$ref": "#/components/schemas/JsonElement"
+          }
+        ]
+      },
+      "enemyPlacements": {
+        "type": [
+          "null",
+          "array"
+        ],
+        "items": {
+          "$ref": "#/components/schemas/EnemyPlacementRequest"
+        }
+      },
+      "lootTables": {
+        "type": [
+          "null",
+          "array"
+        ],
+        "items": {
+          "$ref": "#/components/schemas/MapLootTableRequest"
+        }
+      }
+    }
+  },
+  "SaveQuestRequest": {
+    "required": [
+      "title"
+    ],
+    "type": "object",
+    "properties": {
+      "title": {
+        "maxLength": 200,
+        "type": "string"
+      },
+      "description": {
+        "maxLength": 2000,
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "isMain": {
+        "type": "boolean"
+      },
+      "sortOrder": {
+        "pattern": "^-?(?:0|[1-9]\\d*)$",
+        "type": [
+          "integer",
+          "string"
+        ],
+        "format": "int32"
+      },
+      "objectives": {
+        "oneOf": [
+          {
+            "type": "null"
+          },
+          {
+            "$ref": "#/components/schemas/JsonElement"
+          }
+        ]
+      },
+      "prerequisites": {
+        "type": [
+          "null",
+          "array"
+        ],
+        "items": {
+          "type": "string"
+        }
+      },
+      "rewardXp": {
+        "maximum": 10000000,
+        "minimum": 0,
+        "pattern": "^-?(?:0|[1-9]\\d*)$",
+        "type": [
+          "integer",
+          "string"
+        ],
+        "format": "int32"
+      },
+      "rewards": {
+        "type": [
+          "null",
+          "array"
+        ],
+        "items": {
+          "$ref": "#/components/schemas/QuestRewardRequest"
+        }
+      }
+    }
+  },
+  "SaveSkillRequest": {
+    "required": [
+      "name",
+      "type"
+    ],
+    "type": "object",
+    "properties": {
+      "name": {
+        "maxLength": 100,
+        "type": "string"
+      },
+      "type": {
+        "type": "string"
+      },
+      "maxLevel": {
+        "maximum": 100,
+        "minimum": 1,
+        "pattern": "^-?(?:0|[1-9]\\d*)$",
+        "type": [
+          "integer",
+          "string"
+        ],
+        "format": "int32"
+      },
+      "xpCurve": {
+        "oneOf": [
+          {
+            "type": "null"
+          },
+          {
+            "$ref": "#/components/schemas/JsonElement"
+          }
+        ]
+      },
+      "effects": {
+        "oneOf": [
+          {
+            "type": "null"
+          },
+          {
+            "$ref": "#/components/schemas/JsonElement"
+          }
+        ]
+      }
+    }
+  },
+  "ScalabilityRowDto": {
+    "required": [
+      "configurationId",
+      "code",
+      "family",
+      "numAgents",
+      "nodesFrom",
+      "nodesTo",
+      "replans",
+      "latencyP50Ms",
+      "latencyP95Ms",
+      "avgObjective",
+      "withinBudgetRate"
+    ],
+    "type": "object",
+    "properties": {
+      "configurationId": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "code": {
+        "type": "string"
+      },
+      "family": {
+        "type": "string"
+      },
+      "numAgents": {
+        "pattern": "^-?(?:0|[1-9]\\d*)$",
+        "type": [
+          "integer",
+          "string"
+        ],
+        "format": "int32"
+      },
+      "nodesFrom": {
+        "pattern": "^-?(?:0|[1-9]\\d*)$",
+        "type": [
+          "integer",
+          "string"
+        ],
+        "format": "int32"
+      },
+      "nodesTo": {
+        "pattern": "^-?(?:0|[1-9]\\d*)$",
+        "type": [
+          "integer",
+          "string"
+        ],
+        "format": "int32"
+      },
+      "replans": {
+        "pattern": "^-?(?:0|[1-9]\\d*)$",
+        "type": [
+          "integer",
+          "string"
+        ],
+        "format": "int64"
+      },
+      "latencyP50Ms": {
+        "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?(?:[eE][+-]?\\d+)?$",
+        "type": [
+          "null",
+          "number",
+          "string"
+        ],
+        "format": "double"
+      },
+      "latencyP95Ms": {
+        "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?(?:[eE][+-]?\\d+)?$",
+        "type": [
+          "null",
+          "number",
+          "string"
+        ],
+        "format": "double"
+      },
+      "avgObjective": {
+        "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?(?:[eE][+-]?\\d+)?$",
+        "type": [
+          "null",
+          "number",
+          "string"
+        ],
+        "format": "double"
+      },
+      "withinBudgetRate": {
+        "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?(?:[eE][+-]?\\d+)?$",
+        "type": [
+          "null",
+          "number",
+          "string"
+        ],
+        "format": "double"
+      }
+    }
+  },
+  "SessionStats": {
+    "type": "object",
+    "properties": {
+      "eventCounts": {
+        "type": "object",
+        "additionalProperties": {
+          "pattern": "^-?(?:0|[1-9]\\d*)$",
+          "type": [
+            "integer",
+            "string"
+          ],
+          "format": "int32"
+        }
+      },
+      "shotsByWeapon": {
+        "type": "object",
+        "additionalProperties": {
+          "pattern": "^-?(?:0|[1-9]\\d*)$",
+          "type": [
+            "integer",
+            "string"
+          ],
+          "format": "int32"
+        }
+      },
+      "killsByWeapon": {
+        "type": "object",
+        "additionalProperties": {
+          "pattern": "^-?(?:0|[1-9]\\d*)$",
+          "type": [
+            "integer",
+            "string"
+          ],
+          "format": "int32"
+        }
+      },
+      "takedowns": {
+        "pattern": "^-?(?:0|[1-9]\\d*)$",
+        "type": [
+          "integer",
+          "string"
+        ],
+        "format": "int32"
+      },
+      "weaponKills": {
+        "pattern": "^-?(?:0|[1-9]\\d*)$",
+        "type": [
+          "integer",
+          "string"
+        ],
+        "format": "int32"
+      },
+      "timesDetected": {
+        "pattern": "^-?(?:0|[1-9]\\d*)$",
+        "type": [
+          "integer",
+          "string"
+        ],
+        "format": "int32"
+      },
+      "eventsDropped": {
+        "pattern": "^-?(?:0|[1-9]\\d*)$",
+        "type": [
+          "integer",
+          "string"
+        ],
+        "format": "int32"
+      },
+      "encounters": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/EncounterStats"
+        }
+      }
+    }
+  },
+  "SessionUpload": {
+    "type": "object",
+    "properties": {
+      "installId": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "source": {
+        "type": "string"
+      },
+      "contentVersionId": {
+        "type": [
+          "null",
+          "string"
+        ],
+        "format": "uuid"
+      },
+      "mapCode": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "clientVersion": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "platform": {
+        "type": "string"
+      },
+      "startedAt": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "endedAt": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "outcome": {
+        "type": "string"
+      },
+      "stats": {
+        "oneOf": [
+          {
+            "type": "null"
+          },
+          {
+            "$ref": "#/components/schemas/SessionStats"
+          }
+        ]
+      },
+      "events": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/TelemetryEventDto"
+        }
+      },
+      "coordinationResults": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/CoordinationResultDto"
+        }
+      }
+    }
+  },
+  "SessionUploadResponse": {
+    "type": "object",
+    "properties": {
+      "events": {
+        "$ref": "#/components/schemas/ItemCounts"
+      },
+      "coordinationResults": {
+        "$ref": "#/components/schemas/ItemCounts"
+      }
+    }
+  },
+  "SetSolverConfigurationActiveRequest": {
+    "type": "object",
+    "properties": {
+      "isActive": {
+        "type": "boolean"
+      }
+    }
+  },
+  "SkillDto": {
+    "required": [
+      "id",
+      "code",
+      "name",
+      "type",
+      "maxLevel",
+      "xpCurve",
+      "effects",
+      "updatedAt"
+    ],
+    "type": "object",
+    "properties": {
+      "id": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "code": {
+        "type": "string"
+      },
+      "name": {
+        "type": "string"
+      },
+      "type": {
+        "type": "string"
+      },
+      "maxLevel": {
+        "pattern": "^-?(?:0|[1-9]\\d*)$",
+        "type": [
+          "integer",
+          "string"
+        ],
+        "format": "int32"
+      },
+      "xpCurve": {
+        "$ref": "#/components/schemas/JsonElement"
+      },
+      "effects": {
+        "$ref": "#/components/schemas/JsonElement"
+      },
+      "updatedAt": {
+        "type": "string",
+        "format": "date-time"
+      }
+    }
+  },
+  "SolverConfigurationDto": {
+    "required": [
+      "id",
+      "code",
+      "name",
+      "algorithm",
+      "family",
+      "variant",
+      "library",
+      "params",
+      "quboWeights",
+      "timeBudgetMs",
+      "isActive",
+      "isAbArm",
+      "sessionCount",
+      "resultCount",
+      "createdAt",
+      "updatedAt"
+    ],
+    "type": "object",
+    "properties": {
+      "id": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "code": {
+        "type": "string"
+      },
+      "name": {
+        "type": "string"
+      },
+      "algorithm": {
+        "type": "string"
+      },
+      "family": {
+        "type": "string"
+      },
+      "variant": {
+        "type": "string"
+      },
+      "library": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "params": {
+        "$ref": "#/components/schemas/JsonElement"
+      },
+      "quboWeights": {
+        "$ref": "#/components/schemas/JsonElement"
+      },
+      "timeBudgetMs": {
+        "pattern": "^-?(?:0|[1-9]\\d*)$",
+        "type": [
+          "integer",
+          "string"
+        ],
+        "format": "int32"
+      },
+      "isActive": {
+        "type": "boolean"
+      },
+      "isAbArm": {
+        "type": "boolean"
+      },
+      "sessionCount": {
+        "pattern": "^-?(?:0|[1-9]\\d*)$",
+        "type": [
+          "integer",
+          "string"
+        ],
+        "format": "int32"
+      },
+      "resultCount": {
+        "pattern": "^-?(?:0|[1-9]\\d*)$",
+        "type": [
+          "integer",
+          "string"
+        ],
+        "format": "int32"
+      },
+      "createdAt": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "updatedAt": {
+        "type": "string",
+        "format": "date-time"
+      }
+    }
+  },
+  "StartSessionRequest": {
+    "type": "object",
+    "properties": {
+      "sessionId": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "installId": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "source": {
+        "type": "string"
+      },
+      "requestedVariant": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "contentVersionId": {
+        "type": [
+          "null",
+          "string"
+        ],
+        "format": "uuid"
+      },
+      "mapCode": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "clientVersion": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "platform": {
+        "type": "string"
+      },
+      "startedAt": {
+        "type": "string",
+        "format": "date-time"
+      }
+    }
+  },
+  "StartSessionResponse": {
+    "type": "object",
+    "properties": {
+      "solver": {
+        "oneOf": [
+          {
+            "type": "null"
+          },
+          {
+            "$ref": "#/components/schemas/AssignedSolver"
+          }
+        ]
+      }
+    }
+  },
+  "SubmitContentVersionRequest": {
+    "required": [
+      "revision"
+    ],
+    "type": "object",
+    "properties": {
+      "revision": {
+        "maximum": 9223372036854776000,
+        "minimum": 0,
+        "pattern": "^-?(?:0|[1-9]\\d*)$",
+        "type": [
+          "null",
+          "integer",
+          "string"
+        ],
+        "format": "int64"
+      }
+    }
+  },
+  "TelemetryEventDto": {
+    "type": "object",
+    "properties": {
+      "clientEventId": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "eventType": {
+        "type": "string"
+      },
+      "occurredAt": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "mapCode": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "posX": {
+        "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?(?:[eE][+-]?\\d+)?$",
+        "type": [
+          "null",
+          "number",
+          "string"
+        ],
+        "format": "float"
+      },
+      "posY": {
+        "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?(?:[eE][+-]?\\d+)?$",
+        "type": [
+          "null",
+          "number",
+          "string"
+        ],
+        "format": "float"
+      },
+      "payload": {
+        "type": [
+          "null",
+          "object"
+        ]
+      }
+    }
+  },
+  "UpdateContentVersionRequest": {
+    "required": [
+      "label",
+      "schemaVersion",
+      "revision"
+    ],
+    "type": "object",
+    "properties": {
+      "label": {
+        "maxLength": 200,
+        "type": "string"
+      },
+      "changelog": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "schemaVersion": {
+        "maxLength": 20,
+        "type": "string"
+      },
+      "revision": {
+        "maximum": 9223372036854776000,
+        "minimum": 0,
+        "pattern": "^-?(?:0|[1-9]\\d*)$",
+        "type": [
+          "null",
+          "integer",
+          "string"
+        ],
+        "format": "int64"
+      }
+    }
+  },
+  "UpdateSolverConfigurationRequest": {
+    "required": [
+      "name"
+    ],
+    "type": "object",
+    "properties": {
+      "name": {
+        "maxLength": 100,
+        "type": "string"
+      },
+      "library": {
+        "maxLength": 50,
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "params": {
+        "type": [
+          "null",
+          "object"
+        ]
+      },
+      "quboWeights": {
+        "type": [
+          "null",
+          "object"
+        ]
+      },
+      "timeBudgetMs": {
+        "maximum": 10000,
+        "minimum": 1,
+        "pattern": "^-?(?:0|[1-9]\\d*)$",
+        "type": [
+          "integer",
+          "string"
+        ],
+        "format": "int32"
+      }
+    }
+  },
+  "UpdateUserRequest": {
+    "required": [
+      "email",
+      "role",
+      "isActive"
+    ],
+    "type": "object",
+    "properties": {
+      "email": {
+        "maxLength": 256,
+        "type": "string"
+      },
+      "fullName": {
+        "maxLength": 100,
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "role": {
+        "type": "string"
+      },
+      "isActive": {
+        "type": [
+          "null",
+          "boolean"
+        ]
+      }
+    }
+  },
+  "UserDto": {
+    "required": [
+      "id",
+      "username",
+      "email",
+      "fullName",
+      "role",
+      "isActive",
+      "lastLoginAt",
+      "createdAt"
+    ],
+    "type": "object",
+    "properties": {
+      "id": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "username": {
+        "type": "string"
+      },
+      "email": {
+        "type": "string"
+      },
+      "fullName": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "role": {
+        "type": "string"
+      },
+      "isActive": {
+        "type": "boolean"
+      },
+      "lastLoginAt": {
+        "type": [
+          "null",
+          "string"
+        ],
+        "format": "date-time"
+      },
+      "createdAt": {
+        "type": "string",
+        "format": "date-time"
+      }
+    }
+  },
+  "ValidateContentVersionRequest": {
+    "required": [
+      "revision"
+    ],
+    "type": "object",
+    "properties": {
+      "revision": {
+        "maximum": 9223372036854776000,
+        "minimum": 0,
+        "pattern": "^-?(?:0|[1-9]\\d*)$",
+        "type": [
+          "null",
+          "integer",
+          "string"
+        ],
+        "format": "int64"
+      }
+    }
+  },
+  "VersionComparisonDto": {
+    "required": [
+      "a",
+      "b"
+    ],
+    "type": "object",
+    "properties": {
+      "a": {
+        "$ref": "#/components/schemas/VersionSnapshotDto"
+      },
+      "b": {
+        "$ref": "#/components/schemas/VersionSnapshotDto"
+      }
+    }
+  },
+  "VersionSnapshotDto": {
+    "required": [
+      "contentVersionId",
+      "overview",
+      "funnel",
+      "weapons"
+    ],
+    "type": "object",
+    "properties": {
+      "contentVersionId": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "overview": {
+        "$ref": "#/components/schemas/OverviewDto"
+      },
+      "funnel": {
+        "$ref": "#/components/schemas/FunnelDto"
+      },
+      "weapons": {
+        "$ref": "#/components/schemas/WeaponUsageDto"
+      }
+    }
+  },
+  "WeaponDto": {
+    "required": [
+      "weapon",
+      "shots",
+      "kills",
+      "killsPerShot",
+      "sessionsUsed",
+      "sessionShare"
+    ],
+    "type": "object",
+    "properties": {
+      "weapon": {
+        "type": "string"
+      },
+      "shots": {
+        "pattern": "^-?(?:0|[1-9]\\d*)$",
+        "type": [
+          "integer",
+          "string"
+        ],
+        "format": "int64"
+      },
+      "kills": {
+        "pattern": "^-?(?:0|[1-9]\\d*)$",
+        "type": [
+          "integer",
+          "string"
+        ],
+        "format": "int64"
+      },
+      "killsPerShot": {
+        "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?(?:[eE][+-]?\\d+)?$",
+        "type": [
+          "null",
+          "number",
+          "string"
+        ],
+        "format": "double"
+      },
+      "sessionsUsed": {
+        "pattern": "^-?(?:0|[1-9]\\d*)$",
+        "type": [
+          "integer",
+          "string"
+        ],
+        "format": "int64"
+      },
+      "sessionShare": {
+        "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?(?:[eE][+-]?\\d+)?$",
+        "type": [
+          "null",
+          "number",
+          "string"
+        ],
+        "format": "double"
+      }
+    }
+  },
+  "WeaponRequest": {
+    "required": [
+      "class"
+    ],
+    "type": "object",
+    "properties": {
+      "class": {
+        "type": "string"
+      },
+      "damage": {
+        "maximum": 99999,
+        "minimum": 0.01,
+        "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
+        "type": [
+          "number",
+          "string"
+        ],
+        "format": "double"
+      },
+      "fireRate": {
+        "maximum": 9999,
+        "minimum": 0.01,
+        "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
+        "type": [
+          "number",
+          "string"
+        ],
+        "format": "double"
+      },
+      "effectiveRange": {
+        "maximum": 9999,
+        "minimum": 0,
+        "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
+        "type": [
+          "number",
+          "string"
+        ],
+        "format": "double"
+      },
+      "magazineSize": {
+        "maximum": 10000,
+        "minimum": 1,
+        "pattern": "^-?(?:0|[1-9]\\d*)$",
+        "type": [
+          "null",
+          "integer",
+          "string"
+        ],
+        "format": "int32"
+      },
+      "reloadTimeSeconds": {
+        "maximum": 999,
+        "minimum": 0,
+        "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
+        "type": [
+          "null",
+          "number",
+          "string"
+        ],
+        "format": "double"
+      },
+      "ammoItemCode": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "maxDurability": {
+        "maximum": 1000000,
+        "minimum": 1,
+        "pattern": "^-?(?:0|[1-9]\\d*)$",
+        "type": [
+          "integer",
+          "string"
+        ],
+        "format": "int32"
+      },
+      "durabilityPerUse": {
+        "maximum": 1000,
+        "minimum": 0,
+        "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
+        "type": [
+          "number",
+          "string"
+        ],
+        "format": "double"
+      },
+      "noiseRadius": {
+        "maximum": 9999,
+        "minimum": 0,
+        "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
+        "type": [
+          "number",
+          "string"
+        ],
+        "format": "double"
+      },
+      "isSuppressed": {
+        "type": "boolean"
+      }
+    }
+  },
+  "WeaponUsageDto": {
+    "required": [
+      "finishedSessions",
+      "weapons"
+    ],
+    "type": "object",
+    "properties": {
+      "finishedSessions": {
+        "pattern": "^-?(?:0|[1-9]\\d*)$",
+        "type": [
+          "integer",
+          "string"
+        ],
+        "format": "int64"
+      },
+      "weapons": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/WeaponDto"
+        }
+      }
+    }
+  },
+  "ContentVersionDto": {
+    "type": "object",
+    "properties": {
+      "id": {
+        "type": "string"
+      },
+      "versionNo": {
+        "type": "integer"
+      },
+      "label": {
+        "type": "string"
+      },
+      "changelog": {
+        "oneOf": [
+          {
+            "type": "null"
+          },
+          {
+            "type": "string"
+          }
+        ]
+      },
+      "parentVersionId": {
+        "oneOf": [
+          {
+            "type": "null"
+          },
+          {
+            "type": "string"
+          }
+        ]
+      },
+      "status": {
+        "type": "string"
+      },
+      "revision": {
+        "type": "integer"
+      },
+      "schemaVersion": {
+        "type": "string"
+      },
+      "authoredById": {
+        "type": "string"
+      },
+      "createdAt": {
+        "type": "string"
+      },
+      "updatedAt": {
+        "type": "string"
+      },
+      "validatedAt": {
+        "oneOf": [
+          {
+            "type": "null"
+          },
+          {
+            "type": "string"
+          }
+        ]
+      },
+      "bundleChecksum": {
+        "oneOf": [
+          {
+            "type": "null"
+          },
+          {
+            "type": "string"
+          }
+        ]
+      },
+      "validationErrors": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/ContentValidationIssue"
+        }
+      },
+      "submittedAt": {
+        "oneOf": [
+          {
+            "type": "null"
+          },
+          {
+            "type": "string"
+          }
+        ]
+      },
+      "reviewedById": {
+        "oneOf": [
+          {
+            "type": "null"
+          },
+          {
+            "type": "string"
+          }
+        ]
+      },
+      "reviewedAt": {
+        "oneOf": [
+          {
+            "type": "null"
+          },
+          {
+            "type": "string"
+          }
+        ]
+      },
+      "reviewNote": {
+        "oneOf": [
+          {
+            "type": "null"
+          },
+          {
+            "type": "string"
+          }
+        ]
+      },
+      "publishedById": {
+        "oneOf": [
+          {
+            "type": "null"
+          },
+          {
+            "type": "string"
+          }
+        ]
+      },
+      "publishedAt": {
+        "oneOf": [
+          {
+            "type": "null"
+          },
+          {
+            "type": "string"
+          }
+        ]
+      }
+    },
+    "required": [
+      "id",
+      "versionNo",
+      "label",
+      "changelog",
+      "parentVersionId",
+      "status",
+      "revision",
+      "schemaVersion",
+      "authoredById",
+      "createdAt",
+      "updatedAt",
+      "validatedAt",
+      "bundleChecksum",
+      "validationErrors",
+      "submittedAt",
+      "reviewedById",
+      "reviewedAt",
+      "reviewNote",
+      "publishedById",
+      "publishedAt"
+    ]
+  },
+  "ContentVersionDetailsDto": {
+    "type": "object",
+    "properties": {
+      "version": {
+        "$ref": "#/components/schemas/ContentVersionDto"
+      },
+      "bundle": {
+        "$ref": "#/components/schemas/JsonElement"
+      }
+    },
+    "required": [
+      "version",
+      "bundle"
+    ]
+  },
+  "ContentValidationIssue": {
+    "type": "object",
+    "properties": {
+      "path": {
+        "type": "string"
+      },
+      "message": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "path",
+      "message"
+    ]
+  },
+  "ContentValidationResultDto": {
+    "type": "object",
+    "properties": {
+      "id": {
+        "type": "string"
+      },
+      "revision": {
+        "type": "integer"
+      },
+      "isValid": {
+        "type": "boolean"
+      },
+      "validatedAt": {
+        "type": "string"
+      },
+      "bundleChecksum": {
+        "oneOf": [
+          {
+            "type": "null"
+          },
+          {
+            "type": "string"
+          }
+        ]
+      },
+      "errors": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/ContentValidationIssue"
+        }
+      }
+    },
+    "required": [
+      "id",
+      "revision",
+      "isValid",
+      "validatedAt",
+      "bundleChecksum",
+      "errors"
+    ]
+  },
+  "ContentDifferenceDto": {
+    "type": "object",
+    "properties": {
+      "path": {
+        "type": "string"
+      },
+      "before": {
+        "oneOf": [
+          {
+            "type": "null"
+          },
+          {
+            "$ref": "#/components/schemas/JsonElement"
+          }
+        ]
+      },
+      "after": {
+        "oneOf": [
+          {
+            "type": "null"
+          },
+          {
+            "$ref": "#/components/schemas/JsonElement"
+          }
+        ]
+      }
+    },
+    "required": [
+      "path",
+      "before",
+      "after"
+    ]
+  },
+  "ContentComparisonDto": {
+    "type": "object",
+    "properties": {
+      "sourceId": {
+        "type": "string"
+      },
+      "sourceRevision": {
+        "type": "integer"
+      },
+      "targetId": {
+        "type": "string"
+      },
+      "targetRevision": {
+        "type": "integer"
+      },
+      "differences": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/ContentDifferenceDto"
+        }
+      }
+    },
+    "required": [
+      "sourceId",
+      "sourceRevision",
+      "targetId",
+      "targetRevision",
+      "differences"
+    ]
+  },
+  "ContentPublicationDto": {
+    "type": "object",
+    "properties": {
+      "id": {
+        "type": "string"
+      },
+      "contentVersionId": {
+        "type": "string"
+      },
+      "previousVersionId": {
+        "oneOf": [
+          {
+            "type": "null"
+          },
+          {
+            "type": "string"
+          }
+        ]
+      },
+      "action": {
+        "type": "string"
+      },
+      "actorId": {
+        "oneOf": [
+          {
+            "type": "null"
+          },
+          {
+            "type": "string"
+          }
+        ]
+      },
+      "reason": {
+        "type": "string"
+      },
+      "createdAt": {
+        "type": "string"
+      },
+      "versionNo": {
+        "oneOf": [
+          {
+            "type": "null"
+          },
+          {
+            "type": "integer"
+          }
+        ]
+      },
+      "versionLabel": {
+        "oneOf": [
+          {
+            "type": "null"
+          },
+          {
+            "type": "string"
+          }
+        ]
+      },
+      "previousVersionNo": {
+        "oneOf": [
+          {
+            "type": "null"
+          },
+          {
+            "type": "integer"
+          }
+        ]
+      },
+      "actorUsername": {
+        "oneOf": [
+          {
+            "type": "null"
+          },
+          {
+            "type": "string"
+          }
+        ]
+      }
+    },
+    "required": [
+      "id",
+      "contentVersionId",
+      "previousVersionId",
+      "action",
+      "actorId",
+      "reason",
+      "createdAt",
+      "versionNo",
+      "versionLabel",
+      "previousVersionNo",
+      "actorUsername"
+    ]
+  },
+  "AuthoringWeaponDto": {
+    "required": [
+      "class",
+      "damage",
+      "fireRate",
+      "effectiveRange",
+      "magazineSize",
+      "reloadTimeSeconds",
+      "ammoItemCode",
+      "maxDurability",
+      "durabilityPerUse",
+      "noiseRadius",
+      "isSuppressed"
+    ],
+    "type": "object",
+    "properties": {
+      "class": {
+        "type": "string"
+      },
+      "damage": {
+        "maximum": 99999,
+        "minimum": 0.01,
+        "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
+        "type": [
+          "number",
+          "string"
+        ],
+        "format": "double"
+      },
+      "fireRate": {
+        "maximum": 9999,
+        "minimum": 0.01,
+        "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
+        "type": [
+          "number",
+          "string"
+        ],
+        "format": "double"
+      },
+      "effectiveRange": {
+        "maximum": 9999,
+        "minimum": 0,
+        "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
+        "type": [
+          "number",
+          "string"
+        ],
+        "format": "double"
+      },
+      "magazineSize": {
+        "maximum": 10000,
+        "minimum": 1,
+        "pattern": "^-?(?:0|[1-9]\\d*)$",
+        "type": [
+          "null",
+          "integer",
+          "string"
+        ],
+        "format": "int32"
+      },
+      "reloadTimeSeconds": {
+        "maximum": 999,
+        "minimum": 0,
+        "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
+        "type": [
+          "null",
+          "number",
+          "string"
+        ],
+        "format": "double"
+      },
+      "ammoItemCode": {
+        "type": [
+          "null",
+          "string"
+        ]
+      },
+      "maxDurability": {
+        "maximum": 1000000,
+        "minimum": 1,
+        "pattern": "^-?(?:0|[1-9]\\d*)$",
+        "type": [
+          "integer",
+          "string"
+        ],
+        "format": "int32"
+      },
+      "durabilityPerUse": {
+        "maximum": 1000,
+        "minimum": 0,
+        "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
+        "type": [
+          "number",
+          "string"
+        ],
+        "format": "double"
+      },
+      "noiseRadius": {
+        "maximum": 9999,
+        "minimum": 0,
+        "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
+        "type": [
+          "number",
+          "string"
+        ],
+        "format": "double"
+      },
+      "isSuppressed": {
+        "type": "boolean"
+      }
+    }
+  }
+}

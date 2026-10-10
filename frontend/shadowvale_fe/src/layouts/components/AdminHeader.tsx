@@ -1,3 +1,4 @@
+import { useTranslation } from '../../features/preferences/preferencesContext';
 import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
@@ -8,6 +9,7 @@ interface AdminHeaderProps {
 }
 
 export const AdminHeader: React.FC<AdminHeaderProps> = ({ onToggleSidebar }) => {
+  const t = useTranslation();
   const { user, logout } = useAuth();
   const { success } = useToast();
   const location = useLocation();
@@ -36,14 +38,13 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({ onToggleSidebar }) => 
         <button
           onClick={onToggleSidebar}
           className="lg:hidden text-on-surface-variant hover:text-on-surface p-1 rounded"
-          aria-label="Toggle navigation menu"
+          aria-label={t("Toggle navigation menu")}
         >
           <span className="material-symbols-outlined text-2xl">menu</span>
         </button>
 
         <Link to="/admin/dashboard" className="font-display-lg text-lg sm:text-display-lg font-bold text-primary tracking-tight">
-          ShadowVale
-        </Link>
+          {t("ShadowVale")}</Link>
 
         <nav className="hidden md:flex gap-6">
           {navLinks.map((item) => {
@@ -70,16 +71,15 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({ onToggleSidebar }) => 
           to="/admin/system"
           className="font-label-caps text-label-caps text-on-surface-variant hover:text-primary transition-colors border border-outline-variant px-2.5 sm:px-3 py-1.5 rounded hidden sm:inline-block"
         >
-          System Status
-        </Link>
+          {t("System Status")}</Link>
 
         <button
           onClick={handleDeploy}
           className="font-label-caps text-label-caps bg-primary text-on-primary hover:bg-primary-container hover:text-on-primary-container transition-colors px-3 sm:px-4 py-1.5 rounded flex items-center gap-1.5 sm:gap-2 text-xs"
         >
           <span className="material-symbols-outlined text-[16px]">cloud_upload</span>
-          <span className="hidden sm:inline">Deploy Build</span>
-          <span className="sm:hidden">Deploy</span>
+          <span className="hidden sm:inline">{t("Deploy Build")}</span>
+          <span className="sm:hidden">{t("Deploy")}</span>
         </button>
 
         {/* User profile dropdown/badge */}
@@ -87,7 +87,7 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({ onToggleSidebar }) => 
           <Link
             to="/profile"
             className="flex items-center gap-2 hover:opacity-80 transition-opacity"
-            title="Profile Dossier"
+            title={t("Profile Dossier")}
           >
             <div className="w-8 h-8 rounded bg-primary/20 border border-primary/40 flex items-center justify-center font-data-mono text-xs text-primary font-bold">
               {user?.callsign ? user.callsign.substring(0, 2).toUpperCase() : 'OP'}
@@ -95,7 +95,7 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({ onToggleSidebar }) => 
           </Link>
           <button
             onClick={handleLogout}
-            title="Sign Out"
+            title={t("Sign Out")}
             className="text-on-surface-variant hover:text-error p-1 transition-colors"
           >
             <span className="material-symbols-outlined text-lg">logout</span>

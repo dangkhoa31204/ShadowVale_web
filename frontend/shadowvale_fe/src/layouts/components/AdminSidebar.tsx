@@ -1,3 +1,4 @@
+import { useTranslation } from '../../features/preferences/preferencesContext';
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 
@@ -7,6 +8,7 @@ interface AdminSidebarProps {
 }
 
 export const AdminSidebar: React.FC<AdminSidebarProps> = ({ isOpen, onClose }) => {
+  const t = useTranslation();
   const location = useLocation();
 
   const mainNav = [
@@ -42,16 +44,14 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ isOpen, onClose }) =
         {/* Header */}
         <div className="mb-stack-lg px-2 pt-2 flex items-start justify-between">
           <div>
-            <h2 className="font-title-sm text-title-sm text-on-surface">Command Center</h2>
+            <h2 className="font-title-sm text-title-sm text-on-surface">{t("Command Center")}</h2>
             <div className="flex items-center gap-2 mt-1 opacity-70">
               <span className="material-symbols-outlined text-[14px]">admin_panel_settings</span>
               <span className="font-label-caps text-label-caps text-on-surface-variant">
-                System Administrator
-              </span>
+                {t("System Administrator")}</span>
             </div>
             <div className="mt-3 font-data-mono text-[11px] text-primary">
-              V0.4.2-STABLE // ONLINE
-            </div>
+              {t("V0.4.2-STABLE // ONLINE")}</div>
           </div>
 
           {/* Close button on mobile */}
@@ -65,8 +65,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ isOpen, onClose }) =
 
         {/* Section: Core Navigation */}
         <div className="text-[10px] font-label-caps uppercase text-on-surface-variant/60 px-3 mb-1">
-          Tactical Modules
-        </div>
+          {t("Tactical Modules")}</div>
         <div className="flex flex-col gap-1 flex-1 overflow-y-auto">
           {mainNav.map((item) => {
             const isActive =
@@ -90,8 +89,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ isOpen, onClose }) =
           })}
 
           <div className="text-[10px] font-label-caps uppercase text-on-surface-variant/60 px-3 mt-4 mb-1">
-            Governance & Ops
-          </div>
+            {t("Governance & Ops")}</div>
           {systemNav.map((item) => {
             const isActive = location.pathname.startsWith(item.to);
             return (
@@ -120,16 +118,14 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ isOpen, onClose }) =
             className="flex items-center gap-3 px-3 py-2 rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all duration-150 font-label-caps text-label-caps"
           >
             <span className="material-symbols-outlined text-[18px]">account_circle</span>
-            Operative Profile
-          </Link>
+            {t("Operative Profile")}</Link>
           <Link
             to="/"
             onClick={onClose}
             className="flex items-center gap-3 px-3 py-2 rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all duration-150 font-label-caps text-label-caps"
           >
             <span className="material-symbols-outlined text-[18px]">home</span>
-            Public Portal
-          </Link>
+            {t("Public Portal")}</Link>
         </div>
       </nav>
     </>

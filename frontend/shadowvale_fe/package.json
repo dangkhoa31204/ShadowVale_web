@@ -8,7 +8,8 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "test": "node --experimental-strip-types --test tests/workflow.test.ts tests/gameDelivery.test.ts tests/numericControl.test.ts"
+    "test": "node --experimental-strip-types --test tests/workflow.test.ts tests/gameDelivery.test.ts tests/numericControl.test.ts tests/apiIntegration.test.mjs",
+    "sync:api": "node scripts/sync-api-contract.mjs"
   },
   "dependencies": {
     "@tailwindcss/forms": "^0.5.11",

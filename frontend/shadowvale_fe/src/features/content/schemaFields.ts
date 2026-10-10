@@ -3,7 +3,7 @@ export interface FieldDefinition {
   key: string; label: string; type: 'text' | 'number' | 'boolean' | 'enum' | 'reference' | 'json' | 'string-array';
   required?: boolean; nullable?: boolean; readOnly?: boolean; defaultValue?: JsonValue;
   min?: number; max?: number; step?: number; sliderMin?: number; sliderMax?: number; unit?: string;
-  options?: string[]; pattern?: string; jsonType?: 'object' | 'array';
+  options?: string[]; pattern?: string; maxLength?: number; jsonType?: 'object' | 'array';
   reference?: { collection: CollectionKey; valueField?: string; filter?: { field: string; value: JsonValue } };
 }
 /** DB bounds are separate from the shorter practical range shown by sliders. */
