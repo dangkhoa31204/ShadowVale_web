@@ -18,10 +18,12 @@
 
   <ItemGroup>
     <Using Include="Xunit" />
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\ShadowVale.BLL\ShadowVale.BLL.csproj" />
+    <ProjectReference Include="..\..\ShadowVale.API\ShadowVale.API.csproj" />
   </ItemGroup>
 
   <ItemGroup>
