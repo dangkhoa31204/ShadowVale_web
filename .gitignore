@@ -1,0 +1,2 @@
+# Local secrets (see backend/shadowvale_be/.env.example)
+.env

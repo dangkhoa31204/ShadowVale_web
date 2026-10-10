@@ -202,7 +202,15 @@ có thay đổi trong `backend/**`, và lưu kết quả test (`.trx`) cùng cov
 
 ## Cài đặt lần đầu
 
-Secret không commit lên git, mỗi người tự đặt bằng user-secrets:
+Secret không commit lên git. Có hai cách đặt, chọn một.
+
+**Cách 1: file `.env` (dễ chia sẻ trong nhóm).** Copy `.env.example` thành `.env` rồi điền giá trị thật, hoặc xin file
+`.env` của người trong nhóm. Lúc khởi động, API tìm `.env` ở thư mục đang chạy rồi lần lượt lên các thư mục cha, nên file
+có thể đặt ở `backend/shadowvale_be`, ở gốc repo, hoặc bên ngoài repo. Tên biến là key cấu hình với `:` viết thành `__`
+(ví dụ `ConnectionStrings__Default`). Biến môi trường thật luôn được ưu tiên hơn `.env`, và `.env` được ưu tiên hơn
+user-secrets. Chỉ gửi file này qua kênh riêng tư, không dán vào chat chung hay commit.
+
+**Cách 2: user-secrets** (mỗi người tự đặt trên máy mình):
 
 ```bash
 cd backend/shadowvale_be
