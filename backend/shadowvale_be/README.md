@@ -18,6 +18,30 @@ Tham chiếu: `API → BLL → DAL`; API và BLL → `Contracts`. API chỉ gọ
 Contracts nhắm netstandard2.1 / C# 9 để Unity dùng được: viết class thường với `{ get; set; }`, không dùng `record`/`init`.
 Phía Unity đọc JSON bằng Newtonsoft (`com.unity.nuget.newtonsoft-json`), vì `JsonUtility` không đọc được property.
 
+## Scalar trên Render / Production
+
+Scalar và OpenAPI mặc định chỉ mở ở Development. Để mở tài liệu trên Render mà
+vẫn giữ môi trường Production, thêm biến môi trường `OpenApi__Enabled=true`,
+rồi deploy commit có hỗ trợ cấu hình này.
+
+```env
+ASPNETCORE_ENVIRONMENT=Production
+OpenApi__Enabled=true
+```
+
+Trang tài liệu: `/scalar` (hoặc `/scalar/v1`); OpenAPI: `/openapi/v1.json`.
+Đặt `OpenApi__Enabled=false` hoặc bỏ biến để tắt tài liệu trong Production.
+Quyền JWT/API key của các endpoint vẫn được giữ nguyên; cấu hình này chỉ mở tài liệu.
+
+Render Docker dùng Root Directory `backend/shadowvale_be`, Dockerfile Path
+`./Dockerfile`, Docker Build Context Directory `.` và `PORT=8080`.
+Health Check Path: `/health`. Chọn branch chứa commit sửa BE khi deploy;
+không đưa chuỗi DB, JWT key hoặc Game API key vào repository.
+
+Commit thuộc toàn bộ repository (BE và FE); Root Directory chỉ giới hạn nguồn
+build/chạy của dịch vụ BE. Render tự động deploy khi có thay đổi trong root này.
+Tham khảo [Render monorepo support](https://render.com/docs/monorepo-support).
+
 ## Xử lý lỗi
 
 Controller **không viết try/catch**. Service trong BLL ném exception ở `BLL/Exceptions`, rồi

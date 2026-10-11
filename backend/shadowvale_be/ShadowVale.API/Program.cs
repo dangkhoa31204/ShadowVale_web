@@ -182,8 +182,8 @@ app.UseStatusCodePages(context => ApiProblems.WriteAsync(context.HttpContext,
     new Microsoft.AspNetCore.Mvc.ProblemDetails { Status = context.HttpContext.Response.StatusCode },
     context.HttpContext.RequestAborted));
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+// API documentation is opt-in outside Development. Keep Production behavior for the rest of the app.
+if (app.Environment.IsDevelopment() || app.Configuration.GetValue<bool>("OpenApi:Enabled"))
 {
     app.MapOpenApi();
     app.MapScalarApiReference(); // UI at /scalar
