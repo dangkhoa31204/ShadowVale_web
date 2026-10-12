@@ -28,8 +28,9 @@ public class ContentVersionConfiguration : IEntityTypeConfiguration<ContentVersi
             .IsUnique()
             .HasFilter("status = 'Published'");
 
+        // Deleted drafts are archived too, but may never have had a validated bundle.
         builder.ToTable(t => t.HasCheckConstraint("ck_content_versions_published_has_bundle",
-            "status NOT IN ('Published', 'Archived') OR (bundle IS NOT NULL AND bundle_checksum IS NOT NULL)"));
+            "(status <> 'Published' AND (status <> 'Archived' OR published_at IS NULL)) OR (bundle IS NOT NULL AND bundle_checksum IS NOT NULL)"));
 
         builder.HasOne(v => v.ParentVersion)
             .WithMany()
