@@ -10,6 +10,10 @@
 .sv-record-title > .sv-mono { max-width: 40%; overflow-wrap: anywhere; text-align: right; }
 .sv-record-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 20px; }
 .sv-field-help { display: block; font-size: 10px; font-weight: 400; color: var(--sv-muted); margin-top: 5px; }
+.sv-key-lock-note { display: flex; align-items: center; gap: 6px; margin: 0 0 20px; }
+.sv-key-lock-note .material-symbols-outlined { font-size: 14px; }
+.sv-record-detail .sv-field-grid input:disabled,
+.sv-record-detail .sv-field-grid select:disabled { opacity: .65; cursor: not-allowed; }
 .sv-numeric-control { min-width: 0; }
 .sv-numeric-heading { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 8px; }
 .sv-numeric-heading label { margin: 0; }

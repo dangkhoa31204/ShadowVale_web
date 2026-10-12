@@ -1,0 +1,54 @@
+name: Frontend
+
+on:
+  push:
+    branches: [main, dev]
+    paths: ['frontend/**', '.github/workflows/frontend.yml', '.github/scripts/deploy-render.sh', '.github/tests/**']
+  pull_request:
+    paths: ['frontend/**', '.github/workflows/frontend.yml', '.github/scripts/deploy-render.sh', '.github/tests/**']
+
+permissions:
+  contents: read
+
+concurrency:
+  group: frontend-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-test:
+    name: Lint, test and build FE
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: frontend/shadowvale_fe
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check CD safety without calling Render
+        run: bash "$GITHUB_WORKSPACE/.github/tests/deploy-render.test.sh"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: frontend/shadowvale_fe/package-lock.json
+      - run: npm ci
+      - run: npm run lint
+      - run: npm test
+      - run: npm run build
+        env:
+          VITE_DEMO_MODE: 'false'
+          VITE_API_BASE_URL: https://shadowvale-web.onrender.com/api
+
+  deploy:
+    name: Deploy FE to Render
+    needs: build-test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/dev'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Trigger tested commit deployment
+        env:
+          RENDER_DEPLOY_HOOK: ${{ secrets.RENDER_FE_DEPLOY_HOOK }}
+          RENDER_COMPONENT: frontend
+        run: bash .github/scripts/deploy-render.sh

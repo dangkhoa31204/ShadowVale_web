@@ -42,6 +42,20 @@ Commit thuộc toàn bộ repository (BE và FE); Root Directory chỉ giới h�
 build/chạy của dịch vụ BE. Render tự động deploy khi có thay đổi trong root này.
 Tham khảo [Render monorepo support](https://render.com/docs/monorepo-support).
 
+### Kết nối FE đã deploy (CORS)
+
+`appsettings.Production.json` cho phép origin `https://shadowvale-web-1.onrender.com`.
+FE dùng `VITE_API_BASE_URL=https://shadowvale-web.onrender.com/api` khi build.
+Để cấu hình trên Render mà không cần đổi code, đặt biến môi trường của **dịch vụ BE**:
+
+```env
+Cors__AllowedOrigins__0=https://shadowvale-web-1.onrender.com
+```
+
+Origin chỉ gồm scheme và hostname, không có `/` cuối hoặc đường dẫn `/login`.
+Biến môi trường được ưu tiên hơn file cấu hình; sửa biến rồi redeploy BE.
+Nếu thêm tên miền khác, dùng `Cors__AllowedOrigins__1`, `Cors__AllowedOrigins__2`, ...
+
 ## Xử lý lỗi
 
 Controller **không viết try/catch**. Service trong BLL ném exception ở `BLL/Exceptions`, rồi

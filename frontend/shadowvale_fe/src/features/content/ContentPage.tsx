@@ -17,6 +17,7 @@ import { contentApi } from './contentApi';
 import { errorMessage } from '../../services/api/errors';
 import { editorFieldErrors } from './apiFieldErrors';
 import type { EnumsDto } from '../../services/api/contracts';
+import { isExistingRecord, recordEditorFields, assertReadOnlyFields } from './recordFieldPolicy';
 
 function referenceOptions(field: FieldDefinition, bundle: ContentBundle) {
   if (!field.reference) return [];
@@ -155,7 +156,7 @@ function DraftEditor({ draft, enums }: { draft: Draft; enums?: EnumsDto }) {
     <div className="sv-content-columns"><aside className="sv-records"><div className="sv-records-heading"><strong>{t(categoryInfo.label)}</strong>{editable && <button title={t("New record")} aria-label={t("New record")} onClick={() => addRecord()} disabled={!!parseError}><Icon name="add" /></button>}</div>
       <label className="sv-search"><Icon name="search" /><input aria-label={t("Search content")} placeholder={t("Search records…")} value={search} onChange={event => setSearch(event.target.value)} /></label>
       <div>{bundle[category].map((row, i) => ({ row, i })).filter(({ row }) => `${recordLabel(category, row, bundle)} ${recordIdentity(category, row)}`.toLowerCase().includes(search.toLowerCase())).map(({ row, i }) => <button key={i} className={'sv-record ' + (i === selected ? 'is-active' : '')} onClick={() => { if (!parseError) setSelected(i); }}><span><strong>{recordLabel(category, row, bundle)}</strong><small>{recordIdentity(category, row)}</small></span><Icon name="chevron_right" /></button>)}</div>
-    </aside><div className="sv-record-detail">{record ? <RecordEditor key={category + ':' + selected} collection={category} bundle={bundle} record={record} editable={editable} enums={enums} serverErrors={Object.fromEntries(Object.entries(serverFields).filter(([key]) => key.startsWith(category + ':' + selected + ':')).map(([key, message]) => [key.split(':').at(-1)!, message]))} onChange={updateRecord} onError={setParseError} /> : <Empty title={t("No records")} description={t('Add a record to this version: {collection}.', { collection: t(categoryInfo.label).toLowerCase() })} />}
+    </aside><div className="sv-record-detail">{record ? <RecordEditor key={category + ':' + selected} collection={category} bundle={bundle} record={record} existing={isExistingRecord(category, record, draft.bundle[category])} editable={editable} enums={enums} serverErrors={Object.fromEntries(Object.entries(serverFields).filter(([key]) => key.startsWith(category + ':' + selected + ':')).map(([key, message]) => [key.split(':').at(-1)!, message]))} onChange={updateRecord} onError={setParseError} /> : <Empty title={t("No records")} description={t('Add a record to this version: {collection}.', { collection: t(categoryInfo.label).toLowerCase() })} />}
       {editable && <div className="sv-record-actions">{record ? <><button className="sv-button" disabled={!!parseError} onClick={() => addRecord(true)}><Icon name="content_copy" />{t("Duplicate record")}</button><button className="sv-button sv-button-danger" disabled={!!parseError} onClick={() => {
         if (!window.confirm(t('Remove this record? Related references must be updated before submitting.'))) return;
         setBundle({ ...bundle, [category]: bundle[category].filter((_, i) => i !== selected) }); setSelected(0); setDirty(true);
@@ -194,7 +195,7 @@ function StringArrayField({ field, value, disabled, onChange }: { field: FieldDe
   }} /><small className="sv-field-help">{t("Comma-separated values")}</small></label>;
 }
 
-function RecordEditor({ collection, bundle, record, editable, enums, serverErrors, onChange, onError }: { collection: CollectionKey; bundle: ContentBundle; record: ContentRecord; editable: boolean; enums?: EnumsDto; serverErrors: Record<string, string>; onChange: (row: ContentRecord) => void; onError: (message: string) => void }) {
+function RecordEditor({ collection, bundle, record, existing, editable, enums, serverErrors, onChange, onError }: { collection: CollectionKey; bundle: ContentBundle; record: ContentRecord; existing: boolean; editable: boolean; enums?: EnumsDto; serverErrors: Record<string, string>; onChange: (row: ContentRecord) => void; onError: (message: string) => void }) {
   const t = useTranslation();
   const [raw, setRaw] = useState(() => JSON.stringify(record, null, 2));
   const [formRevision, setFormRevision] = useState(0);
@@ -204,10 +205,12 @@ function RecordEditor({ collection, bundle, record, editable, enums, serverError
     onError(Object.entries(fieldErrors.current).filter(([, message]) => message).map(([key, message]) => key + ': ' + message).join(' '));
   }
   function field(key: string, value: JsonValue) {
+    if (!editable || definitions.find(field => field.key === key)?.readOnly) return;
     const next = { ...record, [key]: value }; setRaw(JSON.stringify(next, null, 2)); report('JSON', ''); report(key, ''); onChange(next);
   }
-  const definitions = (isDemoMode ? schemaFields[collection] : apiFields(collection, enums)).map(f => ({ ...f, readOnly: f.readOnly || (!isDemoMode && !!record.api_id && ['code', 'item_type'].includes(f.key)) }));
+  const definitions = recordEditorFields(collection, isDemoMode ? schemaFields[collection] : apiFields(collection, enums), existing);
   return <><div className="sv-record-title"><div><span className="sv-eyebrow">{t(collections.find(item => item.key === collection)?.label || '')}</span><h2>{recordLabel(collection, record, bundle)}</h2></div><span className="sv-mono">{recordIdentity(collection, record)}</span></div>
+    {editable && existing && <p className="sv-key-lock-note sv-field-help"><Icon name="lock" />{t("Key fields are locked for existing records.")}</p>}
     <div className="sv-field-grid sv-form">{definitions.filter(definition => definition.type !== 'json' && !['content_version_id', 'created_at', 'updated_at'].includes(definition.key)).map(definition => {
       const value = Object.hasOwn(record, definition.key) ? record[definition.key] : definition.defaultValue ?? null;
       const disabled = !editable || definition.readOnly;
@@ -231,8 +234,7 @@ function RecordEditor({ collection, bundle, record, editable, enums, serverError
       try {
         const parsed: unknown = JSON.parse(value);
         if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) throw new Error('Record must be a JSON object.');
-        if (!isDemoMode && (parsed as ContentRecord).api_id !== record.api_id) throw new Error('API resource ID is read-only.');
-        for (const definition of definitions.filter(field => field.readOnly)) if (JSON.stringify((parsed as ContentRecord)[definition.key]) !== JSON.stringify(record[definition.key])) throw new Error(definition.label + ' is read-only.');
+        assertReadOnlyFields(definitions, record, parsed as ContentRecord);
         fieldErrors.current = {}; setFormRevision(revision => revision + 1); onError(''); onChange(parsed as ContentRecord);
       } catch (error) { report('JSON', error instanceof Error ? error.message : 'Invalid JSON.'); }
     }} /></details></>;

@@ -314,3 +314,43 @@ test('display preferences recover from invalid storage and interpolate Vietnames
  assert.deepEqual(api.readPreferences('{"locale":"unknown","theme":1}'),{locale:'en',theme:'dark'});
  assert.equal(api.formatTranslation('Trang {page} / {pages}',{page:2,pages:4}),'Trang 2 / 4');
 });
+
+test('existing weapon keys are locked even when the child has no API GUID; stats remain editable',()=>{
+ const bundle=api.entitiesToEditor(version,entities()),weapon=bundle.weapons[0];
+ assert.equal(weapon.api_id,undefined);
+ assert.equal(api.isExistingRecord('weapons',weapon,bundle.weapons),true);
+ const fields=api.recordEditorFields('weapons',api.apiFields('weapons'),true);
+ assert.equal(fields.find(f=>f.key==='item_code').readOnly,true);
+ assert.equal(fields.find(f=>f.key==='ammo_item_code').readOnly,true);
+ for(const key of ['damage','fire_rate','effective_range','magazine_size','reload_time_s','weapon_class']) {
+  assert.equal(fields.find(f=>f.key===key).readOnly,false,key);
+ }
+ const changes={...weapon,damage:42};
+ assert.doesNotThrow(()=>api.assertReadOnlyFields(fields,weapon,changes));
+ assert.throws(()=>api.assertReadOnlyFields(fields,weapon,{...weapon,item_code:'other_weapon'}),/Weapon item is read-only/);
+ assert.throws(()=>api.assertReadOnlyFields(fields,weapon,{...weapon,ammo_item_code:null}),/Ammo item is read-only/);
+ assert.throws(()=>api.assertReadOnlyFields(fields,weapon,{...weapon,api_id:'forged-id'}),/API resource ID/);
+});
+
+test('primary, composite and foreign keys use the same locks across content tables',()=>{
+ const locked={items:['code','item_type'],loot_table_entries:['loot_table_code','item_code','tier'],
+  map_loot_tables:['map_code','loot_table_code','container_tag'],enemy_placements:['id','map_code','enemy_type_code'],
+  crafting_recipes:['code','output_item_code','required_skill_code'],crafting_recipe_ingredients:['recipe_code','item_code'],
+  quest_rewards:['quest_code','item_code'],enemy_types:['code','weapon_item_code','loot_table_code']};
+ for(const [collection,keys] of Object.entries(locked)) {
+  const fields=api.recordEditorFields(collection,api.apiFields(collection),true);
+  for(const key of keys)assert.equal(fields.find(f=>f.key===key)?.readOnly,true,collection+':'+key);
+ }
+});
+
+test('new record keys remain selectable until saved, including nullable weapon ammo',()=>{
+ const saved=[{item_code:'rifle',ammo_item_code:'ammo_small',damage:24}];
+ const fresh={item_code:'new_weapon',ammo_item_code:null,damage:10};
+ assert.equal(api.isExistingRecord('weapons',fresh,saved),false);
+ const fields=api.recordEditorFields('weapons',api.apiFields('weapons'),false);
+ assert.equal(fields.find(f=>f.key==='item_code').readOnly,false);
+ assert.equal(fields.find(f=>f.key==='ammo_item_code').readOnly,false);
+ assert.doesNotThrow(()=>api.assertReadOnlyFields(fields,fresh,{...fresh,item_code:'chosen_weapon',ammo_item_code:'ammo_small'}));
+ assert.equal(api.isExistingRecord('weapons',fresh,[...saved,fresh]),true);
+ assert.equal(api.recordEditorFields('items',api.apiFields('items'),false).find(f=>f.key==='code').readOnly,false);
+});

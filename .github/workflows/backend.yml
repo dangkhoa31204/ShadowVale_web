@@ -3,9 +3,16 @@ name: Backend
 on:
   push:
     branches: [main, dev]
-    paths: ['backend/**', '.github/workflows/backend.yml']
+    paths: ['backend/**', '.github/workflows/backend.yml', '.github/scripts/deploy-render.sh', '.github/tests/**']
   pull_request:
-    paths: ['backend/**', '.github/workflows/backend.yml']
+    paths: ['backend/**', '.github/workflows/backend.yml', '.github/scripts/deploy-render.sh', '.github/tests/**']
+
+permissions:
+  contents: read
+
+concurrency:
+  group: backend-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build-test:
@@ -36,6 +43,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Check CD safety without calling Render
+        run: bash "$GITHUB_WORKSPACE/.github/tests/deploy-render.test.sh"
+
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 10.0.x
@@ -61,3 +71,17 @@ jobs:
         with:
           name: backend-test-results
           path: backend/shadowvale_be/TestResults
+
+  deploy:
+    name: Deploy BE to Render
+    needs: build-test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/dev'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Trigger tested commit deployment
+        env:
+          RENDER_DEPLOY_HOOK: ${{ secrets.RENDER_BE_DEPLOY_HOOK }}
+          RENDER_COMPONENT: backend
+        run: bash .github/scripts/deploy-render.sh
