@@ -1,6 +1,6 @@
 import { useTranslation } from '../preferences/preferencesContext';
 import { useEffect, useRef, useState } from 'react';
-import { Link, useBlocker, useNavigate, useParams } from 'react-router-dom';
+import { Link, Navigate, useBlocker, useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { useToast } from '../../components/ui/Toast';
 import { useWorkspace } from './workspaceContext';
@@ -245,7 +245,7 @@ export function ContentPage() {
   const { state, execute, busy, reload } = useWorkspace(), { user } = useAuth(), toast = useToast();
   const { draftId } = useParams(), navigate = useNavigate();
   const [newLabel, setNewLabel] = useState(''), [creating, setCreating] = useState(false);
-  const drafts = state.drafts.filter(draft => draft.authorId === user?.id);
+  const drafts = state.drafts.filter(draft => draft.authorId === user?.id && draft.status !== 'archived');
   const selected = draftId ? drafts.find(draft => draft.id === draftId) : drafts.find(draft => ['draft', 'rejected'].includes(draft.status)) || drafts[0];
   async function create(event: React.FormEvent) {
     event.preventDefault();
@@ -253,6 +253,9 @@ export function ContentPage() {
       const next = await execute({ type: 'createDraft', title: newLabel, label: newLabel });
       setCreating(false); setNewLabel(''); navigate('/admin/content/' + next.drafts[0].id);
     } catch { /* Workspace displays the error. */ }
+  }
+  if (draftId && state.drafts.some(draft => draft.id === draftId && draft.authorId === user?.id && draft.status === 'archived')) {
+    return <Navigate to="/admin/content" replace />;
   }
   return <div className="sv-page"><PageHeading eyebrow={t("CONTENT VERSIONS")} title={t("Content authoring")} description={t("Edit game balancing and content tables.")} action={<button className="sv-button sv-button-primary" onClick={() => setCreating(!creating)}><Icon name="add" />{t("Create content version")}</button>} />
     {creating && <form className="sv-inline-form sv-panel sv-form" onSubmit={create}><label>{t("Version label")}<input required autoFocus value={newLabel} onChange={event => setNewLabel(event.target.value)} placeholder={t("e.g. Map 02 balance pass")} /></label><button className="sv-button sv-button-primary" disabled={busy || !newLabel.trim()}>{t("Clone published version")}</button><button className="sv-button" type="button" onClick={() => setCreating(false)}>{t("Cancel")}</button></form>}
