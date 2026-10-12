@@ -61,7 +61,10 @@ resources when saving: item weapons/consumables; loot table entries; map enemy
 placements/loot references; recipe ingredients; quest rewards. Relations use
 codes, resource URLs use GUIDs. Map details are fetched before editing. API DTOs,
 enums and numeric limits drive the forms; numbers support sliders and manual
-entry. Existing codes and item types are locked.
+entry. Existing records lock primary/composite keys, foreign-key fields and item
+types, including child records without an API GUID (for example Weapon item and
+Ammo item). Advanced JSON enforces the same locks. New records can select their
+keys before saving; ordinary stats remain editable.
 
 Save sends only changed parent resources, in dependency order. References must
 be removed before deleting the target. A failed sequential save lists committed

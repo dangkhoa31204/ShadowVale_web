@@ -778,5 +778,6 @@
   "game units": "đơn vị game",
   "shots/s": "phát/giây",
   "Add a record to this version: {collection}.": "Thêm nội dung vào phiên bản này: {collection}.",
-  "Remove this record? Related references must be updated before submitting.": "Xóa nội dung này? Cần cập nhật các tham chiếu liên quan trước khi gửi duyệt."
+  "Remove this record? Related references must be updated before submitting.": "Xóa nội dung này? Cần cập nhật các tham chiếu liên quan trước khi gửi duyệt.",
+  "Key fields are locked for existing records.": "Các trường khóa đã được khóa với bản ghi hiện có."
 }
