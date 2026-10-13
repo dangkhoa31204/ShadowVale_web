@@ -1,6 +1,6 @@
 import { useTranslation } from '../preferences/preferencesContext';
-import { useEffect, useRef, useState } from 'react';
-import { Link, Navigate, useBlocker, useNavigate, useParams } from 'react-router-dom';
+import { useEffect, useRef, useState, type SetStateAction } from 'react';
+import { Link, Navigate, useBlocker, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { useToast } from '../../components/ui/Toast';
 import { useWorkspace } from './workspaceContext';
@@ -11,6 +11,9 @@ import { Empty, Icon, PageHeading, Status } from '../shared/ui';
 import { NumericControl } from '../shared/NumericControl';
 import { validateChangeReport } from '../changeReports/reportValidation';
 import './editor.css';
+import { ContentChangeReport } from '../changeReports/ContentChangeReport';
+import { localReports } from '../changeReports/localReports';
+import { newChangeReport, type ChangeReport } from '../changeReports/types';
 import { isDemoMode } from '../../config/environment';
 import { apiFields, validateEditor, rebindEditorImport } from './apiModel';
 import { contentApi } from './contentApi';
@@ -72,15 +75,28 @@ function DraftEditor({ draft, enums }: { draft: Draft; enums?: EnumsDto }) {
   const t = useTranslation();
   const { user } = useAuth(), { busy, execute, reload } = useWorkspace(), toast = useToast();
   const navigate = useNavigate();
+  const [params, setParams] = useSearchParams();
+  const section = params.get('section') === 'report' ? 'report' : 'content';
+  function setSection(value: 'content' | 'report') {
+    setParams(previous => { const next = new URLSearchParams(previous); if (value === 'report') next.set('section', 'report'); else next.delete('section'); return next; }, { replace: true });
+  }
+  const [report, setReport] = useState<ChangeReport>(() => structuredClone(draft.changeReport || { ...newChangeReport(), changes: [] }));
+  const [reportDirty, setReportDirty] = useState(false), [reportSaved, setReportSaved] = useState(!!draft.changeReport);
+  const [uploadingReport, setUploadingReport] = useState(false);
+  function updateReport(value: SetStateAction<ChangeReport>) { setReport(value); setReportDirty(true); }
+  function saveLocalReport() {
+    localReports.save(draft.id, report);
+    setReportDirty(false); setReportSaved(true);
+  }
   const [bundle, setBundle] = useState<ContentBundle>(() => structuredClone(draft.bundle));
   const [label, setLabel] = useState(draft.label || draft.title), [changelog, setChangelog] = useState(draft.changelog || '');
   const [category, setCategory] = useState<CollectionKey>('weapons'), [selected, setSelected] = useState(0);
   const [dirty, setDirty] = useState(false), [parseError, setParseError] = useState(''), [search, setSearch] = useState('');
-  const blocker = useBlocker(({ currentLocation, nextLocation }) => (dirty || !!parseError) && currentLocation.pathname !== nextLocation.pathname);
+  const blocker = useBlocker(({ currentLocation, nextLocation }) => (dirty || !!parseError || reportDirty || uploadingReport) && currentLocation.pathname !== nextLocation.pathname);
   const [apiError, setApiError] = useState('');
   const [serverFields, setServerFields] = useState<Record<string, string>>({});
   const [validating, setValidating] = useState(false);
-  const errors = [...(!label.trim() ? ['Enter a version label.'] : []), ...(isDemoMode ? [...validateBundle(bundle), ...validateChangeReport(draft.changeReport)] : validateEditor(bundle))];
+  const errors = [...(!label.trim() ? ['Enter a version label.'] : []), ...(isDemoMode ? [...validateBundle(bundle), ...validateChangeReport(reportDirty || reportSaved ? report : undefined)] : validateEditor(bundle))];
   const submitErrors = [...(parseError ? [parseError] : []), ...errors];
   const [showValidation, setShowValidation] = useState(false);
   const validationRef = useRef<HTMLDivElement>(null);
@@ -95,10 +111,10 @@ function DraftEditor({ draft, enums }: { draft: Draft; enums?: EnumsDto }) {
   const record = bundle[category][selected];
   const categoryInfo = collections.find(collection => collection.key === category)!;
   useEffect(() => {
-    if (!dirty && !parseError) return;
+    if (!dirty && !parseError && !reportDirty && !uploadingReport) return;
     const warn = (event: BeforeUnloadEvent) => { event.preventDefault(); };
     window.addEventListener('beforeunload', warn); return () => window.removeEventListener('beforeunload', warn);
-  }, [dirty, parseError]);
+  }, [dirty, parseError, reportDirty, uploadingReport]);
   function chooseCategory(key: CollectionKey) {
     if (parseError) { toast.error('Resolve the field error before switching content.'); return; }
     setCategory(key); setSelected(0); setSearch('');
@@ -113,7 +129,7 @@ function DraftEditor({ draft, enums }: { draft: Draft; enums?: EnumsDto }) {
     } catch (error) { toast.error(error instanceof Error ? error.message : 'Could not add record.'); }
   }
   async function save(submit = false) {
-    if (busy) return;
+    if (busy || uploadingReport) return;
     if (submit && submitErrors.length) {
       setShowValidation(true);
       validationRef.current?.focus();
@@ -125,25 +141,28 @@ function DraftEditor({ draft, enums }: { draft: Draft; enums?: EnumsDto }) {
     setApiError(''); setServerFields({});
     try {
       let current = draft;
-      if (dirty) {
-        const next = await execute({ type: 'saveDraft', id: draft.id, revision: draft.revision, title: label, label, changelog, bundle });
+      if (!isDemoMode && reportDirty) {
+        saveLocalReport();
+        toast.success('Report saved locally. It has not been sent to the server.');
+      }
+      if (dirty || (isDemoMode && reportDirty)) {
+        const next = await execute({ type: 'saveDraft', id: draft.id, revision: draft.revision, title: label, label, changelog, bundle, ...(isDemoMode && (reportDirty || reportSaved) ? { changeReport: report } : {}) });
         current = next.drafts.find(version => version.id === draft.id)!;
       }
       if (submit) await execute({ type: 'submitDraft', id: current.id, revision: current.revision });
-      setDirty(false);
+      setDirty(false); if (isDemoMode && reportDirty) { setReportDirty(false); setReportSaved(true); }
     } catch (error) { setApiError(errorMessage(error)); setServerFields(editorFieldErrors(error, bundle)); }
   }
   return <div className="sv-editor">
     {blocker.state === 'blocked' && <div className="sv-modal-backdrop"><section className="sv-modal" role="dialog" aria-modal="true" aria-labelledby="unsaved-title"><h2 id="unsaved-title">{t("Leave unsaved changes?")}</h2><p>{t("Save this version or discard your changes.")}</p><div><button className="sv-button" onClick={() => blocker.reset()}>{t("Keep editing")}</button><button className="sv-button sv-button-danger" onClick={() => blocker.proceed()}>{t("Discard & leave")}</button></div></section></div>}
-    <div className="sv-editor-toolbar"><div><Status value={draft.status} /><span className="sv-mono">{t("Revision")} {draft.revision}</span>{dirty && <span className="sv-unsaved">{t("Unsaved changes")}</span>}</div><div>
-      <Link className="sv-button" to={'/admin/change-reports/' + draft.id}><Icon name="description" />{t("Change report")}</Link>
-      {!isDemoMode && draft.status === 'rejected' && owner && <button className="sv-button" disabled={busy} onClick={()=>void execute({type:'createDraft',title:label+' revision',label:label+' revision',sourceReleaseId:draft.id}).then(workspace=>navigate('/admin/content/'+workspace.drafts[0].id)).catch(()=>{})}>{t("Clone returned version")}</button>}
-      {isDemoMode && draft.status === 'rejected' && owner && <button className="sv-button sv-button-primary" disabled={busy} onClick={() => { void execute({ type: 'editRejectedDraft', id: draft.id, revision: draft.revision }).catch(() => {}); }}><Icon name="edit" />{t("Resume draft")}</button>}
-      {editable && <>{!isDemoMode && <button className="sv-button" disabled={busy || validating || dirty || !!parseError || draft.status === 'rejected'} onClick={async () => { setValidating(true); try { const report = await contentApi.validate(draft.id, draft.revision); if(report.isValid)toast.success('Validation passed.'); setApiError(report.isValid ? 'Validation passed.' : report.errors.map(i => i.path + ': ' + i.message).join('\n')); await reload(); } catch (e) { setApiError(errorMessage(e)); } finally { setValidating(false); } }}>{t("Validate saved content")}</button>}<button className="sv-button" disabled={busy || !dirty || !!parseError || !label.trim()} onClick={() => save()}><Icon name="save" />{t("Save draft")}</button><button className="sv-button sv-button-primary" disabled={busy || (!isDemoMode && draft.status === 'rejected' && !dirty)} aria-describedby={showValidation && submitErrors.length ? 'content-submit-errors' : undefined} onClick={() => save(true)}><Icon name="send" />{t("Submit for review")}</button></>}
+    <div className="sv-editor-toolbar"><div><Status value={draft.status} /><span className="sv-mono">{t("Revision")} {draft.revision}</span>{(dirty || reportDirty) && <span className="sv-unsaved">{t("Unsaved changes")}</span>}</div><div>
+      {!isDemoMode && draft.status === 'rejected' && owner && <button className="sv-button" disabled={busy || reportDirty || uploadingReport} onClick={()=>void execute({type:'createDraft',title:label+' revision',label:label+' revision',sourceReleaseId:draft.id}).then(workspace=>navigate('/admin/content/'+workspace.drafts[0].id)).catch(()=>{})}>{t("Clone returned version")}</button>}
+      {isDemoMode && draft.status === 'rejected' && owner && <button className="sv-button sv-button-primary" disabled={busy || reportDirty || uploadingReport} onClick={() => { void execute({ type: 'editRejectedDraft', id: draft.id, revision: draft.revision }).catch(() => {}); }}><Icon name="edit" />{t("Resume draft")}</button>}
+      {editable && <>{!isDemoMode && <button className="sv-button" disabled={busy || validating || dirty || reportDirty || uploadingReport || !!parseError || draft.status === 'rejected'} onClick={async () => { setValidating(true); try { const report = await contentApi.validate(draft.id, draft.revision); if(report.isValid)toast.success('Validation passed.'); setApiError(report.isValid ? 'Validation passed.' : report.errors.map(i => i.path + ': ' + i.message).join('\n')); await reload(); } catch (e) { setApiError(errorMessage(e)); } finally { setValidating(false); } }}>{t("Validate saved content")}</button>}<button className="sv-button" disabled={busy || uploadingReport || (!dirty && !reportDirty) || !!parseError || !label.trim()} onClick={() => save()}><Icon name="save" />{t("Save draft")}</button><button className="sv-button sv-button-primary" disabled={busy || uploadingReport || (!isDemoMode && draft.status === 'rejected' && !dirty)} aria-describedby={showValidation && submitErrors.length ? 'content-submit-errors' : undefined} onClick={() => save(true)}><Icon name="send" />{t("Submit for review")}</button></>}
     </div></div>
     {apiError && <div className={'sv-alert ' + (apiError === 'Validation passed.' ? 'sv-alert-success' : 'sv-alert-error')} role={apiError === 'Validation passed.' ? 'status' : 'alert'} style={{ whiteSpace: 'pre-wrap' }}>{apiError}</div>}
     {!isDemoMode && draft.status === 'rejected' && <div className="sv-alert">{t("Change a content record and save to return to Draft, or clone this version.")}</div>}
-    {editable && showValidation && submitErrors.length > 0 && <div ref={validationRef} id="content-submit-errors" className="sv-alert sv-alert-error" role="alert" tabIndex={-1}><strong>{t("Check this content before sending")}</strong><ul style={{ listStyle: 'disc', paddingLeft: 20, marginTop: 8 }}>{submitErrors.map((error, index) => <li key={index}>{error}</li>)}</ul>{validateChangeReport(draft.changeReport).length > 0 && <Link to={'/admin/change-reports/' + draft.id}>{t("Complete change report")}</Link>}</div>}
+    {editable && showValidation && submitErrors.length > 0 && <div ref={validationRef} id="content-submit-errors" className="sv-alert sv-alert-error" role="alert" tabIndex={-1}><strong>{t("Check this content before sending")}</strong><ul style={{ listStyle: 'disc', paddingLeft: 20, marginTop: 8 }}>{submitErrors.map((error, index) => <li key={index}>{error}</li>)}</ul>{isDemoMode && validateChangeReport(reportDirty || reportSaved ? report : undefined).length > 0 && <button className="sv-button" onClick={() => setSection('report')}>{t("Complete change report")}</button>}</div>}
     {!!draft.validation_errors?.length && <div className="sv-alert sv-alert-error" role="alert"><strong>{t("BE validation")}</strong>{draft.validation_errors.map((message,i)=><p key={i}>{message}</p>)}</div>}
     {draft.note && <div className="sv-alert"><strong>{t("Review note")}</strong><p>{draft.note}</p></div>}
     {!editable && <div className="sv-alert">{draft.status === 'rejected' && owner ? t("Resume this draft to make the requested changes.") : t("This content version is read-only.")}</div>}
@@ -152,6 +171,11 @@ function DraftEditor({ draft, enums }: { draft: Draft; enums?: EnumsDto }) {
       <div className="sv-version-number"><small>{t("Version number")}</small><strong>#{draft.version_no}</strong></div><div><small>{t("Schema version")}</small><strong>{bundle.schema_version}</strong></div>
       <label className="sv-changelog">{t("Changelog")}<textarea rows={2} maxLength={4000} aria-invalid={!!serverFields['meta:changelog']} value={changelog} disabled={!editable} placeholder={t("What changed in this version?")} onChange={event => { setChangelog(event.target.value); setBundle({ ...bundle, changelog: event.target.value }); setDirty(true); }} /><small role="alert">{serverFields['meta:changelog']}</small></label>
     </div>
+    <div className="sv-authoring-tabs" role="tablist" aria-label={t("Content authoring")}>
+      <button id="authoring-content-tab" role="tab" aria-selected={section === 'content'} aria-controls="authoring-content-panel" onClick={() => setSection('content')}><Icon name="tune" />{t("Gameplay content")}</button>
+      <button id="authoring-report-tab" role="tab" aria-selected={section === 'report'} aria-controls="authoring-report-panel" onClick={() => setSection('report')}><Icon name="description" />{t("Change report")} <span>{report.changes.length}</span>{reportDirty && <span className="sv-unsaved">•</span>}</button>
+    </div>
+    <div id="authoring-content-panel" className="sv-authoring-section" role="tabpanel" aria-labelledby="authoring-content-tab" hidden={section !== 'content'}>
     <div className="sv-content-tabs" role="tablist" aria-label={t("Content table")}>{collections.map(collection => <button role="tab" aria-selected={category === collection.key} key={collection.key} className={category === collection.key ? 'is-active' : ''} onClick={() => chooseCategory(collection.key)}><Icon name={collection.icon} />{t(collection.label)}<span>{bundle[collection.key].length}</span></button>)}</div>
     <div className="sv-content-columns"><aside className="sv-records"><div className="sv-records-heading"><strong>{t(categoryInfo.label)}</strong>{editable && <button title={t("New record")} aria-label={t("New record")} onClick={() => addRecord()} disabled={!!parseError}><Icon name="add" /></button>}</div>
       <label className="sv-search"><Icon name="search" /><input aria-label={t("Search content")} placeholder={t("Search records…")} value={search} onChange={event => setSearch(event.target.value)} /></label>
@@ -181,6 +205,15 @@ function DraftEditor({ draft, enums }: { draft: Draft; enums?: EnumsDto }) {
         setCategory('weapons'); setSelected(0); setParseError(''); setDirty(true);
       } catch (error) { toast.error(error instanceof Error ? error.message : 'Could not import content.'); }
     }} /></details>}
+    </div>
+    <div id="authoring-report-panel" className="sv-authoring-section" role="tabpanel" aria-labelledby="authoring-report-tab" hidden={section !== 'report'}>
+      <ContentChangeReport draft={{ ...draft, label, bundle }} report={report} pending={reportDirty || dirty || !!parseError} reportDirty={reportDirty} hasSaved={reportSaved} editable={isDemoMode ? editable : owner} busy={busy || validating}
+        onChange={updateReport} onUploading={setUploadingReport} onSave={() => {
+          if (isDemoMode) { void save(); return; }
+          try { saveLocalReport(); toast.success('Report saved locally. It has not been sent to the server.'); }
+          catch (error) { toast.error(errorMessage(error)); }
+        }} />
+    </div>
   </div>;
 }
 
@@ -221,7 +254,7 @@ function RecordEditor({ collection, bundle, record, existing, editable, enums, s
       if (definition.type === 'enum' || definition.type === 'boolean' || definition.type === 'reference') {
         const options = definition.type === 'reference' ? referenceOptions(definition, bundle) : definition.type === 'boolean' ? [{ value: 'true', label: 'Yes' }, { value: 'false', label: 'No' }] : (definition.options ?? []).map(value => ({ value, label: value.replaceAll('_', ' ').replace(/^./, char => char.toUpperCase()) }));
         const selected = value === null ? '' : String(value);
-        return <label key={definition.key}>{t(definition.label)}<select aria-invalid={!!serverErrors[definition.key]} disabled={disabled} value={selected} onChange={event => field(definition.key, definition.type === 'boolean' ? event.target.value === 'true' : event.target.value || null)}>
+        return <label key={definition.key}>{t(definition.label)}<select data-testid={'field-'+collection+'-'+definition.key} aria-invalid={!!serverErrors[definition.key]} disabled={disabled} value={selected} onChange={event => field(definition.key, definition.type === 'boolean' ? event.target.value === 'true' : event.target.value || null)}>
           {definition.type !== 'boolean' && <option value="">{definition.nullable ? t('None') : t('Choose') + ' ' + t(definition.label)}</option>}
           {selected && !options.some(option => option.value === selected) && <option value={selected}>{selected} {t("· missing reference")}</option>}
           {options.map(option => <option key={option.value} value={option.value}>{definition.type === 'reference' ? option.label : t(option.label)}{definition.type === 'reference' ? ` (${option.value})` : ''}</option>)}
@@ -267,6 +300,20 @@ export function ContentPage() {
 function ApiDraftEditor({ id }: { id: string }) {
   const t = useTranslation();
   const [loaded, setLoaded] = useState<{ draft: Draft; enums: EnumsDto } | null>(null), [error, setError] = useState(''), [retry, setRetry] = useState(0);
-  useEffect(() => { let active = true; Promise.all([contentApi.editor(id), contentApi.enums()]).then(([draft, enums]) => { if (active) { setLoaded({ draft, enums }); setError(''); } }).catch(e => { if (active) setError(errorMessage(e)); }); return () => { active = false; }; }, [id, retry]);
-  return error ? <div className="sv-alert sv-alert-error">{error}<button className="sv-button" onClick={() => setRetry(retry + 1)}>{t("Retry")}</button></div> : loaded ? <DraftEditor draft={loaded.draft} enums={loaded.enums} /> : <div className="sv-empty" role="status">{t("Loading content…")}</div>;
+  const [reportWarning, setReportWarning] = useState('');
+  useEffect(() => {
+    let active = true;
+    Promise.all([contentApi.editor(id), contentApi.enums()]).then(([draft, enums]) => {
+      if (!active) return;
+      let report: ChangeReport | undefined;
+      try { report = localReports.load(id); setReportWarning(''); }
+      catch { setReportWarning('Local report could not be loaded. Gameplay content is still available.'); }
+      setLoaded({ draft: { ...draft, changeReport: report }, enums }); setError('');
+    }).catch(e => { if (active) setError(errorMessage(e)); });
+    return () => { active = false; };
+  }, [id, retry]);
+  return error ? <div className="sv-alert sv-alert-error">{error}<button className="sv-button" onClick={() => setRetry(retry + 1)}>{t("Retry")}</button></div> : loaded ? <>
+    {reportWarning && <div className="sv-alert sv-alert-error" role="alert">{t(reportWarning)}</div>}
+    <DraftEditor draft={loaded.draft} enums={loaded.enums} />
+  </> : <div className="sv-empty" role="status">{t("Loading content…")}</div>;
 }

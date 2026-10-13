@@ -1,0 +1,65 @@
+url: http://127.0.0.1:15174/login?redirect=%2Fadmin%2Freleases
+name: Admin Full content scrolling and profile navigation
+---
+- launchApp:
+    clearState: true
+- tapOn:
+    id: login-username
+- inputText: admin
+- tapOn:
+    id: Password
+- inputText: UiTest123!
+- tapOn:
+    id: login-submit
+- assertVisible: Ready to publish
+- scrollUntilVisible:
+    element: View changes
+    direction: DOWN
+- tapOn: View changes
+- assertVisible: VERSION DETAILS
+- tapOn:
+    text: Full content
+    index: 0
+- tapOn:
+    id: section-items
+# Swipe inside the modal; normal web scrolling targets the page.
+- repeat:
+    times: 8
+    commands:
+      - swipe:
+          start: 60%, 80%
+          end: 60%, 30%
+          duration: 300
+- assertVisible:
+    id: section-quest_rewards
+- assertVisible: VERSION DETAILS
+- tapOn:
+    id: section-quest_rewards
+- repeat:
+    times: 2
+    commands:
+      - swipe:
+          start: 60%, 80%
+          end: 60%, 30%
+          duration: 300
+- assertVisible:
+    id: record-quest_rewards-1
+- takeScreenshot: admin-full-content-bottom
+- tapOn:
+    id: Close
+- assertNotVisible: VERSION DETAILS
+- scrollUntilVisible:
+    element:
+      id: Account
+    direction: UP
+- tapOn:
+    id: Account
+- tapOn: Profile
+- assertVisible: Account details
+- scrollUntilVisible:
+    element: Change password
+    direction: DOWN
+- tapOn: Change password
+- assertVisible: Current password
+- assertVisible: Confirm new password
+- takeScreenshot: admin-profile
