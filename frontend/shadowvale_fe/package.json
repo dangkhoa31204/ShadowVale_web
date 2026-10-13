@@ -9,6 +9,7 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "node --experimental-strip-types --test tests/workflow.test.ts tests/gameDelivery.test.ts tests/numericControl.test.ts tests/apiIntegration.test.mjs",
+    "test:ui": "powershell -NoProfile -ExecutionPolicy Bypass -File tests/maestro/run.ps1",
     "sync:api": "node scripts/sync-api-contract.mjs"
   },
   "dependencies": {

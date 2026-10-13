@@ -1,0 +1,38 @@
+url: http://127.0.0.1:15174/login?redirect=%2Fadmin%2Fcontent%2F00000000-0000-4000-8000-000000000002
+name: Designer immutable keys and numeric controls
+---
+- launchApp:
+    clearState: true
+- tapOn:
+    id: login-username
+- inputText: designer
+- tapOn:
+    id: Password
+- inputText: UiTest123!
+- tapOn:
+    id: login-submit
+- assertVisible: Version label
+- scrollUntilVisible:
+    element: Key fields are locked for existing records.
+    direction: DOWN
+- tapOn:
+    id: field-weapons-item_code
+- assertNotVisible: Choose Weapon item
+- tapOn: Damage
+- eraseText
+- inputText: '35'
+- assertVisible: '35'
+- tapOn:
+    id: Damage slider
+- assertNotVisible: '35'
+- scrollUntilVisible:
+    element: Ammo item
+    direction: DOWN
+- tapOn:
+    id: field-weapons-ammo_item_code
+- assertNotVisible: None
+- takeScreenshot: designer-keys-and-stats
+- tapOn: Versions
+- assertVisible: Leave unsaved changes\?
+- tapOn: Discard & leave
+- assertNotVisible: Leave unsaved changes\?

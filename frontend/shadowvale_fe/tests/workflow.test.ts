@@ -69,6 +69,10 @@ test('role policy and internal redirects deny unauthorized access', async () => 
   assert.equal(safeRedirect('//evil.test', 'designer'), '/admin/dashboard');
   assert.equal(safeRedirect('/admin\\evil', 'analyst'), '/admin/analytics');
   assert.equal(safeRedirect('/admin/content', 'designer'), '/admin/content');
+  assert.equal(safeRedirect('/admin/content?section=report', 'designer'), '/admin/content?section=report');
+  assert.equal(safeRedirect('/admin/change-reports/d1', 'designer'), '/admin/change-reports/d1');
+  assert.equal(safeRedirect('/admin/change-reports/d1', 'admin'), '/admin/dashboard');
+  assert.equal(navigationForRole('designer').some(n => n.path === '/admin/change-reports'), false);
   await assert.rejects(applyCommand(state(), { type: 'submitDraft', id: 'd1', revision: 1 }, analyst, validate), /role/);
 });
 test('author submits, admin approves and publish seals an immutable snapshot with one published version', async () => {

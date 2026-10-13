@@ -9,12 +9,14 @@ export type Permission = keyof typeof permissions;
 export const can = (role: Role, permission: Permission) =>
   (permissions[permission] as readonly Role[]).includes(role);
 export const homeForRole = (role: Role) => role === 'analyst' ? '/admin/analytics' : '/admin/dashboard';
-export const safeRedirect = (value: string | null, role: Role) =>
-  value && !value.includes('\\') && [...navigationForRole(role), { path: '/admin/profile' }, { path: '/admin/change-password' }, ...(can(role, 'analytics') ? [{ path: '/admin/analytics' }] : [])].some(n => value === n.path || value.startsWith(n.path + '/')) ? value : homeForRole(role);
+export const safeRedirect = (value: string | null, role: Role) => {
+  const pathname = value?.split(/[?#]/, 1)[0];
+  const routes = [...navigationForRole(role), { path: '/admin/profile' }, { path: '/admin/change-password' }, ...(role === 'designer' ? [{ path: '/admin/change-reports' }] : []), ...(can(role, 'analytics') ? [{ path: '/admin/analytics' }] : [])];
+  return value && !value.includes('\\') && routes.some(n => pathname === n.path || pathname?.startsWith(n.path + '/')) ? value : homeForRole(role);
+};
 export const navigation: { label: string; path: string; icon: string; permission?: Permission; group: string }[] = [
   { label: 'Overview', path: '/admin/dashboard', icon: 'dashboard', permission: 'overview', group: 'Workspace' },
   { label: 'Content authoring', path: '/admin/content', icon: 'edit_note', permission: 'author', group: 'Workspace' },
-  { label: 'Change reports', path: '/admin/change-reports', icon: 'description', permission: 'author', group: 'Workspace' },
   { label: 'Review content', path: '/admin/reviews', icon: 'fact_check', permission: 'review', group: 'Workspace' },
   { label: 'Versions', path: '/admin/releases', icon: 'deployed_code', permission: 'versions', group: 'Workspace' },
   { label: 'Users', path: '/admin/users', icon: 'group', permission: 'users', group: 'Workspace' },

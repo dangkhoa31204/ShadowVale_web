@@ -5,7 +5,7 @@ import { Navigate, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { demoAccounts } from '../../services/auth/authService';
 import { isDemoMode } from '../../config/environment';
-import { homeForRole, safeRedirect } from './access';
+import { safeRedirect } from './access';
 import { errorMessage, fieldError } from '../../services/api/errors';
 import { Icon } from '../shared/ui';
 export function InternalLoginPage() {
@@ -17,7 +17,7 @@ export function InternalLoginPage() {
   const [fieldErrors, setFieldErrors] = useState({ username: '', password: '' });
   const [busy, setBusy] = useState(false), [error, setError] = useState('');
   if (isLoading) return <div className="portal-state">{t("Validating your session…")}</div>;
-  if (user) return <Navigate to={homeForRole(user.role)} replace />;
+  if (user) return <Navigate to={safeRedirect(params.get('redirect'), user.role)} replace />;
   async function submit(event: React.FormEvent) {
     event.preventDefault(); setError(''); setFieldErrors({ username: '', password: '' }); setBusy(true);
     try {
@@ -35,11 +35,11 @@ export function InternalLoginPage() {
     <main className="sv-login-main"><div className="sv-login-card"><span className="sv-internal-tag"><Icon name="lock" /> {t("Internal access")}</span>
       <h2>{t("Sign in")}</h2><p className="sv-login-intro">{t("Access your team workspace.")}</p>
       <form onSubmit={submit} className="sv-form">
-        <label>{t("Username or email")}<input type="text" aria-invalid={!!fieldErrors.username} required autoComplete="username" placeholder={t("Your username or email")} value={email} onChange={e => setEmail(e.target.value)} /><small role="alert">{fieldErrors.username}</small></label>
+        <label>{t("Username or email")}<input data-testid="login-username" type="text" aria-invalid={!!fieldErrors.username} required autoComplete="username" placeholder={t("Your username or email")} value={email} onChange={e => setEmail(e.target.value)} /><small role="alert">{fieldErrors.username}</small></label>
         <label>{t("Password")}<div className="sv-password"><input aria-label={t("Password")} aria-invalid={!!fieldErrors.password} type={showPassword ? 'text' : 'password'} required autoComplete="current-password" placeholder={t("Enter your password")} value={password} onChange={e => setPassword(e.target.value)} /><button type="button" aria-label={showPassword ? t("Hide password") : t("Show password")} onClick={() => setShowPassword(!showPassword)}><Icon name={showPassword ? 'visibility_off' : 'visibility'} /></button></div><small role="alert">{fieldErrors.password}</small></label>
         <label className="sv-checkbox"><input type="checkbox" checked={remember} onChange={e => setRemember(e.target.checked)} />{t("Keep me signed in")}</label>
         {(error || sessionError) && <div className="sv-alert sv-alert-error" role="alert">{error || sessionError}</div>}
-        <button className="sv-button sv-button-primary sv-full" disabled={busy}>{busy ? t("Signing in…") : t("Sign in")}<Icon name="arrow_forward" /></button>
+        <button data-testid="login-submit" className="sv-button sv-button-primary sv-full" disabled={busy}>{busy ? t("Signing in…") : t("Sign in")}<Icon name="arrow_forward" /></button>
       </form>
       {isDemoMode && <div className="sv-demo-accounts"><span className="sv-eyebrow">{t("DEMO")}</span><div>{demoAccounts.map(a => <button key={a.role} className="sv-button" onClick={() => { setEmail(a.callsign); setPassword('ShadowVale123!'); setError(''); }}>{a.role}</button>)}</div></div>}
     </div></main>

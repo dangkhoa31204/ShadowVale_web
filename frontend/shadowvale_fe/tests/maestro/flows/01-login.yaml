@@ -1,0 +1,24 @@
+url: http://127.0.0.1:15174/login
+name: Login validation and password visibility
+---
+- launchApp:
+    clearState: true
+- assertVisible: Sign in
+- tapOn:
+    id: login-username
+- inputText: invalid
+- tapOn:
+    id: Password
+- inputText: invalid-password
+- tapOn:
+    id: login-submit
+- assertVisible: Invalid UI test credentials.
+- tapOn:
+    id: Show password
+- assertVisible:
+    id: Hide password
+- tapOn:
+    id: Hide password
+- assertVisible:
+    id: Show password
+- takeScreenshot: login-validation
