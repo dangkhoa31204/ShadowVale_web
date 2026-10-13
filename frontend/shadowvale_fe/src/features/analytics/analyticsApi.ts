@@ -12,7 +12,6 @@ export const analyticsApi={
   comparison:async(q:AnalyticsFilters,groupBy:string,signal?:AbortSignal)=>(await axiosClient.get<AiComparisonRowDto[]>('/analytics/ai/comparison',{params:{...q,groupBy},signal})).data,
   scalability:async(q:AnalyticsFilters,signal?:AbortSignal)=>(await axiosClient.get<ScalabilityRowDto[]>('/analytics/ai/scalability',{params:q,signal})).data,
   versions:async(q:AnalyticsFilters,a:string,b:string,signal?:AbortSignal)=>(await axiosClient.get<VersionComparisonDto>('/analytics/versions/compare',{params:{...q,contentVersionId:undefined,a,b},signal})).data,
-  csv:async(dataset:string,q:AnalyticsFilters)=>(await axiosClient.get<Blob>('/analytics/export/'+dataset,{params:q,responseType:'blob'})).data,
   solvers:async(signal?:AbortSignal)=>(await axiosClient.get<SolverConfigurationDto[]>('/solver-configurations',{signal})).data,
   solver:async(id:string)=>(await axiosClient.get<SolverConfigurationDto>('/solver-configurations/'+id)).data,
   create:async(data:CreateSolverConfigurationRequest)=>(await axiosClient.post<SolverConfigurationDto>('/solver-configurations',data)).data,

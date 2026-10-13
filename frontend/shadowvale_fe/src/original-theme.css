@@ -86,12 +86,10 @@
 .portal .sv-diff pre { border-radius: 2px; font-size: 12px; }
 .portal .sv-diff-before { color: #ffdad6; background: #f8717110; border-color: #f8717130; }
 .portal .sv-diff-after { color: #4ade80; background: #4ade800a; border-color: #4ade8030 !important; }
-.portal .sv-status, .portal .sv-version-tag, .portal .sv-count { border-radius: 2px; font-family: 'JetBrains Mono', monospace; font-size: 10px; }
+.portal .sv-status, .portal .sv-count { border-radius: 2px; font-family: 'JetBrains Mono', monospace; font-size: 10px; }
 .portal .sv-status { background: #abcae810; color: var(--sv-accent); border-color: #abcae830; }
-.portal .sv-status-in_review { color: var(--sv-warning); background: #eabf8a10; border-color: #eabf8a40; }
-.portal .sv-status-approved, .portal .sv-status-active, .portal .sv-status-published, .portal .sv-version-tag.is-active { color: var(--sv-success); background: #4ade8010; border-color: #4ade8040; }
-.portal .sv-status-changes_requested { color: var(--sv-error); background: #f8717110; border-color: #f8717140; }
-.portal .sv-version-tag, .portal .sv-count { background: var(--sv-raised); color: var(--sv-muted); border-color: var(--sv-outline); }
+
+.portal .sv-count { background: var(--sv-raised); color: var(--sv-muted); border-color: var(--sv-outline); }
 .portal .sv-active-release { background: var(--sv-surface); }
 .portal .sv-active-release h2, .portal .sv-active-release h2 span { color: var(--sv-accent); }
 .portal .sv-active-release p { color: var(--sv-muted); font-size: 12px; }
@@ -123,9 +121,7 @@
 .portal .sv-validation { border-color: var(--sv-border); background: #4ade800a; color: var(--sv-success); }
 .portal .sv-validation.has-errors { background: #f8717110; color: var(--sv-error); }
 .portal .sv-validation p, .portal .sv-bundle-import p { color: var(--sv-muted); }
-.portal .sv-pipeline { background: var(--sv-surface); }.portal .sv-pipeline-steps small { color: var(--sv-subtle); }
-.portal .sv-step-icon { background: #abcae810; color: var(--sv-accent); border-color: #abcae840; border-radius: 2px; }
-.portal .sv-step-arrow { color: var(--sv-subtle); }
+
 .portal .sv-activity > div, .portal .sv-library-grid, .portal .sv-library-grid > div { border-color: var(--sv-border); }
 .portal .sv-activity-dot { background: var(--sv-accent); }.portal .sv-activity p { color: var(--sv-muted); }.portal .sv-activity small { color: var(--sv-subtle); }
 .portal .sv-library-grid .sv-icon { color: var(--sv-accent); }.portal .sv-library-grid span:last-child { color: var(--sv-muted); font-size: 11px; }

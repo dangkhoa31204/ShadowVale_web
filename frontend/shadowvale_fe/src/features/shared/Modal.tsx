@@ -1,9 +1,8 @@
 import { useEffect, useId, useRef, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { Icon } from './ui';
-import { useTranslation } from '../preferences/preferencesContext';
 export function Modal({ title, children, onClose, busy = false, wide = false, scrollable = false, eyebrow }: { title: string; children: ReactNode; onClose: () => void; busy?: boolean; wide?: boolean; scrollable?: boolean; eyebrow?: string }) {
-  const id = useId(), ref = useRef<HTMLElement>(null), t = useTranslation();
+  const id = useId(), ref = useRef<HTMLElement>(null);
   useEffect(() => {
     const previous = document.activeElement as HTMLElement | null, overflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden'; ref.current?.focus();
@@ -19,6 +18,6 @@ export function Modal({ title, children, onClose, busy = false, wide = false, sc
         if (e.shiftKey && (document.activeElement === first || document.activeElement === ref.current)) { e.preventDefault(); last?.focus(); }
         else if (!e.shiftKey && (document.activeElement === last || document.activeElement === ref.current)) { e.preventDefault(); first.focus(); }
       }
-    }}><header className="sv-modal-heading"><div>{eyebrow && <span className="sv-eyebrow">{eyebrow}</span>}<h2 id={id}>{title}</h2></div><button className="sv-icon-button" type="button" aria-label={t('Close')} disabled={busy} onClick={onClose}><Icon name="close" /></button></header>{scrollable ? <div className="sv-modal-body" tabIndex={0} role="region" aria-labelledby={id}>{children}</div> : children}</section>
+    }}><header className="sv-modal-heading"><div>{eyebrow && <span className="sv-eyebrow">{eyebrow}</span>}<h2 id={id}>{title}</h2></div><button className="sv-icon-button" type="button" aria-label="Close" disabled={busy} onClick={onClose}><Icon name="close" /></button></header>{scrollable ? <div className="sv-modal-body" tabIndex={0} role="region" aria-labelledby={id}>{children}</div> : children}</section>
   </div>, document.body);
 }

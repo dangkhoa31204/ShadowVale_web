@@ -1,5 +1,5 @@
 url: http://127.0.0.1:15174/login?redirect=%2Fadmin%2Freleases
-name: Admin Full content scrolling and profile navigation
+name: Admin Full content scrolling and change password navigation
 ---
 - launchApp:
     clearState: true
@@ -54,12 +54,7 @@ name: Admin Full content scrolling and profile navigation
     direction: UP
 - tapOn:
     id: Account
-- tapOn: Profile
-- assertVisible: Account details
-- scrollUntilVisible:
-    element: Change password
-    direction: DOWN
 - tapOn: Change password
 - assertVisible: Current password
 - assertVisible: Confirm new password
-- takeScreenshot: admin-profile
+- takeScreenshot: admin-change-password

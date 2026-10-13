@@ -75,7 +75,6 @@ export const contentApi={
       const published=(await this.versions()).find(v=>v.status==='Published');
       createdId=(await axiosClient.post<ContentVersionDto>(root,{label:command.label||command.title,changelog:command.changelog||'',parentVersionId:command.sourceReleaseId||published?.id||null,schemaVersion:'1.0'})).data.id;
     }else if(command.type==='saveDraft'){
-      if(command.changeReport)throw new Error('Reports are local only; save them in Change reports.');
       await this.save(command.id,command.bundle,command.label||command.title,command.changelog||'');
     }else if(['submitDraft','reviewDraft','publishDraft','restoreRelease'].includes(command.type)){
       if(!('id'in command))throw new Error('Missing version.');

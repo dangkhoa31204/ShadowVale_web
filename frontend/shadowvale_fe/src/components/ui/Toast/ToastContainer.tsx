@@ -1,9 +1,7 @@
 import React from 'react';
-import { useTranslation } from '../../../features/preferences/preferencesContext';
 import { useToast } from './useToast';
 
 export const ToastContainer: React.FC = () => {
-  const t = useTranslation();
   const { toasts, removeToast } = useToast();
 
   if (toasts.length === 0) return null;
@@ -68,11 +66,11 @@ export const ToastContainer: React.FC = () => {
             <div className="flex-1 min-w-0">
               {toast.title && (
                 <h4 className={`font-data-mono text-[11px] font-bold uppercase tracking-wider ${textColor}`}>
-                  {t(toast.title)}
+                  {toast.title}
                 </h4>
               )}
               <p className="font-body-md text-xs text-on-surface mt-0.5 leading-relaxed break-words">
-                {t(toast.message)}
+                {toast.message}
               </p>
             </div>
 
@@ -80,7 +78,7 @@ export const ToastContainer: React.FC = () => {
               type="button"
               onClick={() => removeToast(toast.id)}
               className="text-on-surface-variant hover:text-on-surface p-1 rounded transition-colors"
-              aria-label={t('Close notification')}
+              aria-label="Close notification"
             >
               <span className="material-symbols-outlined text-sm">close</span>
             </button>

@@ -7,7 +7,7 @@ export type SolverAlgorithm = 'greedy' | 'genetic' | 'classical_sa' | 'qaoa_aer'
 export type CoordinationTask = 'route_coverage' | 'cover_assignment' | 'flanking';
 export type EncounterOutcome = 'player_captured' | 'player_escaped' | 'squad_eliminated' | 'aborted';
 export interface TelemetrySession {
-  id: string; player_id: string | null; content_version_id: string; started_at: string;
+  id: string; content_version_id: string; started_at: string;
   ended_at: string | null; outcome: SessionOutcome; client_version: string; platform: string;
 }
 export interface TelemetryEvent {
@@ -47,7 +47,7 @@ export const analyticsService = {
     // Frontend fixtures only. Column names match the DB; records are not live telemetry.
     const game_sessions: TelemetrySession[] = Array.from({ length: 90 }, (_, i) => {
       const outcome = outcomes[i % outcomes.length], started_at = new Date(now - (i % 30) * 86400000).toISOString();
-      return { id: uuid(1000 + i), player_id: uuid(2000 + i % 23), content_version_id: versions[i % versions.length], started_at,
+      return { id: uuid(1000 + i), content_version_id: versions[i % versions.length], started_at,
         ended_at: outcome === 'in_progress' ? null : new Date(Date.parse(started_at) + 900000).toISOString(), outcome, client_version: '0.3.0', platform: 'windows' };
     }).filter(s => Date.parse(s.started_at) > now - days * 86400000 && (versionId === 'all' || s.content_version_id === versionId));
     const telemetry_events: TelemetryEvent[] = [], coordination_results: CoordinationResult[] = [];
@@ -61,8 +61,6 @@ export const analyticsService = {
       };
       event('map_enter', {});
       for (let shot = 0; shot < 2 + i % 5; shot++) event('shot_fired', { weapon_code: ['rifle_standard', 'smg_compact', 'pistol_silenced', 'sniper_bolt', 'shotgun_pump'][i % 5] });
-      // Player skill levels live in local saves; this is an optional event payload example.
-      event('skill_level_changed', { skill_code: ['shooting', 'engineering', 'stealth'][i % 3], level: 1 + i % 5 });
       if (session.outcome === 'died') event('player_died', {}, (i * 13) % 80, (i * 17) % 60);
       const encounter_outcome = encounters[i % encounters.length], latency = 12 + (i * 11 % 150);
       coordination_results.push({ id: uuid(3000 + i), session_id: session.id, solver_configuration_id: solver_configurations[i % algorithms.length].id,

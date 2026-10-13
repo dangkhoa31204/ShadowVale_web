@@ -184,18 +184,11 @@ test('runtime JSON is kept byte-for-byte rather than serializing editor model',a
  const raw='{\n  "version_no": 1, "schema_version": "1.0", "items": [], "weapons": []\n}';handler=c=>ok(c,raw);
  assert.equal(await api.contentApi.rawBundle(version.id),raw);
 });
-test('analytics renders aggregate responses and sends exact CSV dataset/filter queries',async()=>{
+test('analytics renders aggregate responses and sends the exact filter query',async()=>{
  const q={source:'replay',from:'2026-10-01T00:00:00Z',to:'2026-10-02T00:00:00Z',mapCode:'map_01'};
- handler=c=>ok(c,c.url.endsWith('/comparison')?[{captureRate:0.25,encounters:4}]:new Blob(['header\nvalue']));
+ handler=c=>ok(c,[{captureRate:0.25,encounters:4}]);
  const data=await api.analyticsApi.comparison(q,'family');assert.equal(data[0].captureRate,0.25);
- await api.analyticsApi.csv('coordination-results',q);
  assert.equal(calls[0].params.source,'replay');assert.equal(calls[0].params.groupBy,'family');
- assert.equal(calls[1].url,'/analytics/export/coordination-results');
-});
-test('reports remain scoped local drafts and do not perform API requests',()=>{
- api.localReports.save('v1',{summary:'Designer local report'});assert.equal(api.localReports.load('v1').summary,'Designer local report');
- api.storageService.setAuth('admin',{...api.storageService.getUser(),id:'admin',role:'admin'},false);
- assert.equal(api.localReports.load('v1'),undefined);assert.equal(calls.length,0);
 });
 test('solver CRUD, clone and activation use dedicated endpoints and retain payloads',async()=>{
  handler=c=>ok(c,{id:'solver1',...body(c)});
@@ -227,12 +220,12 @@ test('partial failures retain saved/remaining context and map nested API validat
  try {await api.runSavePlan([op],async()=>{throw httpError;});assert.fail('Must reject');}
  catch(error){assert.match(api.errorMessage(error),/Save stopped.*Remaining: items\/rifle/);assert.deepEqual(api.editorFieldErrors(error,b),{'weapons:0:damage':'Must be positive'});}
 });
-test('role access includes Admin dashboard and restricts solver mutations and CSV',()=>{
+test('role access includes Admin dashboard and restricts solver mutations',()=>{
  for(const role of ['designer','analyst','admin'])assert.equal(api.can(role,'analytics'),true);
  assert.deepEqual(api.navigationForRole('admin').map(n=>n.path),['/admin/dashboard','/admin/reviews','/admin/releases','/admin/users']);
  assert.equal(api.safeRedirect('/admin/analytics','admin'),'/admin/analytics');
- assert.equal(api.can('designer','solverEdit'),false);assert.equal(api.can('designer','analyticsExport'),false);
- assert.equal(api.can('analyst','solverEdit'),true);assert.equal(api.can('admin','analyticsExport'),true);
+ assert.equal(api.can('designer','solverEdit'),false);
+ assert.equal(api.can('analyst','solverEdit'),true);
 });
 
 test('all nested child collections round-trip into their parent request without flat foreign columns',()=>{
@@ -307,12 +300,6 @@ test('user mutations preserve BE validation/conflict errors and never fake succe
  handler=c=>fail(c,409,{message:'Email already registered',errors:{Email:['Choose another email.']}});
  await assert.rejects(api.usersApi.create({username:'team',email:'used@example.test',role:'Designer',password:'test-only'}),/Email already registered/);
  handler=c=>fail(c,403,{message:'Admin only'});await assert.rejects(api.usersApi.list(),/Admin only/);assert.ok(api.storageService.getToken());
-});
-test('display preferences recover from invalid storage and interpolate Vietnamese values',()=>{
- assert.deepEqual(api.readPreferences('broken'),{locale:'en',theme:'dark'});
- assert.deepEqual(api.readPreferences('{"locale":"vi","theme":"light"}'),{locale:'vi',theme:'light'});
- assert.deepEqual(api.readPreferences('{"locale":"unknown","theme":1}'),{locale:'en',theme:'dark'});
- assert.equal(api.formatTranslation('Trang {page} / {pages}',{page:2,pages:4}),'Trang 2 / 4');
 });
 
 test('existing weapon keys are locked even when the child has no API GUID; stats remain editable',()=>{

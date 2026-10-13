@@ -2,7 +2,7 @@ import type { Role } from '../../types/user';
 export const permissions = {
   overview: ['designer', 'analyst', 'admin'],
   author: ['designer'], review: ['admin'], publish: ['admin'],
-  analytics: ['designer', 'analyst', 'admin'], solverEdit: ['analyst', 'admin'], analyticsExport: ['analyst', 'admin'], users: ['admin'], settings: ['admin'],
+  analytics: ['designer', 'analyst', 'admin'], solverEdit: ['analyst', 'admin'], users: ['admin'], settings: ['admin'],
   versions: ['designer', 'analyst', 'admin'],
 } as const satisfies Record<string, readonly Role[]>;
 export type Permission = keyof typeof permissions;
@@ -11,7 +11,7 @@ export const can = (role: Role, permission: Permission) =>
 export const homeForRole = (role: Role) => role === 'analyst' ? '/admin/analytics' : '/admin/dashboard';
 export const safeRedirect = (value: string | null, role: Role) => {
   const pathname = value?.split(/[?#]/, 1)[0];
-  const routes = [...navigationForRole(role), { path: '/admin/profile' }, { path: '/admin/change-password' }, ...(role === 'designer' ? [{ path: '/admin/change-reports' }] : []), ...(can(role, 'analytics') ? [{ path: '/admin/analytics' }] : [])];
+  const routes = [...navigationForRole(role), { path: '/admin/change-password' }, ...(can(role, 'analytics') ? [{ path: '/admin/analytics' }] : [])];
   return value && !value.includes('\\') && routes.some(n => pathname === n.path || pathname?.startsWith(n.path + '/')) ? value : homeForRole(role);
 };
 export const navigation: { label: string; path: string; icon: string; permission?: Permission; group: string }[] = [

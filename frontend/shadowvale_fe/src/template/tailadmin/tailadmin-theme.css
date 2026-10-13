@@ -21,7 +21,7 @@
 .portal .sv-nav-heading { display: block; margin: 10px 14px 12px; color: var(--sv-subtle); font: 11px Outfit,sans-serif; text-transform: uppercase; letter-spacing: .08em; }
 .portal .sv-nav-link b { color: #9cb9ff; background: #465fff20; border-radius: 4px; }
 .portal .sv-header { background: var(--sv-surface); min-height: 72px; }.portal .sv-header-role { font: 13px Outfit,sans-serif; text-transform: capitalize; }
-.portal .sv-header-title { color: var(--sv-text); font-size: 14px; font-weight: 500; }
+
 .portal .sv-mode { font: 11px Outfit,sans-serif; border-radius: 6px; }
 .portal .sv-mode.is-demo { border-color: #f7900940; background: #f7900910; color: #fdb022; }
 .portal .sv-avatar { border-radius: 50%; background: #465fff20; color: #9cb9ff; border: 0; font-family: Outfit,sans-serif; }
@@ -52,9 +52,7 @@
 .portal .sv-alert { font-size: 12px; border-radius: 8px; background: #465fff0d; color: #b4c4ff; border-color: #465fff30; }
 .portal .sv-alert-error { color: #fda29b; background: #f0443810; border-color: #f0443840; }
 .portal .sv-empty { padding: 32px 20px; }.portal .sv-empty h3 { color: #98a2b3; font-size: 14px; }
-.portal .sv-build-counts button, .portal .sv-file-detail, .portal .sv-bundle-contents, .portal .sv-bundle-files > div { border-radius: 8px; }
-.portal .sv-build-counts button.is-active { background: #465fff15; color: #9cb9ff; }
-.portal .sv-demo-data { color: #fdb022; border-color: #f7900940; border-radius: 5px; font: 11px Outfit,sans-serif; }
+
 .portal .sv-mono { font-size: 11px; }.portal .sv-json-editor { border-radius: 8px; }.portal .sv-json-editor textarea { font-family: 'JetBrains Mono',monospace; }
 .portal .sv-snapshot details { border-radius: 8px; }.portal .sv-diff-list strong { font-size: 12px; }
 .portal .sv-diff-path { display: block; color: var(--sv-muted); margin: 4px 0 10px; }
@@ -75,5 +73,5 @@
 .portal .sv-modal { border-radius: 16px; background: #101828; border-color: #344054; box-shadow: 0 16px 48px #0006; }
 .portal .sv-modal .sv-form { margin-top: 16px; }.portal .sv-modal > div:last-child { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
 .portal .sv-modal > .sv-release-reason { display: block; padding: 0; }
-@media (max-width: 760px) { .portal .sv-main { padding: 22px 18px; }.portal .sv-header { padding: 0 18px; }.portal h1 { font-size: 24px; }.portal .sv-header-title { display: none; } }
+@media (max-width: 760px) { .portal .sv-main { padding: 22px 18px; }.portal .sv-header { padding: 0 18px; }.portal h1 { font-size: 24px; } }
 @media (max-width: 620px) { .portal .sv-snapshot-records dl > div { grid-template-columns: 1fr; gap: 5px; } }

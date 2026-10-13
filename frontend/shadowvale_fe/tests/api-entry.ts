@@ -8,7 +8,6 @@ export { createRefreshCoordinator } from '../src/services/auth/refreshCoordinato
 export { createSessionPeers } from '../src/services/auth/sessionPeers';
 export { errorMessage, statusOf } from '../src/services/api/errors';
 export { analyticsApi } from '../src/features/analytics/analyticsApi';
-export { localReports } from '../src/features/changeReports/localReports';
 
 export { editorFieldErrors } from '../src/features/content/apiFieldErrors';
 export { permissions, navigationForRole, safeRedirect, can } from '../src/features/auth/access';
@@ -16,5 +15,4 @@ export { permissions, navigationForRole, safeRedirect, can } from '../src/featur
 export { compareBundles } from '../src/features/content/validation';
 
 export { usersApi } from '../src/features/administration/usersApi';
-export { readPreferences, formatTranslation } from '../src/features/preferences/preferences';
 export { isExistingRecord, recordEditorFields, assertReadOnlyFields } from '../src/features/content/recordFieldPolicy';
