@@ -106,7 +106,15 @@ body { background:var(--sv-bg); }
 .portal .sv-modal-heading h2 { margin:0;font-size:20px; }.sv-modal-summary { overflow-wrap:anywhere; }
 .portal .sv-modal.sv-modal-wide { max-width:1100px;width:100%; }
 .portal .sv-modal-wide .sv-bundle-details { padding:0; }
-.portal .sv-admin-version-dialog { max-height:calc(100dvh - 48px);margin:auto!important;width:min(1100px,100%);background:var(--sv-surface); }
+/* A definite viewport height keeps expanded content inside one scroll region. */
+.portal .sv-modal.sv-modal-scrollable { display:grid;grid-template-rows:auto minmax(0,1fr);height:calc(100dvh - 48px);max-height:calc(100dvh - 48px);min-height:0;padding:0;overflow:hidden; }
+.portal .sv-modal-scrollable > .sv-modal-heading { padding:24px;border-bottom:1px solid var(--sv-border);min-width:0; }
+.portal .sv-modal-scrollable .sv-modal-heading h2 { overflow-wrap:anywhere; }
+.portal .sv-modal.sv-modal-scrollable > .sv-modal-body { display:block;min-height:0;min-width:0;width:100%;margin:0;overflow-y:scroll;overscroll-behavior:contain;scrollbar-gutter:stable;scrollbar-color:var(--sv-muted) var(--sv-bg); }
+.portal .sv-modal-body::-webkit-scrollbar { width:12px;background:var(--sv-bg); }
+.portal .sv-modal-body::-webkit-scrollbar-thumb { background:var(--sv-muted);border:3px solid var(--sv-bg);border-radius:8px; }
+.portal .sv-modal-scrollable .sv-diff-list { max-height:none;overflow:visible; }
+@media(max-width:600px) { .portal .sv-modal.sv-modal-scrollable { height:calc(100dvh - 32px);max-height:calc(100dvh - 32px); }.portal .sv-modal-scrollable > .sv-modal-heading { padding:18px; } }
 .sv-form-grid { display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px; }
 .sv-users-filters { display:grid;grid-template-columns:minmax(220px,2fr) minmax(140px,1fr) minmax(140px,1fr) auto;align-items:end;gap:18px;padding:24px;border-bottom:1px solid var(--sv-border); }
 .sv-users-filters .sv-search { padding:0 12px;height:42px; }.sv-users-filters input,.sv-users-filters select { min-height:42px; }
