@@ -8,93 +8,96 @@ telemetry analytics. The backend, database and Unity project are separate.
 Nguồn sự thật là proposal `ShadowVale_RBL_Capstone_Proposal.docx`: mục 3.1.c
 Functional Requirements (Content & Balancing Platform, Telemetry & Analytics Dashboard),
 3.1.d Non-functional và 3.2.a stack web. Web FE phải khớp proposal
-**không thừa, không thiếu**:
+**không thừa, không thiếu**. Không sửa proposal để hợp thức hoá code.
 
-- Không thêm màn/chức năng proposal không yêu cầu. Thấy thừa thì bỏ.
-- Thiếu thì làm đúng câu chữ proposal, không tự mở rộng.
-- Không sửa proposal để hợp thức hoá code; code đi theo proposal.
-- Chức năng phục vụ trực tiếp một yêu cầu thì được giữ (ví dụ import editor JSON khi
-  soạn content, tải JSON đã validate của một version — phục vụ "publish to a validated
-  JSON bundle"; demo mode để trình diễn khi không có BE).
+### Quy tắc phân loại (cố định, áp cho mọi màn, panel, cột, nút, chỉ số)
+
+- **Giữ:** thứ proposal gọi tên, và phương tiện tối thiểu để dùng chúng: đăng nhập; tìm, lọc,
+  phân trang danh sách; hộp xác nhận; thông báo lỗi; chọn dữ liệu.
+- **Bỏ:** mọi màn, panel, cột, nút, chỉ số mà không câu nào trong proposal yêu cầu, kể cả khi
+  "tiện" hay "có ích".
+- **BE quy định khác proposal:** FE làm theo BE và ghi vào mục "Lệch do BE" bên dưới.
+- Ngoại lệ do nhóm quyết định: ghi ở "Giữ theo quyết định của nhóm".
 
 ### Màn hình ↔ yêu cầu proposal
 
 | Màn (route) | Vai trò | Yêu cầu trong proposal |
 | --- | --- | --- |
-| Login `/login`, Change password `/admin/change-password` | Tất cả | Authenticated (JWT) access; JWT sessions and role-based access |
-| Overview / Dashboard `/admin/dashboard` | Designer, Admin | Trang chính của workspace: version đang chạy, hàng chờ, hoạt động publish |
-| Content authoring `/admin/content` | Designer | Authoring maps, enemy archetypes & parameters, loot tables, recipes, quests, weapon stats, with schema validation |
-| Review content `/admin/reviews` | Admin | Review/approval workflow |
-| Versions / Publish versions `/admin/releases` | Designer / Admin | Version history with compare/rollback and one-click publish to a validated JSON bundle |
+| Login `/login` | Tất cả | Authenticated (JWT) access; role-based access |
+| Content authoring `/admin/content` (trang đầu của Designer) | Designer | Authoring maps, enemy archetypes & parameters, loot tables, recipes, quests, weapon stats, with schema validation |
+| Review content `/admin/reviews` (trang đầu của Admin) | Admin | Review/approval workflow |
+| Versions / Publish versions `/admin/releases` | Designer / Admin | Version history with compare/rollback and publish to a validated JSON bundle |
 | Users `/admin/users` | Admin | User/role management (Designer, Analyst, Admin) — role gán trên từng tài khoản |
-| Analytics `/admin/analytics` | Tất cả | Difficulty heat maps, mission completion funnels, weapon-usage and stealth-vs-combat distributions; AI-variant comparison (capture rate, escape time, coordination score) per content version |
+| Analytics `/admin/analytics` (trang đầu của Analyst) | Tất cả | Tab Gameplay: mission completion funnels, weapon-usage, stealth-vs-combat distributions · Heatmap: difficulty heat maps · AI comparison: capture rate, escape time, coordination score per content version |
 | Analytics → Solver configurations | Xem: tất cả · Sửa: Analyst, Admin | Admin "configuration": cấu hình duy nhất BE hỗ trợ là cấu hình solver (classical vs quantum-inspired) |
+| Change password `/admin/change-password` | Tất cả | Giữ theo quyết định của nhóm (xem dưới) |
 
-Admin mở Analytics và Change password từ menu **Account**. Analyst chỉ có Analytics (và Change
-password): proposal đặt Analyst ở Telemetry & Analytics Dashboard, version history ở phần
-Designer/Admin.
+Số màn: Designer 5 (Login, Content authoring, Versions, Analytics, Change password),
+Analyst 3 (Login, Analytics, Change password), Admin 6 (Login, Review content, Publish versions,
+Users, Analytics, Change password). Admin mở Analytics và Change password từ menu **Account**.
 
 ### Đã bỏ vì nằm ngoài proposal (đừng thêm lại)
 
-- Change reports (báo cáo + ảnh lưu local) ở Content, Reviews và Releases.
-- Game delivery (Git/CI build, game assets, nút "Git changes"/"Game assets", `source=game`).
-- Profile; song ngữ EN/VI và giao diện sáng (portal chỉ có theme tối, tiếng Anh).
-- Xuất CSV / JSON ở Analytics (endpoint CSV ở BE giữ nguyên, FE không gọi), panel Skill.
-- Thông tin Analytics proposal không nêu: ô tổng quan Sessions / Players / Average duration,
-  biểu đồ Session outcomes và Daily sessions, tab Version comparison (yêu cầu "per content
-  version" đã có bộ lọc Content version và cột Version ở AI comparison), khối Scalability
-  lặp lại trong tab AI comparison. Endpoint `/analytics/overview` và `/analytics/versions/compare`
-  ở BE giữ nguyên, FE không gọi.
-- Overview và Versions của Analyst (BE không cho Analyst đọc version nên hai trang chỉ hiện thông
-  báo hạn chế), thẻ "Published content" trên sidebar của Analyst.
-- Panel "Publication activity" ở Overview của Designer (lịch sử publish chỉ Admin đọc được nên luôn
-  trống) và dải "Review → Approve → Publish" chỉ để trang trí ở Dashboard của Admin.
-- Bảng "Published content" (số bản ghi từng bảng của version đang chạy) và ô "Content resources" /
-  "Published records" ở Overview.
-- `player_id` trong telemetry demo (proposal yêu cầu telemetry ẩn danh).
-- Trang Roles và Settings (không có route; Settings không có API BE), đăng ký công khai,
-  quên mật khẩu, lệnh demo quản lý user/cấu hình, các trang/layout/component template cũ.
+- Dashboard (Admin), Overview (Designer) và thẻ "Published content" trên sidebar: chỉ lặp lại
+  thông tin của Review, Publish và Content.
+- Login: ô "Keep me signed in", dải trang trí Author → Review → Publish.
+- Content: import editor JSON, nút Delete version.
+- Versions: nút Download JSON (bundle do game tải từ BE, không cần tải tay).
+- Analytics: tab Scalability (thuộc phần nghiên cứu O4, đo trên benchmark); ở AI comparison các
+  cột Sessions, Encounters, p95, Within budget, Fallback; bảng chi tiết weapon và dòng ghi chú
+  stealth; ô tổng quan Sessions / Players / Average duration; biểu đồ Session outcomes, Daily
+  sessions; tab Version comparison. Demo: các ô KPI và cột Results / p95 / Within budget /
+  Fallback. Endpoint BE tương ứng (`/analytics/overview`, `/analytics/versions/compare`,
+  `/analytics/ai/scalability`, `/content-versions/{id}/bundle`, `DELETE /content-versions/{id}`)
+  giữ nguyên ở BE, FE không gọi.
+- Change reports, game delivery (Git/CI, game assets), Profile, song ngữ EN/VI, giao diện sáng,
+  xuất CSV/JSON ở Analytics, panel Skill, `player_id` trong telemetry demo.
+- Trang Roles và Settings, đăng ký công khai, quên mật khẩu, lệnh demo quản lý user/cấu hình,
+  các trang/layout/component template cũ.
+
+### Giữ lại dù proposal không gọi tên (có căn cứ hoặc là phương tiện)
+
+- Bảng Items, Consumables, Skills trong Content: "fully data-driven content", "content fully
+  separated from code", Package 5 có skills; weapons/loot/recipes/rewards tham chiếu items.
+- Advanced JSON trong Content: cách duy nhất để sửa các trường kiểu JSON (ví dụ objectives).
+- Duplicate record, Clone returned version: phương tiện soạn content.
+- Bộ lọc Human/Replay: tách dữ liệu "deterministic replay harness" khỏi người chơi thật.
+- Hai lớp heat map (player death, player spotted): đều là "difficulty heat map".
+- Demo mode: trình diễn khi không có BE.
+
+### Giữ theo quyết định của nhóm
+
+- Trang Change password (tự đổi mật khẩu).
+- Cột "Last sign-in" ở Users.
+
+### Lệch do BE (FE không tự sửa được)
+
+- Proposal ghi "one-click publish"; BE bắt buộc lý do 1–500 ký tự cho publish và rollback nên FE
+  hỏi lý do trước khi gửi.
+- Analyst phải nhập GUID khi lọc theo content version vì BE chỉ cho Admin/Designer đọc danh sách
+  version.
 
 ### Quyết định đã chốt
 
-- **Stack đúng mục 3.2.a:** Tailwind + shadcn/ui, React Query (TanStack Query),
-  Recharts. Không thêm thư viện UI/chart khác.
+- **Stack đúng mục 3.2.a:** Tailwind + shadcn/ui, React Query (TanStack Query), Recharts.
+  Không thêm thư viện UI/chart khác.
 - **Trình duyệt:** proposal ghi Chrome/Firefox/Edge 100+, Tailwind 4 chính thức hỗ trợ
   Chrome/Edge 111+, Firefox 128+. Nhóm **giữ Tailwind 4 và không sửa proposal**. Trên
   Chrome/Edge 100–110 và Firefox 100–127 một số màu bán trong suốt (ví dụ `bg-success/10`)
   có thể lệch; bố cục và chức năng vẫn chạy. Nếu cần chứng minh 100+: thử trên Chrome 100 /
   Firefox 115 ESR rồi đổi màu bán trong suốt sang token màu đặc — không hạ Tailwind.
-- **Analytics dành cho cả ba role:** Designer cân bằng game dựa trên dữ liệu chơi.
+- **Analytics dành cho cả ba role:** Designer cân bằng game dựa trên dữ liệu chơi
+  ("evidence-based balancing").
 
 ### Nhật ký thay đổi (nhánh `feat/fe-align-proposal`, tạo từ `dev`)
 
-1. Bỏ các phần ngoài proposal liệt kê ở trên; admin được so sánh version ở demo mode;
-   nâng `axios` 1.20.0 (vá lỗ hổng).
-2. Tailwind 4 + shadcn/ui (Radix, nova) + TanStack Query; bảng màu olive quân đội đặt vào
-   token shadcn, chỉ theme tối.
+1. Bỏ các phần ngoài proposal; admin được so sánh version ở demo mode; nâng `axios` 1.20.0.
+2. Tailwind 4 + shadcn/ui (Radix, nova) + TanStack Query; bảng màu olive đặt vào token shadcn,
+   chỉ theme tối.
 3. Mọi màn dùng shadcn (Card, Field, Table, Tabs, Dialog, AlertDialog thay `window.confirm`,
-   DropdownMenu, sonner thay Toast tự viết, icon lucide thay Material Symbols) và React Query
-   cho dữ liệu server.
-4. Analytics vẽ bằng Recharts; demo có thêm funnel nhiệm vụ, stealth vs combat và lớp
-   Detections cho heat map (kèm unit test).
-5. Dọn CSS cũ không còn dùng; mock API cho UI test có dữ liệu analytics/solver.
-6. Bỏ thông tin Analytics proposal không nêu, các trang rỗng của Analyst và panel luôn trống
-   (xem "Đã bỏ").
-
-### Thông tin giữ lại dù proposal không gọi tên trực tiếp (có căn cứ)
-
-- Bảng Items, Consumables, Skills trong Content: "fully data-driven content", "content fully
-  separated from code", Package 5 có skills; weapons/loot/recipes/rewards tham chiếu items.
-- Cột p95 latency, within budget, fallback ở AI comparison: phần đánh giá "latency
-  percentiles, success rate" và yêu cầu "bounded latency budget".
-- Tab Scalability: O4 "latency and scalability, identify the viable real-time regime".
-- Bộ lọc Human/Replay: "deterministic replay harness" và "A/B study".
-- Demo: ô Encounter capture rate và Within time budget (chỉ số so sánh AI).
-
-### Còn thiếu một phần (do BE)
-
-Analyst phải nhập GUID khi lọc theo content version vì BE chỉ cho Admin/Designer đọc danh
-sách version. Cần BE cho Analyst đọc danh sách version (số và nhãn).
+   DropdownMenu, sonner, icon lucide) và React Query cho dữ liệu server.
+4. Analytics vẽ bằng Recharts; demo có funnel nhiệm vụ, stealth vs combat và lớp Detections.
+5. Soát toàn bộ chữ/nút/cột/bộ lọc của mọi màn theo quy tắc phân loại ở trên và bỏ phần thừa.
 
 ## Run
 
@@ -127,16 +130,15 @@ synthetic, stored in the browser, and separate from API mode.
   live in `src/index.css`; there is no `tailwind.config`.
 - **shadcn/ui** (Radix base, `components.json`) in `src/components/ui`. Add components with
   `npx shadcn@4.21.4 add <name>`; the `@/` alias is declared in `tsconfig.json` for the CLI.
-  Shared building blocks: `features/shared/ui.tsx` (Icon, PageHeading, Panel, StatCard,
-  Status, Empty, ActivityList), `Modal.tsx` (Dialog), `confirm.tsx` (AlertDialog `useConfirm`).
+  Shared building blocks: `features/shared/ui.tsx` (Icon, PageHeading, Panel, Status, Empty),
+  `Modal.tsx` (Dialog), `confirm.tsx` (AlertDialog `useConfirm`).
 - **TanStack Query** for server data: workspace (`features/content/WorkspaceProvider.tsx`),
-  content editor and enums, comparisons, users, dashboards, analytics and solver
-  configurations; writes are mutations. `src/lib/queryClient.ts` does not retry 4xx and the
-  cache is cleared whenever the signed-in user changes.
-- **Recharts** through shadcn `chart` (`features/analytics/charts.tsx`). Series colours
-  `--chart-1…6` are a fixed order validated for the dark card surface (lightness band,
-  chroma, colour-blind and normal-vision separation, 3:1 contrast). One series uses
-  `--chart-1`; more than six series fold into the table.
+  content editor and enums, comparisons, users, analytics and solver configurations; writes
+  are mutations. `src/lib/queryClient.ts` does not retry 4xx and the cache is cleared whenever
+  the signed-in user changes.
+- **Recharts** through shadcn `chart` (`features/analytics/charts.tsx`): single-series bars in
+  `--chart-1`; heat maps use one hue (`--chart-3`) with opacity. Colours were validated for the
+  dark card surface (lightness band, chroma, colour-blind separation, 3:1 contrast).
 - Legacy portal layout CSS (`internal.css`, `original-theme.css`,
   `template/tailadmin/tailadmin-theme.css`, `editor.css`, `military-theme.css`) is imported
   in the `components` layer so shadcn utilities win. Follow-up: fold the three overlapping
@@ -149,9 +151,8 @@ synthetic, stored in the browser, and separate from API mode.
 | Author and submit own content drafts | Yes | — | — |
 | Review / approve / reject | — | — | Yes |
 | Publish / rollback | — | — | Yes |
-| Overview and version history, detail, comparison | Yes | — | Yes |
+| Version history, detail, comparison | Yes | — | Yes |
 | Publication history | — (BE restriction) | — | Yes |
-| Validated JSON bundle download | Yes | — | Yes |
 | Analytics (manual version GUID for Analyst) | Yes | Yes | Yes |
 | Solver configurations: view | Yes | Yes | Yes |
 | Solver configurations: create / edit / clone / activate / delete | — | Yes | Yes |
@@ -172,16 +173,15 @@ requests send the revision; entity writes have no transaction-level concurrency 
 in the BE.
 
 Validate, submit, approve/reject, publish and rollback use BE endpoints. Admin review
-loads the changes before enabling approval and rechecks the server revision. Reject and
-rollback require reasons. **JSON** downloads the BE's validated bundle; editor JSON import
-is a staging tool.
+loads the changes before enabling approval and rechecks the server revision. Reject,
+publish and rollback require reasons (BE rule).
 
 ## Analytics and solver configurations
 
-Gameplay uses BE aggregates: mission completion funnel, weapon usage and the
-stealth-vs-combat histogram. Other tabs: difficulty heat map (map/event/cell size),
-AI comparison (capture rate, escape time, coordination score, latency, budget, fallback)
-and scalability (p95 latency by agent count). Filters: dates, content version, map code,
+Gameplay uses BE aggregates: mission completion funnel, shots per weapon and the
+stealth-vs-combat histogram. Heatmap: map, event type (player death / spotted) and cell
+size. AI comparison: capture rate, escape time and coordination score per content version
+and solver group (configuration or family). Filters: dates, content version, map code,
 solver family/configuration, Human/Replay.
 
 Solver forms switch parameters by algorithm and expose all six QUBO weights. Used

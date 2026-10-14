@@ -10,33 +10,29 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
 import { useAuth } from '../../hooks/useAuth';
-import { HorizontalBars, LatencyChart } from './charts';
+import { HorizontalBars } from './charts';
 import { analyticsApi, type AnalyticsFilters } from './analyticsApi';
 import { SolverConfigurations } from './SolverConfigurations';
 import { useWorkspace } from '../content/workspaceContext';
 import { contentApi } from '../content/contentApi';
 import { errorMessage } from '../../services/api/errors';
-import type { HeatmapDto, AiComparisonRowDto, ScalabilityRowDto } from '../../services/api/contracts';
+import type { HeatmapDto, AiComparisonRowDto } from '../../services/api/contracts';
 import { Empty, PageHeading, Panel, panelTable } from '../shared/ui';
 import { NumericControl } from '../shared/NumericControl';
 type Overview=Awaited<ReturnType<typeof analyticsApi.overview>>;
-type Data={overview?:Overview;heatmap?:HeatmapDto;comparison?:AiComparisonRowDto[];scalability?:ScalabilityRowDto[]};
+type Data={overview?:Overview;heatmap?:HeatmapDto;comparison?:AiComparisonRowDto[]};
 const num=(v:unknown)=>v===null||v===undefined?'—':Number(v).toLocaleString('en-GB',{maximumFractionDigits:2});
 const pct=(v:unknown)=>v===null||v===undefined?'—':(Number(v)*100).toFixed(1)+'%';
 const guid=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 function MetricsTable({headers,rows}:{headers:string[];rows:React.ReactNode[][]}){
  return rows.length?<Table className={cn(panelTable,'tabular-nums')}><TableHeader><TableRow>{headers.map(h=><TableHead key={h}>{h}</TableHead>)}</TableRow></TableHeader><TableBody>{rows.map((row,i)=><TableRow key={i}>{row.map((v,j)=><TableCell key={j}>{v}</TableCell>)}</TableRow>)}</TableBody></Table>:<Empty title="No data for these filters"/>;}
-const Note=({children}:{children:React.ReactNode})=><p className="px-6 pb-5 text-xs text-muted-foreground">{children}</p>;
 // Proposal distributions: mission completion funnel, weapon usage and stealth vs combat.
 function OverviewPanels({data}:{data:Overview}){
   const playstyle=data.playstyle;
   return <>
     <Panel title="Mission funnel" description="Sessions per step and share of started sessions"><HorizontalBars unit="Sessions" rows={[{label:'Started',value:Number(data.funnel.sessionsStarted),detail:num(data.funnel.sessionsStarted)},...data.funnel.objectives.map(r=>({label:'Objective '+r.objectiveIndex,value:Number(r.sessions),detail:num(r.sessions)+' · '+pct(r.shareOfStarted)})),{label:'Completed',value:Number(data.funnel.missionsCompleted),detail:num(data.funnel.missionsCompleted)+' · '+pct(data.funnel.completionRate)}]}/></Panel>
-    <Panel title="Weapon usage" description={'Exact finished-session statistics · '+num(data.weapons.finishedSessions)+' sessions'}>
-      {data.weapons.weapons.length>0&&<HorizontalBars unit="Shots" rows={data.weapons.weapons.map(r=>({label:r.weapon,value:Number(r.shots),detail:num(r.shots)+' shots · '+pct(r.sessionShare)+' of sessions'}))}/>}
-      <MetricsTable headers={['Weapon','Shots','Kills','Kills / shot','Sessions used','Session share']} rows={data.weapons.weapons.map(r=>[r.weapon,num(r.shots),num(r.kills),num(r.killsPerShot),num(r.sessionsUsed),pct(r.sessionShare)])}/>
-    </Panel>
-    <Panel title="Stealth and combat" description="Finished sessions by stealth ratio"><HorizontalBars unit="Sessions" rows={playstyle.stealthRatioHistogram.map(r=>({label:pct(r.from)+'–'+pct(r.to),value:Number(r.sessions),detail:num(r.sessions)+' · '+pct(Number(r.sessions)/Math.max(1,Number(playstyle.finishedSessions)))}))}/><Note>Average stealth: {pct(playstyle.avgStealthRatio)} · Average detections: {num(playstyle.avgTimesDetected)} · Sessions without kills: {num(playstyle.sessionsWithoutKills)}</Note></Panel>
+    <Panel title="Weapon usage" description="Shots per weapon"><HorizontalBars unit="Shots" rows={data.weapons.weapons.map(r=>({label:r.weapon,value:Number(r.shots),detail:num(r.shots)+' shots'}))}/></Panel>
+    <Panel title="Stealth and combat" description="Finished sessions by stealth ratio"><HorizontalBars unit="Sessions" rows={playstyle.stealthRatioHistogram.map(r=>({label:pct(r.from)+'–'+pct(r.to),value:Number(r.sessions),detail:num(r.sessions)+' · '+pct(Number(r.sessions)/Math.max(1,Number(playstyle.finishedSessions)))}))}/></Panel>
   </>;
 }
 function Heatmap({data}:{data:HeatmapDto}){
@@ -48,7 +44,7 @@ function Heatmap({data}:{data:HeatmapDto}){
   return <div className="grid gap-3 px-6 pb-6"><svg role="img" aria-label={"Difficulty heatmap for "+data.mapCode} viewBox={`${minX} ${minY} ${width} ${height}`} className="h-90 w-full rounded-lg bg-muted">{data.cells.map(c=><rect key={c.x+':'+c.y} x={Number(c.x)} y={Number(c.y)} width={size} height={size} fill="var(--chart-3)" fillOpacity={0.15+0.85*Number(c.count)/max} stroke="var(--muted)" strokeWidth={size*0.06}><title>X {c.x}, Z {c.y}: {c.count} events</title></rect>)}</svg>
     <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground"><span>1 event</span><span className="h-2 w-32 rounded-sm bg-linear-to-r from-chart-3/15 to-chart-3"/><span>{max} events</span><span>· World X / Z · {size} m cells · {data.eventTypes.join(', ')}</span></div></div>;
 }
-const tabs=[['overview','Gameplay'],['heatmap','Heatmap'],['comparison','AI comparison'],['scalability','Scalability'],['solvers','Solver configurations']] as const;
+const tabs=[['overview','Gameplay'],['heatmap','Heatmap'],['comparison','AI comparison'],['solvers','Solver configurations']] as const;
 type Tab=typeof tabs[number][0];
 export function ApiAnalyticsPage(){
   const {state}=useWorkspace(),{user}=useAuth(),analyst=user?.role==='analyst';
@@ -69,8 +65,7 @@ export function ApiAnalyticsPage(){
     queryFn:async({signal}):Promise<Data>=>{
       if(tab==='overview')return {overview:await analyticsApi.overview(query,signal)};
       if(tab==='heatmap')return {heatmap:await analyticsApi.heatmap(query,cell,[event],signal)};
-      if(tab==='comparison')return {comparison:await analyticsApi.comparison(query,group,signal)};
-      return {scalability:await analyticsApi.scalability(query,signal)};
+      return {comparison:await analyticsApi.comparison(query,group,signal)};
     },
     // A filter change keeps the same tab's numbers on screen (dimmed) until the new slice arrives.
     placeholderData:(previous,previousQuery)=>previousQuery?.queryKey[1]===tab?previous:undefined,
@@ -105,10 +100,9 @@ export function ApiAnalyticsPage(){
         {data.overview&&<OverviewPanels data={data.overview}/>}
         {data.heatmap&&<Panel title="Difficulty heatmap"><Heatmap data={data.heatmap}/></Panel>}
         {data.comparison&&<Panel title="AI comparison" description="Capture rate per solver group">
-          {data.comparison.length>0&&<HorizontalBars unit="Capture rate (%)" rows={data.comparison.map(r=>({label:(new Set(data.comparison!.map(x=>x.contentVersionId)).size>1?(r.contentVersionLabel||'—')+' · ':'')+r.groupLabel,value:Number(r.captureRate||0)*100,detail:pct(r.captureRate)+' · '+num(r.encounters)+' encounters'}))}/>}
-          <MetricsTable headers={['Version','Solver group','Family','Sessions','Encounters','Capture rate','Escape avg (s)','Score','p95 (ms)','Within budget','Fallback']} rows={data.comparison.map(r=>[r.contentVersionLabel||r.contentVersionId||'—',r.groupLabel,r.family,num(r.sessions),num(r.encounters),pct(r.captureRate),num(r.avgEscapeSeconds),num(r.avgCoordinationScore),num(r.latencyP95Ms),pct(r.withinBudgetRate),pct(r.fallbackRate)])}/>
+          {data.comparison.length>0&&<HorizontalBars unit="Capture rate (%)" rows={data.comparison.map(r=>({label:(new Set(data.comparison!.map(x=>x.contentVersionId)).size>1?(r.contentVersionLabel||'—')+' · ':'')+r.groupLabel,value:Number(r.captureRate||0)*100,detail:pct(r.captureRate)}))}/>}
+          <MetricsTable headers={['Version','Solver group','Family','Capture rate','Escape time (s)','Coordination score']} rows={data.comparison.map(r=>[r.contentVersionLabel||r.contentVersionId||'—',r.groupLabel,r.family,pct(r.captureRate),num(r.avgEscapeSeconds),num(r.avgCoordinationScore)])}/>
         </Panel>}
-        {data.scalability&&<Panel title="AI scalability" description="p95 solver latency by number of agents"><LatencyChart rows={data.scalability}/><MetricsTable headers={['Configuration','Family','Agents','Nodes','Replans','p50 (ms)','p95 (ms)','Objective','Within budget']} rows={data.scalability.map(r=>[r.code,r.family,num(r.numAgents),r.nodesFrom+'–'+r.nodesTo,num(r.replans),num(r.latencyP50Ms),num(r.latencyP95Ms),num(r.avgObjective),pct(r.withinBudgetRate)])}/></Panel>}
       </div>}
     </>}
   </div>;

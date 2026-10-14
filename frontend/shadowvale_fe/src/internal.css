@@ -40,11 +40,7 @@
 .sv-nav-link.is-active { background: #253830; color: #c8ead7; }
 .sv-nav-link b { margin-left: auto; border-radius: 4px; background: #374c42; padding: 0 6px; font-size: 10px; }
 .sv-sidebar-bottom { margin-top: auto; padding: 20px 18px; }
-.sv-game-card { display: flex; gap: 10px; align-items: center; padding: 13px 10px; border: 1px solid #2d3d40; border-radius: 7px; background: linear-gradient(110deg,#1b2929,#182126); margin-bottom: 19px; }
-.sv-game-card > .sv-icon { color: #88aa9c; }
 
-.sv-game-card span:not(.sv-icon):not(.sv-dot) { font-size: 9px; color: #a8b9b3; display: block; }
-.sv-game-card strong { display: block; font-family: 'JetBrains Mono', monospace; font-size: 12px; }
 .sv-user { display: flex; align-items: center; gap: 9px; padding-top: 16px; border-top: 1px solid var(--sv-border); }
 .sv-avatar { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 50%; background: #304137; color: #b3d7c3; }
 .sv-user strong { font-size: 11px; display: block; }
@@ -112,11 +108,6 @@
 .sv-validation.has-errors { background: #332727; border-color: #684142; color: #e4b1ab; }
 .sv-validation.has-errors p { color: #af8989; }
 .sv-validation ul { padding-left: 15px; font-family: 'JetBrains Mono', monospace; font-size: 10px; margin-top: 12px; overflow-wrap: anywhere; }
-.sv-bundle-import { padding: 17px 24px; border-top: 1px solid var(--sv-border); font-size: 11px; color: #8fa7b7; }
-.sv-bundle-import summary { cursor: pointer; }
-.sv-bundle-import p { margin: 15px 0; }
-
-.sv-row-actions { display: flex; gap: 7px; }
 
 .sv-empty { padding: 32px 22px; text-align: center; color: #7b94a5; }
 .sv-empty .sv-icon { font-size: 32px; color: #556f7c; }
@@ -135,8 +126,7 @@
 .sv-login-story h1 { font-size: clamp(32px,3.5vw,52px); margin: 22px 0; line-height: 1.15; }
 .sv-login-story h1 em { font-style: normal; color: #afd5bd; }
 .sv-login-story p { max-width: 440px; color: #8da798; font-size: 14px; line-height: 1.8; }
-.sv-login-flow { display: flex; gap: 10px; align-items: center; margin-top: 45px; color: #a6c2b0; font-size: 11px; }
-.sv-login-flow i { width: 24px; border-bottom: 1px solid #4a6455; margin: 0 8px; }
+
 .sv-login-story footer { display: flex; justify-content: space-between; font-size: 8px; color: #6d8876; letter-spacing: .12em; font-family: 'JetBrains Mono',monospace; }
 .sv-login-main { display: flex; align-items: center; justify-content: center; padding: 50px; }
 
@@ -164,7 +154,7 @@
  .sv-editor-toolbar { flex-wrap: wrap; }
  .sv-record-title > .sv-mono { display: none; }
  
- .sv-login-story h1 { font-size: 36px; }.sv-login-flow { gap: 7px; }.sv-login-flow i { width: 12px; margin: 0 2px; }
+ .sv-login-story h1 { font-size: 36px; }
 }
 @media (max-width: 760px) {
  .sv-sidebar { display: none; transform: translateX(-100%); width: 250px; transition: transform .2s; }.sv-sidebar.is-open { display: flex; transform: translateX(0); }

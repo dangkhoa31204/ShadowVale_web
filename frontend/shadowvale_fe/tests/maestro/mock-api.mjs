@@ -22,9 +22,7 @@ const analytics = {
   '/analytics/heatmap': { mapCode: 'map01_docks', cellSize: 5, eventTypes: ['player_death'], cells: Array.from({ length: 24 }, (_, i) => ({ x: (i % 6) * 5, y: Math.floor(i / 6) * 5, count: (i * 7) % 9 + 1 })) },
   '/analytics/ai/comparison': solverConfigs.slice(0, 3).map((c, i) => ({ contentVersionId: publishedId, contentVersionLabel: 'Maestro published content', groupKey: c.id, groupLabel: c.code, family: c.family,
     sessions: 18 - i * 3, encounters: 40 - i * 6, captures: 22 - i * 5, escapes: 18 - i, captureRate: (22 - i * 5) / (40 - i * 6), avgEscapeSeconds: 95 + i * 12, medianEscapeSeconds: 90, replans: 60, avgCoordinationScore: 0.71 - i * 0.04,
-    latencyP50Ms: 18 + i * 30, latencyP95Ms: 42 + i * 55, latencyP99Ms: 60 + i * 70, withinBudgetRate: 0.98 - i * 0.06, fallbackRate: 0.01 + i * 0.03 })),
-  '/analytics/ai/scalability': solverConfigs.slice(0, 3).flatMap((c, i) => [2, 4, 6, 8].map(numAgents => ({ configurationId: c.id, code: c.code, family: c.family, numAgents, nodesFrom: 20, nodesTo: 60,
-    replans: 10 + numAgents, latencyP50Ms: (8 + i * 20) * numAgents / 2, latencyP95Ms: (14 + i * 35) * numAgents / 2, avgObjective: -12.5 + numAgents, withinBudgetRate: 1 - i * 0.05 - numAgents * 0.01 }))),
+    latencyP50Ms: 18 + i * 30, latencyP95Ms: 42 + i * 55, latencyP99Ms: 60 + i * 70, withinBudgetRate: 0.98 - i * 0.06, fallbackRate: 0.01 + i * 0.03 }))
 };
 
 export function mockApi() {

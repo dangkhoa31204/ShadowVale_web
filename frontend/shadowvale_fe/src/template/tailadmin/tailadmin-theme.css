@@ -24,7 +24,7 @@
 
 .portal .sv-avatar { border-radius: 50%; background: #465fff20; color: #9cb9ff; border: 0; font-family: Outfit,sans-serif; }
 .portal .sv-user strong { font-size: 13px; font-weight: 500; }.portal .sv-user small { font-size: 12px; }
-.portal .sv-game-card { background: var(--sv-bg); border-radius: 8px; margin-bottom: 16px; }.portal .sv-game-card strong { color: var(--sv-text); font: 13px Outfit,sans-serif; }
+
 .portal .sv-main { padding: 28px 32px; }.portal .sv-page { gap: 22px; }
 .portal .sv-page-heading { border: 0; padding: 0; }.portal .sv-page-heading p { font-size: 13px; margin-top: 5px; }
 .portal .sv-panel, .portal .sv-editor { border-radius: 12px; border-color: var(--sv-border); box-shadow: none; }

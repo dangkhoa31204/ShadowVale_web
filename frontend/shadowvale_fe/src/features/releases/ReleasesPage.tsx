@@ -13,7 +13,7 @@ import { useWorkspace } from '../content/workspaceContext';
 import { BundleDetails } from '../content/BundleDetails';
 import { Empty, Icon, PageHeading, Panel, Status, panelTable } from '../shared/ui';
 import { Modal } from '../shared/Modal';
-import { dateLabel, downloadJson } from '../shared/format';
+import { dateLabel } from '../shared/format';
 import { isDemoMode } from '../../config/environment';
 import { ApiReleasesPage } from './ApiVersions';
 
@@ -62,7 +62,6 @@ function DemoReleasesPage() {
     <PageHeading title={canPublish ? "Publish versions" : "Versions"} />
     {active && <Panel><div className="flex flex-wrap items-center justify-between gap-4 p-6">
       <div className="flex items-center gap-4"><span className="grid size-11 shrink-0 place-items-center rounded-lg bg-primary/10 text-primary"><Icon name="deployed_code" className="size-5" /></span><div><span className="sv-eyebrow">Published content</span><h2 className="text-lg font-semibold">#{active.version_no} · {active.label}</h2><p className="text-sm text-muted-foreground">{dateLabel(active.publishedAt)} · {active.publishedBy}</p></div></div>
-      <Button variant="outline" onClick={() => downloadJson(active.bundle, 'shadowvale-content-' + active.version_no + '.json')}><Icon name="download" />JSON</Button>
     </div></Panel>}
 
     {canPublish && <Panel title="Approved content" action={<Badge variant="secondary">{approved.length}</Badge>}>
@@ -84,7 +83,6 @@ function DemoReleasesPage() {
               <TableCell>{dateLabel(r.publishedAt)}</TableCell><TableCell>{r.publishedBy}</TableCell><TableCell><Status value={r.status} /></TableCell>
               <TableCell><div className="flex gap-2">
                 {canPublish && <Button variant="outline" size="sm" id={'release-toggle-' + r.id} aria-expanded={detailId === r.id} aria-controls={'release-detail-' + r.id} onClick={() => setDetailId(detailId === r.id ? '' : r.id)}>{detailId === r.id ? "Hide changes" : "View changes"}</Button>}
-                <Button variant="outline" size="sm" onClick={() => downloadJson(r.bundle, 'shadowvale-content-' + r.version_no + '.json')}>JSON</Button>
                 {canPublish && r.status === 'archived' && <Button variant="outline" size="sm" disabled={busy} onClick={() => requestAction({ type: 'rollback', id: r.id })}>Rollback</Button>}
               </div></TableCell>
             </TableRow>

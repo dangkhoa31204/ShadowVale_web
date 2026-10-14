@@ -64,14 +64,14 @@ test('empty collection forms create DB-shaped default records with filtered FK c
 test('role policy and internal redirects deny unauthorized access', async () => {
   assert.equal(can('designer', 'publish'), false); assert.equal(can('analyst', 'author'), false);
   assert.equal(can('admin', 'publish'), true);
-  assert.equal(safeRedirect('//evil.test', 'designer'), '/admin/dashboard');
+  assert.equal(safeRedirect('//evil.test', 'designer'), '/admin/content');
   assert.equal(safeRedirect('/admin\\evil', 'analyst'), '/admin/analytics');
   // Analyst works only in the analytics dashboard; version history is Designer/Admin.
-  assert.equal(can('analyst', 'overview'), false); assert.equal(can('analyst', 'versions'), false);
+  assert.equal(can('analyst', 'versions'), false);
   assert.equal(safeRedirect('/admin/releases', 'analyst'), '/admin/analytics');
   assert.equal(safeRedirect('/admin/content', 'designer'), '/admin/content');
   assert.equal(safeRedirect('/admin/content?section=report', 'designer'), '/admin/content?section=report');
-  assert.equal(safeRedirect('/admin/change-reports/d1', 'designer'), '/admin/dashboard');
+  assert.equal(safeRedirect('/admin/change-reports/d1', 'designer'), '/admin/content');
   await assert.rejects(applyCommand(state(), { type: 'submitDraft', id: 'd1', revision: 1 }, analyst, validate), /role/);
 });
 test('author submits, admin approves and publish seals an immutable snapshot with one published version', async () => {
@@ -91,18 +91,17 @@ test('author submits, admin approves and publish seals an immutable snapshot wit
   published.drafts[0].bundle.weapons[0].damage = 999;
   assert.equal(original.drafts[0].bundle.weapons[0].damage, 24);
 });
-test('admin has dashboard, review and publishing navigation with analytics in the account menu', async () => {
-  assert.deepEqual(navigationForRole('admin').map(n => n.path), ['/admin/dashboard', '/admin/reviews', '/admin/releases', '/admin/users']);
-  assert.equal(homeForRole('admin'), '/admin/dashboard');
-  assert.equal(can('admin', 'overview'), true);
-  assert.equal(safeRedirect('/admin/dashboard', 'admin'), '/admin/dashboard');
+test('admin has review, publishing and users navigation with analytics in the account menu', async () => {
+  assert.deepEqual(navigationForRole('admin').map(n => n.path), ['/admin/reviews', '/admin/releases', '/admin/users']);
+  assert.equal(homeForRole('admin'), '/admin/reviews'); assert.equal(homeForRole('designer'), '/admin/content');
+  assert.equal(safeRedirect('/admin/dashboard', 'admin'), '/admin/reviews');
   for (const permission of ['author'] as const) assert.equal(can('admin', permission), false);
   assert.equal(can('admin', 'analytics'), true); assert.equal(safeRedirect('/admin/analytics', 'admin'), '/admin/analytics');
   assert.equal(can('designer', 'solverEdit'), false);
-  for (const path of ['/admin/content', '/admin/content/d1']) assert.equal(safeRedirect(path, 'admin'), '/admin/dashboard');
+  for (const path of ['/admin/content', '/admin/content/d1']) assert.equal(safeRedirect(path, 'admin'), '/admin/reviews');
   assert.equal(safeRedirect('/admin/releases', 'admin'), '/admin/releases');
   assert.equal(safeRedirect('/admin/users', 'admin'), '/admin/users');
-  assert.equal(safeRedirect('/admin/users', 'designer'), '/admin/dashboard');
+  assert.equal(safeRedirect('/admin/users', 'designer'), '/admin/content');
   for (const role of ['admin', 'designer', 'analyst'] as const) {
     assert.equal(safeRedirect('/admin/profile', role), homeForRole(role));
     assert.equal(safeRedirect('/admin/change-password', role), '/admin/change-password');

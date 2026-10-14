@@ -9,9 +9,7 @@ import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardAction, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Empty as EmptyState, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/ui/empty';
-import { Link } from 'react-router-dom';
 import type { DraftStatus } from '../content/types';
-import { actionLabels, dateLabel } from './format';
 
 /** Names used by pages, navigation and content collections, mapped to shadcn's icon set (lucide). */
 const icons: Record<string, LucideIcon> = {
@@ -44,25 +42,6 @@ export function Panel({ title, description, action, className, children }: { tit
     </CardHeader>}
     {children}
   </Card>;
-}
-
-/** KPI tile; with `to` the whole tile links to the page that acts on the number. */
-export function StatCard({ label, value, detail, icon, to }: { label: string; value: ReactNode; detail?: ReactNode; icon?: string; to?: string }) {
-  const body = <Card className={cn('h-full gap-3 px-5', to && 'transition-colors hover:bg-accent')}>
-    <div className="flex items-center justify-between gap-2 text-xs text-muted-foreground"><span>{label}</span>{icon && <Icon name={icon} />}</div>
-    <strong className="text-3xl font-semibold tracking-tight tabular-nums [overflow-wrap:anywhere]">{value}</strong>
-    {detail && <small className="truncate text-xs text-muted-foreground">{detail}</small>}
-  </Card>;
-  return to ? <Link to={to} className="block rounded-xl focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none">{body}</Link> : body;
-}
-
-/** Publication audit trail: newest first. */
-export function ActivityList({ items, empty }: { items: { id: string; action: string; target: string; actor: string; at: string }[]; empty: string }) {
-  if (!items.length) return <Empty title={empty} />;
-  return <ol className="grid gap-5 p-6">{items.map(a => <li key={a.id} className="flex gap-3">
-    <span aria-hidden="true" className="mt-1.5 size-2 shrink-0 rounded-full bg-primary" />
-    <div className="min-w-0"><strong className="block text-sm font-medium">{actionLabels[a.action] || a.action}</strong><p className="truncate text-sm text-muted-foreground">{a.target}</p><small className="text-xs text-muted-foreground">{a.actor} · {dateLabel(a.at)}</small></div>
-  </li>)}</ol>;
 }
 
 /** Table spacing inside a Panel: cells line up with the panel's 24px padding. */

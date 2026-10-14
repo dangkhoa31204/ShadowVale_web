@@ -13,7 +13,7 @@ import { analyticsService, emptyAnalytics, type CoordinationTask, type SolverFam
 import { HorizontalBars } from './charts';
 import { ApiAnalyticsPage } from './ApiAnalyticsPage';
 import { isDemoMode } from '../../config/environment';
-import { Empty, PageHeading, Panel, StatCard, panelTable } from '../shared/ui';
+import { Empty, PageHeading, Panel, panelTable } from '../shared/ui';
 import { useWorkspace } from '../content/workspaceContext';
 
 function percent(value: number, total: number) { return total ? (100 * value / total).toFixed(1) + '%' : '—'; }
@@ -46,7 +46,6 @@ function DemoAnalyticsPage() {
   const configurations = telemetry.solver_configurations.filter(c => familyFilter === 'all' || c.family === familyFilter);
   const configurationIds = new Set(configurations.map(c => c.id));
   const results = telemetry.coordination_results.filter(r => (mapFilter === 'all' || r.map_code === mapFilter) && configurationIds.has(r.solver_configuration_id) && (taskFilter === 'all' || r.task_type === taskFilter));
-  const encounters = results.filter(r => r.encounter_outcome !== null && r.encounter_outcome !== 'aborted');
   const shots = events.filter(e => e.event_type === 'shot_fired' && typeof e.payload.weapon_code === 'string');
   const weaponCodes = [...new Set(shots.map(e => String(e.payload.weapon_code)))];
   // Both heat map layers share one grid so switching layers keeps cells in place.
@@ -78,10 +77,6 @@ function DemoAnalyticsPage() {
     detail: step.count + ' · ' + percent(step.count, funnel[0].count) + (i > 0 && funnel[i - 1].count > step.count ? ' · −' + percent(funnel[i - 1].count - step.count, funnel[i - 1].count) : ''),
   }));
   const styleRows = styles.groups.map(group => ({ label: group.label, value: group.count, detail: group.count + ' · ' + percent(group.count, styles.sessions) }));
-  const stats = [
-    { label: 'Encounter capture rate', value: percent(encounters.filter(r => r.encounter_outcome === 'player_captured').length, encounters.length), detail: 'Aborted encounters excluded' },
-    { label: 'Within time budget', value: percent(results.filter(r => r.within_budget).length, results.length), detail: 'coordination_results.within_budget' },
-  ];
   const heatLabel = heatLayers[heatLayer].toLowerCase();
 
   return <div className="sv-page">
@@ -103,7 +98,6 @@ function DemoAnalyticsPage() {
       : error ? <Alert variant="destructive"><AlertDescription className="flex items-center justify-between gap-4 text-destructive">{error instanceof Error ? error.message : 'Could not load telemetry.'}<Button variant="outline" size="sm" onClick={() => void refetch()}>Try again</Button></AlertDescription></Alert>
       : !sessions.length ? <Empty title="No telemetry" description="Choose another date range, content version or map." />
       : <div className={cn('sv-page transition-opacity', isFetching && 'opacity-60')}>
-        <div className="grid gap-4 sm:grid-cols-2">{stats.map(s => <StatCard key={s.label} label={s.label} value={s.value} detail={s.detail} />)}</div>
         <div className="grid gap-5">
           <Panel title="Weapon usage" description="Shots per weapon · shot_fired.payload.weapon_code">
             {shots.length ? <HorizontalBars rows={weaponRows} unit="Shots" /> : <Empty title="No weapon events" description="Weapon usage comes from shot_fired telemetry." />}
@@ -129,19 +123,14 @@ function DemoAnalyticsPage() {
           <NativeSelect aria-label="Coordination task" size="sm" value={taskFilter} onChange={e => setTaskFilter(e.target.value)}><NativeSelectOption value="all">All tasks</NativeSelectOption>{Object.entries(taskLabels).map(([value, label]) => <NativeSelectOption key={value} value={value}>{label}</NativeSelectOption>)}</NativeSelect>
         </div>}>
           <Table className={cn(panelTable, 'tabular-nums')}>
-            <TableHeader><TableRow>{['Algorithm / configuration', 'Results', 'Capture rate', 'Escape time (ms)', 'Coordination score', 'Latency p95 (ms)', 'Within budget', 'Fallback'].map(h => <TableHead key={h}>{h}</TableHead>)}</TableRow></TableHeader>
+            <TableHeader><TableRow>{['Algorithm / configuration', 'Capture rate', 'Escape time (ms)', 'Coordination score'].map(h => <TableHead key={h}>{h}</TableHead>)}</TableRow></TableHeader>
             <TableBody>{configurations.map(config => {
               const rows = results.filter(r => r.solver_configuration_id === config.id), validEncounters = rows.filter(r => r.encounter_outcome !== null && r.encounter_outcome !== 'aborted');
-              const latencies = rows.map(r => r.solve_latency_ms).sort((a, b) => a - b);
               return <TableRow key={config.id}>
                 <TableCell><div className="font-mono text-xs font-medium">{config.algorithm}</div><div className="text-xs text-muted-foreground">{config.code} · {familyLabels[config.family]}</div></TableCell>
-                <TableCell>{rows.length}</TableCell>
                 <TableCell>{percent(validEncounters.filter(r => r.encounter_outcome === 'player_captured').length, validEncounters.length)}</TableCell>
                 <TableCell>{mean(rows.flatMap(r => r.encounter_outcome === 'player_escaped' && r.escape_time_ms !== null ? [r.escape_time_ms] : []), 0)}</TableCell>
                 <TableCell>{mean(rows.flatMap(r => r.coordination_score !== null ? [r.coordination_score] : []), 2)}</TableCell>
-                <TableCell>{latencies.length ? latencies[Math.ceil(latencies.length * .95) - 1].toFixed(1) : '—'}</TableCell>
-                <TableCell>{percent(rows.filter(r => r.within_budget).length, rows.length)}</TableCell>
-                <TableCell>{percent(rows.filter(r => r.used_fallback).length, rows.length)}</TableCell>
               </TableRow>;
             })}</TableBody>
           </Table>

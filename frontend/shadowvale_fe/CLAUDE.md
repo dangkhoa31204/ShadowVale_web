@@ -5,7 +5,9 @@ Read `README.md` → "Đối chiếu proposal — đọc trước khi sửa" bef
 - The capstone proposal (`ShadowVale_RBL_Capstone_Proposal.docx`) is the source of truth:
   the FE must match it with nothing extra and nothing missing. Do not add screens or
   features it does not ask for, do not re-add anything listed under "Đã bỏ", and do not
-  suggest editing the proposal to fit the code.
+  suggest editing the proposal to fit the code. Classify every screen, panel, column, button
+  and metric with the fixed rule in README ("Quy tắc phân loại"); audit all of them in one
+  pass, not one area at a time.
 - Branch from `origin/dev` (newest code), not `main`.
 - Stack is fixed: Tailwind 4 (no downgrade), shadcn/ui in `src/components/ui` (add with the
   shadcn CLI), TanStack Query for server data and mutations, Recharts via shadcn `chart`.

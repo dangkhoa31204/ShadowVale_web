@@ -20,7 +20,7 @@ import { Empty, Icon, PageHeading, Status } from '../shared/ui';
 import { useConfirm } from '../shared/confirmContext';
 import { NumericControl } from '../shared/NumericControl';
 import { isDemoMode } from '../../config/environment';
-import { apiFields, validateEditor, rebindEditorImport } from './apiModel';
+import { apiFields, validateEditor } from './apiModel';
 import { contentApi } from './contentApi';
 import { errorMessage } from '../../services/api/errors';
 import { editorFieldErrors } from './apiFieldErrors';
@@ -184,24 +184,6 @@ function DraftEditor({ draft, enums }: { draft: Draft; enums?: EnumsDto }) {
       }}><Icon name="delete" />Remove record</Button></> : <Button onClick={() => addRecord()}><Icon name="add" />Add record</Button>}</div>}
     </div></div>
     <div className={'sv-validation ' + (errors.length || parseError ? 'has-errors' : '')}><Icon name={errors.length || parseError ? 'error' : 'verified'} /><div><strong>{errors.length || parseError ? "Check content before submitting" : "Content is ready for review"}</strong>{(errors.length > 0 || parseError) && <ul>{[...(parseError ? [parseError] : []), ...errors].slice(0, 12).map((error, i) => <li key={i}>{error}</li>)}</ul>}</div></div>
-    {editable && <details className="sv-bundle-import"><summary>Import editor JSON</summary><Input className="mt-3 max-w-sm" aria-label="Import JSON bundle" type="file" accept=".json,application/json" onChange={async event => {
-      const file = event.target.files?.[0]; if (!file) return;
-      try {
-        const imported: unknown = JSON.parse(await file.text());
-        if (!imported || typeof imported !== 'object' || !collections.every(c => Array.isArray((imported as ContentBundle)[c.key]))) throw new Error('Choose an editor JSON file with all 14 content lists. Only the JSON downloaded from the BE is an authoritative validated runtime bundle.');
-        const issues = isDemoMode ? validateBundle(imported) : validateEditor(imported as ContentBundle);
-        if (issues.length) throw new Error(issues.slice(0, 3).join('; '));
-        if (!await confirm({ title: 'Replace this draft content?', description: 'The imported records replace every content table in this draft.', action: 'Replace content', destructive: true })) return;
-        const data = isDemoMode ? imported as ContentBundle : rebindEditorImport(imported as ContentBundle, bundle);
-        const contentId = bundle.content_version_id || draft.id;
-        for (const collection of collections) for (const row of data[collection.key]) {
-          if (Object.hasOwn(row, 'content_version_id')) row.content_version_id = contentId;
-        }
-        delete data.checksum; delete data.published_at;
-        setBundle({ ...data, content_version_id: contentId, version_no: bundle.version_no, schema_version: bundle.schema_version, label, changelog });
-        setCategory('weapons'); setSelected(0); setParseError(''); setDirty(true);
-      } catch (error) { toast.error(error instanceof Error ? error.message : 'Could not import content.'); }
-    }} /></details>}
   </div>;
 }
 
@@ -260,13 +242,8 @@ function RecordEditor({ collection, bundle, record, existing, editable, enums, s
 }
 
 export function ContentPage() {
-  const { state, execute, busy, reload } = useWorkspace(), { user } = useAuth(), confirm = useConfirm();
+  const { state, execute, busy } = useWorkspace(), { user } = useAuth();
   const { draftId } = useParams(), navigate = useNavigate();
-  const remove = useMutation({
-    mutationFn: (draft: Draft) => contentApi.deleteVersion(draft.id, draft.revision),
-    onSuccess: async () => { await reload(); navigate('/admin/content'); },
-    onError: error => { toast.error(errorMessage(error)); },
-  });
   const [newLabel, setNewLabel] = useState(''), [creating, setCreating] = useState(false);
   const drafts = state.drafts.filter(draft => draft.authorId === user?.id && draft.status !== 'archived');
   const selected = draftId ? drafts.find(draft => draft.id === draftId) : drafts.find(draft => ['draft', 'rejected'].includes(draft.status)) || drafts[0];
@@ -282,7 +259,6 @@ export function ContentPage() {
   }
   return <div className="sv-page"><PageHeading eyebrow="CONTENT VERSIONS" title="Content authoring" description="Edit game balancing and content tables." action={<Button onClick={() => setCreating(!creating)}><Icon name="add" />Create content version</Button>} />
     {creating && <form className="sv-panel flex flex-wrap items-end gap-3 p-5" onSubmit={create}><Field className="min-w-60 flex-1"><FieldLabel htmlFor="new-version-label">Version label</FieldLabel><Input id="new-version-label" required autoFocus value={newLabel} onChange={event => setNewLabel(event.target.value)} placeholder="e.g. Map 02 balance pass" /></Field><Button disabled={busy || !newLabel.trim()}>Clone published version</Button><Button variant="outline" type="button" onClick={() => setCreating(false)}>Cancel</Button></form>}
-    {!isDemoMode && selected && selected.status === 'draft' && <div className="sv-row-actions"><Button variant="destructive" disabled={busy || remove.isPending} onClick={async () => { if (await confirm({ title: 'Delete version #' + selected.version_no + '?', description: 'This draft and its unsaved edits are removed.', action: 'Delete version', destructive: true })) remove.mutate(selected); }}>Delete version</Button></div>}
     <div className="sv-draft-picker">{drafts.map(draft => <Link key={draft.id} to={'/admin/content/' + draft.id} className={selected?.id === draft.id ? 'is-active' : ''}><span>#{draft.version_no} · {draft.label || draft.title}</span><Status value={draft.status} /></Link>)}</div>
     {selected ? isDemoMode ? <DraftEditor key={selected.id + ':' + selected.revision} draft={selected} /> : <ApiDraftEditor key={selected.id + ':' + selected.revision + ':' + selected.status + ':' + selected.updatedAt} id={selected.id} version={selected.revision + ':' + selected.status + ':' + selected.updatedAt} /> : <Empty title={draftId ? "Content version not found" : "Create your first content version"} description="Clone the published version to begin editing." />}
   </div>;

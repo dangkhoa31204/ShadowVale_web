@@ -180,10 +180,6 @@ test('submit/reject/approve/publish/rollback use backend workflow endpoints',asy
  await api.contentApi.execute({type:'restoreRelease',id:version.id,reason:'Restore'});
  assert.ok(calls.some(c=>c.url.endsWith('/validate')));assert.ok(calls.some(c=>c.url.endsWith('/rollback')));
 });
-test('runtime JSON is kept byte-for-byte rather than serializing editor model',async()=>{
- const raw='{\n  "version_no": 1, "schema_version": "1.0", "items": [], "weapons": []\n}';handler=c=>ok(c,raw);
- assert.equal(await api.contentApi.rawBundle(version.id),raw);
-});
 test('analytics renders aggregate responses and sends the exact filter query',async()=>{
  const q={source:'replay',from:'2026-10-01T00:00:00Z',to:'2026-10-02T00:00:00Z',mapCode:'map_01'};
  handler=c=>ok(c,[{captureRate:0.25,encounters:4}]);
@@ -207,22 +203,15 @@ test('quest prerequisite arrays accept empty and valid codes but reject missing 
  b.quests[1].prerequisites=['unknown'];
  assert.ok(api.validateEditor(b).some(e=>e.includes('missing reference unknown')));
 });
-test('editor JSON import rebinds GUIDs to the current version and removes foreign IDs for new codes',()=>{
- const current=api.entitiesToEditor(version,entities()),foreign=structuredClone(current);
- foreign.items[0].api_id='other-version';foreign.items.push({...foreign.items[0],code:'new_ammo',api_id:'foreign-new'});
- const rebound=api.rebindEditorImport(foreign,current);
- assert.equal(rebound.items[0].api_id,'ammo-id');assert.equal(rebound.items.at(-1).api_id,undefined);
- assert.equal(foreign.items[0].api_id,'other-version');
-});
 test('partial failures retain saved/remaining context and map nested API validation to the exact field',async()=>{
  const b=api.entitiesToEditor(version,entities()),op={resource:'items',route:'items',method:'put',code:'rifle',id:'rifle-id',data:{}};
  const c={url:'/test'},httpError=new AxiosError('Validation','ERR_BAD_RESPONSE',c,undefined,{config:c,data:{message:'Invalid item',errors:{'Weapon.Damage':['Must be positive']}},status:400,statusText:'Bad Request',headers:{}});
  try {await api.runSavePlan([op],async()=>{throw httpError;});assert.fail('Must reject');}
  catch(error){assert.match(api.errorMessage(error),/Save stopped.*Remaining: items\/rifle/);assert.deepEqual(api.editorFieldErrors(error,b),{'weapons:0:damage':'Must be positive'});}
 });
-test('role access includes Admin dashboard and restricts solver mutations',()=>{
+test('role access starts each role on its screen and restricts solver mutations',()=>{
  for(const role of ['designer','analyst','admin'])assert.equal(api.can(role,'analytics'),true);
- assert.deepEqual(api.navigationForRole('admin').map(n=>n.path),['/admin/dashboard','/admin/reviews','/admin/releases','/admin/users']);
+ assert.deepEqual(api.navigationForRole('admin').map(n=>n.path),['/admin/reviews','/admin/releases','/admin/users']);
  assert.equal(api.safeRedirect('/admin/analytics','admin'),'/admin/analytics');
  assert.equal(api.can('designer','solverEdit'),false);
  assert.equal(api.can('analyst','solverEdit'),true);
@@ -276,10 +265,6 @@ test('Analyst workspace does not call restricted content metadata or publication
  assert.equal((await api.contentApi.workspace()).drafts.length,0);assert.equal(calls.length,0);
  api.storageService.setAuth('valid',{...api.storageService.getUser(),id:'designer',role:'designer'},false);
  server();await api.contentApi.workspace();assert.ok(!calls.some(c=>c.url==='/content-publications'));
-});
-test('delete version sends the current revision in the DELETE body',async()=>{
- handler=c=>{assert.equal(c.url,'/content-versions/version-delete');assert.equal(c.method,'delete');assert.deepEqual(body(c),{revision:7});return ok(c,null,204);};
- await api.contentApi.deleteVersion('version-delete',7);
 });
 
 test('user directory forwards search/role/active/page to the paginated Admin API',async()=>{

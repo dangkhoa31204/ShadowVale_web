@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -14,7 +14,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
 import { useWorkspace } from '../content/workspaceContext';
 import { useAuth } from '../../hooks/useAuth';
-import { contentApi, downloadRaw } from '../content/contentApi';
+import { contentApi } from '../content/contentApi';
 import { Modal } from '../shared/Modal';
 import { BundleSnapshot } from '../content/BundleDetails';
 import { ComparisonView, type Change } from '../content/DiffList';
@@ -125,7 +125,6 @@ export function ApiReleasesPage(){
   const [detail,setDetail]=useState(''),[before,setBefore]=useState(''),[after,setAfter]=useState(''),[page,setPage]=useState(1),[historyPage,setHistoryPage]=useState(1);
   const [confirm,setConfirm]=useState<{id:string;type:'publish'|'rollback';revision?:number}|null>(null),[reason,setReason]=useState(''),[error,setError]=useState('');
   const approved=state.drafts.filter(d=>d.status==='approved');
-  const download=useMutation({mutationFn:async({id,no}:{id:string;no:number})=>downloadRaw(await contentApi.rawBundle(id),'shadowvale-content-'+no+'.json'),onMutate:()=>setError(''),onError:e=>setError(errorMessage(e))});
   async function action(){if(!confirm||!reason.trim())return;setError('');try{
     if(confirm.type==='publish')await execute({type:'publishDraft',id:confirm.id,revision:confirm.revision!,reason});
     else await execute({type:'restoreRelease',id:confirm.id,reason});
@@ -142,7 +141,7 @@ export function ApiReleasesPage(){
     {error&&!confirm&&<Alert variant="destructive"><AlertDescription className="whitespace-pre-wrap">{error}</AlertDescription></Alert>}
     <Panel><div className="flex flex-wrap items-center justify-between gap-4 p-6">
       <div className="flex items-center gap-4"><span className="grid size-11 shrink-0 place-items-center rounded-lg bg-primary/10 text-primary"><Icon name="public" className="size-5"/></span><div><span className="sv-eyebrow">LIVE GAME CONTENT</span><h2 className="text-lg font-semibold">{active?'#'+active.version_no+' · '+active.label:"No published version"}</h2><p className="text-sm text-muted-foreground">{active?"Published "+dateLabel(active.publishedAt)+' · '+active.publishedBy:"Publish an approved version to make content available to the game."}</p></div></div>
-      {active&&<div className="flex items-center gap-2"><Status value="published"/>{<Button variant="outline" disabled={download.isPending} onClick={()=>download.mutate({id:active.id,no:active.version_no})}><Icon name="download"/>Download JSON</Button>}</div>}
+      {active&&<div className="flex items-center gap-2"><Status value="published"/></div>}
     </div></Panel>
     {admin&&<Panel title="Ready to publish" description="Only approved submissions can be released." action={<><Badge variant="secondary">{approved.length}</Badge><Button asChild variant="ghost" size="sm"><Link to="/admin/reviews">Review content<Icon name="arrow_forward"/></Link></Button></>}>
       {approved.map(d=><div className="flex flex-wrap items-center gap-4 border-b px-6 py-4 last:border-b-0" key={d.id}><span className="font-mono text-xs text-muted-foreground">#{d.version_no}</span><div className="min-w-0 flex-1"><strong className="block text-sm font-medium">{d.label}</strong><small className="text-xs text-muted-foreground">Approved {dateLabel(d.reviewedAt||d.updatedAt)} · {d.reviewedBy||'Admin'}</small></div><div className="flex gap-2"><Button variant="outline" onClick={()=>setDetail(d.id)}>View changes</Button><Button disabled={busy} onClick={()=>{setError('');setReason('');setConfirm({type:'publish',id:d.id,revision:d.revision});}}><Icon name="deployed_code"/>Publish version</Button></div></div>)}
@@ -154,7 +153,7 @@ export function ApiReleasesPage(){
       </Tabs>
       {tab==='versions'?<>
         <div className="grid grid-cols-2 items-end gap-4 border-b p-5 md:grid-cols-[minmax(220px,2fr)_minmax(160px,1fr)_auto]"><Field className="col-span-2 md:col-span-1"><FieldLabel htmlFor="release-search">Find version</FieldLabel><Input id="release-search" type="search" value={search} placeholder="Version number or title" onChange={e=>{setSearch(e.target.value);setPage(1);}}/></Field><Field><FieldLabel htmlFor="release-status">Status</FieldLabel><NativeSelect id="release-status" className="w-full" value={status} onChange={e=>{setStatus(e.target.value);setPage(1);}}><NativeSelectOption value="all">All published versions</NativeSelectOption><NativeSelectOption value="published">Live</NativeSelectOption><NativeSelectOption value="archived">Archived</NativeSelectOption></NativeSelect></Field><span className="pb-2 text-xs text-muted-foreground">{filtered.length} versions</span></div>
-        <Table className={panelTable}><TableHeader><TableRow><TableHead>Version</TableHead><TableHead>Status</TableHead><TableHead>Published</TableHead><TableHead>Actions</TableHead></TableRow></TableHeader><TableBody>{entries.map(r=><TableRow key={r.id}><TableCell><div className="font-medium">#{r.version_no} · {r.label}</div><div className="text-xs text-muted-foreground">{r.publishedBy}</div></TableCell><TableCell><Status value={r.status}/></TableCell><TableCell>{dateLabel(r.publishedAt)}</TableCell><TableCell><div className="flex gap-2"><Button variant="outline" size="sm" onClick={()=>setDetail(r.id)}>View changes</Button>{<Button variant="outline" size="sm" disabled={download.isPending} aria-label={"Download JSON for version "+r.version_no} onClick={()=>download.mutate({id:r.id,no:r.version_no})}><Icon name="download"/>JSON</Button>}{admin&&r.status==='archived'&&<Button variant="outline" size="sm" disabled={busy} onClick={()=>{setError('');setReason('');setConfirm({type:'rollback',id:r.id});}}>Rollback</Button>}</div></TableCell></TableRow>)}</TableBody></Table>
+        <Table className={panelTable}><TableHeader><TableRow><TableHead>Version</TableHead><TableHead>Status</TableHead><TableHead>Published</TableHead><TableHead>Actions</TableHead></TableRow></TableHeader><TableBody>{entries.map(r=><TableRow key={r.id}><TableCell><div className="font-medium">#{r.version_no} · {r.label}</div><div className="text-xs text-muted-foreground">{r.publishedBy}</div></TableCell><TableCell><Status value={r.status}/></TableCell><TableCell>{dateLabel(r.publishedAt)}</TableCell><TableCell><div className="flex gap-2"><Button variant="outline" size="sm" onClick={()=>setDetail(r.id)}>View changes</Button>{admin&&r.status==='archived'&&<Button variant="outline" size="sm" disabled={busy} onClick={()=>{setError('');setReason('');setConfirm({type:'rollback',id:r.id});}}>Rollback</Button>}</div></TableCell></TableRow>)}</TableBody></Table>
         {!entries.length&&<Empty title="No matching versions"/>}{filtered.length>20&&<Pager page={page} setPage={setPage} total={filtered.length}/>}
       </>:tab==='history'?<>
         <div className="border-b px-6 py-4"><h2 className="font-semibold">Publication history</h2><p className="text-xs text-muted-foreground">Recorded publish and rollback decisions</p></div>

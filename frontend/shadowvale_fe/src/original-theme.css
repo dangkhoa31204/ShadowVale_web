@@ -40,9 +40,7 @@
 .portal .sv-nav-link:hover { background: #292a2c; color: var(--sv-text); }
 .portal .sv-nav-link.is-active { background: var(--sv-accent-dark); color: var(--sv-accent-text); }
 .portal .sv-nav-link b { background: #abcae820; color: var(--sv-accent-text); border-radius: 2px; }
-.portal .sv-game-card { background: var(--sv-raised); border-color: var(--sv-border); border-radius: 2px; }
-.portal .sv-game-card > .sv-icon, .portal .sv-game-card strong { color: var(--sv-accent); }
-.portal .sv-game-card span:not(.sv-icon):not(.sv-dot) { color: var(--sv-muted); font-size: 10px; }
+
 .portal .sv-avatar { background: #abcae820; border: 1px solid #abcae866; color: var(--sv-accent); border-radius: 2px; font-family: 'JetBrains Mono', monospace; }
 .portal .sv-user strong { font-size: 12px; }.portal .sv-user small { font-size: 11px; }
 .portal .sv-user button { color: var(--sv-muted); }.portal .sv-user button:hover { color: var(--sv-error); }
@@ -70,10 +68,10 @@
 .portal .sv-record.is-active { background: var(--sv-accent-dark) !important; color: var(--sv-accent-text) !important; }
 .portal .sv-record small, .portal .sv-editor-toolbar .sv-mono, .portal .sv-editor-meta small { color: var(--sv-subtle); font-size: 10px; }
 .portal .sv-records-heading button { color: var(--sv-accent); }
-.portal .sv-record-title > .sv-mono, .portal .sv-json-editor summary, .portal .sv-bundle-import summary { color: var(--sv-accent); }
+.portal .sv-record-title > .sv-mono, .portal .sv-json-editor summary { color: var(--sv-accent); }
 .portal .sv-validation { border-color: var(--sv-border); background: #4ade800a; color: var(--sv-success); }
 .portal .sv-validation.has-errors { background: #f8717110; color: var(--sv-error); }
-.portal .sv-validation p, .portal .sv-bundle-import p { color: var(--sv-muted); }
+.portal .sv-validation p { color: var(--sv-muted); }
 
 .portal .sv-login-story {
   background-color: var(--sv-surface);
@@ -83,7 +81,6 @@
 }
 .portal .sv-login-story::after { width: 500px; height: 500px; border: 0; transform: none; background: #abcae8; border-radius: 50%; filter: blur(150px); opacity: .05; }
 .portal .sv-login-story h1 { font-size: clamp(32px,3.5vw,52px); line-height: 1.15; }.portal .sv-login-story h1 em { color: var(--sv-accent); }
-.portal .sv-login-flow { color: var(--sv-muted); font-family: 'JetBrains Mono', monospace; }.portal .sv-login-flow i { border-color: var(--sv-outline); }
 
 .portal-state p { color: var(--sv-muted); }
 .portal .sv-skip { background: var(--sv-accent); color: var(--sv-on-accent); }
