@@ -1,6 +1,5 @@
 import { isDemoMode } from '../../config/environment';
 
-
 export type SessionOutcome = 'in_progress' | 'completed' | 'died' | 'quit' | 'crashed';
 export type SolverFamily = 'classical' | 'quantum_inspired' | 'quantum_hardware';
 export type SolverAlgorithm = 'greedy' | 'genetic' | 'classical_sa' | 'qaoa_aer' | 'sqa_neal' | 'qiea' | 'qpu_dwave';
@@ -56,12 +55,24 @@ export const analyticsService = {
       const map_code = 'map01_docks', occurred_at = new Date(Date.parse(session.started_at) + 60000).toISOString();
       let eventIndex = 0;
       const event = (event_type: string, payload: TelemetryEvent['payload'], pos_x: number | null = null, pos_y: number | null = null) => {
-        const id = 4000 + i * 20 + eventIndex++;
+        const id = 4000 + i * 100 + eventIndex++;
         telemetry_events.push({ id, session_id: session.id, client_event_id: uuid(id), event_type, map_code, occurred_at, pos_x, pos_y, payload });
       };
       event('map_enter', {});
       for (let shot = 0; shot < 2 + i % 5; shot++) event('shot_fired', { weapon_code: ['rifle_standard', 'smg_compact', 'pistol_silenced', 'sniper_bolt', 'shotgun_pump'][i % 5] });
-      if (session.outcome === 'died') event('player_died', {}, (i * 13) % 80, (i * 17) % 60);
+      // Quest funnel: start, objectives in quest order, completion (quest_docks_recon in the demo bundle).
+      const quest_code = 'quest_docks_recon';
+      if (i % 10 !== 9) {
+        event('quest_started', { quest_code });
+        if (i % 5 !== 4) {
+          event('objective_completed', { quest_code, objective_id: 'reach_overlook' });
+          if (i % 3 !== 2) { event('objective_completed', { quest_code, objective_id: 'escape' }); event('quest_completed', { quest_code }); }
+        }
+      }
+      // Stealth vs combat: the share of takedowns varies by session (positions within map01's nav graph).
+      for (let kill = 0; kill < 1 + i % 4; kill++) event('enemy_killed', (kill + i) % 5 < i % 6 ? { method: 'takedown' } : { method: 'weapon', weapon_code: ['rifle_standard', 'smg_compact', 'pistol_silenced', 'sniper_bolt', 'shotgun_pump'][i % 5] });
+      for (let spotted = 0; spotted < i % 3; spotted++) event('player_spotted', {}, (i * 7 + spotted * 5) % 19, (i * 11 + spotted * 3) % 23);
+      if (session.outcome === 'died') event('player_died', {}, (i * 13) % 19, (i * 17) % 23);
       const encounter_outcome = encounters[i % encounters.length], latency = 12 + (i * 11 % 150);
       coordination_results.push({ id: uuid(3000 + i), session_id: session.id, solver_configuration_id: solver_configurations[i % algorithms.length].id,
         map_code, squad_tag: 'squad_1', task_type: (['route_coverage', 'cover_assignment', 'flanking'] as const)[i % 3], num_agents: 4 + i % 9,

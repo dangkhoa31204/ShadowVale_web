@@ -1,33 +1,51 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
+import { Field, FieldLabel } from '@/components/ui/field';
+import { Input } from '@/components/ui/input';
+import { NativeSelect, NativeSelectOption } from '@/components/ui/native-select';
+import { Spinner } from '@/components/ui/spinner';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { cn } from '@/lib/utils';
 import { useAuth } from '../../hooks/useAuth';
-import { LatencyChart } from './LatencyChart';
-import './analytics.css';
+import { DailyColumns, HorizontalBars, LatencyChart } from './charts';
 import { analyticsApi, type AnalyticsFilters } from './analyticsApi';
 import { SolverConfigurations } from './SolverConfigurations';
 import { useWorkspace } from '../content/workspaceContext';
 import { contentApi } from '../content/contentApi';
 import { errorMessage } from '../../services/api/errors';
-import type { EnumsDto, HeatmapDto, AiComparisonRowDto, ScalabilityRowDto, VersionComparisonDto, SolverConfigurationDto } from '../../services/api/contracts';
-import { Empty, PageHeading } from '../shared/ui';
+import type { HeatmapDto, AiComparisonRowDto, ScalabilityRowDto, VersionComparisonDto } from '../../services/api/contracts';
+import { Empty, PageHeading, Panel, StatCard, panelTable } from '../shared/ui';
 import { NumericControl } from '../shared/NumericControl';
 type Overview=Awaited<ReturnType<typeof analyticsApi.overview>>;
 type Data={overview?:Overview;heatmap?:HeatmapDto;comparison?:AiComparisonRowDto[];scalability?:ScalabilityRowDto[];versions?:VersionComparisonDto};
 const num=(v:unknown)=>v===null||v===undefined?'—':Number(v).toLocaleString('en-GB',{maximumFractionDigits:2});
 const pct=(v:unknown)=>v===null||v===undefined?'—':(Number(v)*100).toFixed(1)+'%';
-function Panel({title,children}:{title:string;children:React.ReactNode}){ return <section className="sv-panel"><div className="sv-panel-heading"><h2>{title}</h2></div>{children}</section>;}
-function Bars({rows}:{rows:{name:string;value:string;share:number}[]}){
- return rows.length?<div className="sv-bars">{rows.map(r=><div key={r.name}><div><strong>{r.name}</strong><span>{r.value}</span></div><div className="sv-bar-track"><span style={{width:Math.max(0,Math.min(100,r.share*100))+'%'}}/></div></div>)}</div>:<Empty title="No data"/>;}
+const guid=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 function MetricsTable({headers,rows}:{headers:string[];rows:React.ReactNode[][]}){
- return rows.length?<div className="sv-table-wrap"><table className="sv-table"><thead><tr>{headers.map(h=><th key={h}>{h}</th>)}</tr></thead><tbody>{rows.map((row,i)=><tr key={i}>{row.map((v,j)=><td key={j}>{v}</td>)}</tr>)}</tbody></table></div>:<Empty title="No data for these filters"/>;}
-function OverviewPanels({data}:{data:Omit<Overview,'playstyle'> & {playstyle?:Overview['playstyle']}}){
-  const playstyle=data.playstyle;
-  return <><div className="sv-stats-grid">{[
-    ['Sessions',num(data.overview.sessions)],['Players',num(data.overview.players)],['Mission completion',pct(data.funnel.completionRate)],['Average duration',num(data.overview.avgDurationSeconds)+' s'],
-  ].map(([label,value])=><article className="sv-stat" key={(String(label))}><span>{(String(label))}</span><strong>{value}</strong></article>)}</div>
-    <div className="sv-dashboard-columns"><Panel title="Session outcomes"><Bars rows={data.overview.outcomes.map(r=>({name:r.outcome,value:num(r.sessions)+' · '+pct(r.share),share:Number(r.share)}))}/><p className="sv-table-note">Unfinished: {num(data.overview.unfinishedSessions)} {"· Median duration:"} {num(data.overview.medianDurationSeconds)} s</p></Panel>
-      <Panel title="Mission funnel"><Bars rows={[{name:'Started',value:num(data.funnel.sessionsStarted),share:1},...data.funnel.objectives.map(r=>({name:'Objective'+' '+r.objectiveIndex,value:num(r.sessions)+' · '+pct(r.shareOfStarted),share:Number(r.shareOfStarted||0)})),{name:'Completed',value:num(data.funnel.missionsCompleted)+' · '+pct(data.funnel.completionRate),share:Number(data.funnel.completionRate||0)}]}/></Panel></div>
-    <Panel title="Weapon usage"><MetricsTable headers={['Weapon','Shots','Kills','Kills / shot','Sessions used','Session share']} rows={data.weapons.weapons.map(r=>[r.weapon,num(r.shots),num(r.kills),num(r.killsPerShot),num(r.sessionsUsed),pct(r.sessionShare)])}/><p className="sv-table-note">Exact finished-session statistics · {num(data.weapons.finishedSessions)} sessions</p></Panel>
-    <div className="sv-dashboard-columns">{playstyle && <Panel title="Stealth and combat"><Bars rows={playstyle.stealthRatioHistogram.map(r=>({name:pct(r.from)+'–'+pct(r.to),value:num(r.sessions)+' '+'sessions',share:Number(r.sessions)/Math.max(1,Number(playstyle.finishedSessions))}))}/><p className="sv-table-note">Average stealth: {pct(playstyle.avgStealthRatio)} {"· Average detections:"} {num(playstyle.avgTimesDetected)} {"· Sessions without kills:"} {num(playstyle.sessionsWithoutKills)}</p></Panel>}<Panel title="Daily sessions"><MetricsTable headers={['Day','Sessions']} rows={data.overview.sessionsPerDay.map(r=>[r.day,num(r.sessions)])}/></Panel></div>
+ return rows.length?<Table className={cn(panelTable,'tabular-nums')}><TableHeader><TableRow>{headers.map(h=><TableHead key={h}>{h}</TableHead>)}</TableRow></TableHeader><TableBody>{rows.map((row,i)=><TableRow key={i}>{row.map((v,j)=><TableCell key={j}>{v}</TableCell>)}</TableRow>)}</TableBody></Table>:<Empty title="No data for these filters"/>;}
+const Note=({children}:{children:React.ReactNode})=><p className="px-6 pb-5 text-xs text-muted-foreground">{children}</p>;
+function OverviewPanels({data,compact=false}:{data:Omit<Overview,'playstyle'> & {playstyle?:Overview['playstyle']};compact?:boolean}){
+  const playstyle=data.playstyle,columns=compact?'grid gap-6':'grid gap-6 xl:grid-cols-2';
+  return <>
+    <div className={cn('grid gap-4 sm:grid-cols-2',!compact&&'xl:grid-cols-4')}>
+      <StatCard label="Sessions" value={num(data.overview.sessions)}/><StatCard label="Players" value={num(data.overview.players)}/>
+      <StatCard label="Mission completion" value={pct(data.funnel.completionRate)}/><StatCard label="Average duration" value={num(data.overview.avgDurationSeconds)+' s'}/>
+    </div>
+    <div className={columns}>
+      <Panel title="Session outcomes"><HorizontalBars unit="Sessions" rows={data.overview.outcomes.map(r=>({label:r.outcome,value:Number(r.sessions),detail:num(r.sessions)+' · '+pct(r.share)}))}/><Note>Unfinished: {num(data.overview.unfinishedSessions)} · Median duration: {num(data.overview.medianDurationSeconds)} s</Note></Panel>
+      <Panel title="Mission funnel" description="Sessions per step and share of started sessions"><HorizontalBars unit="Sessions" rows={[{label:'Started',value:Number(data.funnel.sessionsStarted),detail:num(data.funnel.sessionsStarted)},...data.funnel.objectives.map(r=>({label:'Objective '+r.objectiveIndex,value:Number(r.sessions),detail:num(r.sessions)+' · '+pct(r.shareOfStarted)})),{label:'Completed',value:Number(data.funnel.missionsCompleted),detail:num(data.funnel.missionsCompleted)+' · '+pct(data.funnel.completionRate)}]}/></Panel>
+    </div>
+    <Panel title="Weapon usage" description={'Exact finished-session statistics · '+num(data.weapons.finishedSessions)+' sessions'}>
+      {data.weapons.weapons.length>0&&<HorizontalBars unit="Shots" rows={data.weapons.weapons.map(r=>({label:r.weapon,value:Number(r.shots),detail:num(r.shots)+' shots · '+pct(r.sessionShare)+' of sessions'}))}/>}
+      <MetricsTable headers={['Weapon','Shots','Kills','Kills / shot','Sessions used','Session share']} rows={data.weapons.weapons.map(r=>[r.weapon,num(r.shots),num(r.kills),num(r.killsPerShot),num(r.sessionsUsed),pct(r.sessionShare)])}/>
+    </Panel>
+    <div className={columns}>
+      {playstyle&&<Panel title="Stealth and combat" description="Finished sessions by stealth ratio"><HorizontalBars unit="Sessions" rows={playstyle.stealthRatioHistogram.map(r=>({label:pct(r.from)+'–'+pct(r.to),value:Number(r.sessions),detail:num(r.sessions)+' · '+pct(Number(r.sessions)/Math.max(1,Number(playstyle.finishedSessions)))}))}/><Note>Average stealth: {pct(playstyle.avgStealthRatio)} · Average detections: {num(playstyle.avgTimesDetected)} · Sessions without kills: {num(playstyle.sessionsWithoutKills)}</Note></Panel>}
+      <Panel title="Daily sessions"><DailyColumns unit="Sessions" rows={data.overview.sessionsPerDay.map(r=>({day:r.day,value:Number(r.sessions)}))}/></Panel>
+    </div>
   </>;
 }
 function Heatmap({data}:{data:HeatmapDto}){
@@ -35,62 +53,76 @@ function Heatmap({data}:{data:HeatmapDto}){
   const size=Number(data.cellSize),minX=Math.min(...data.cells.map(c=>Number(c.x))),minY=Math.min(...data.cells.map(c=>Number(c.y)));
   const width=Math.max(size,Math.max(...data.cells.map(c=>Number(c.x)))-minX+size),height=Math.max(size,Math.max(...data.cells.map(c=>Number(c.y)))-minY+size);
   const max=Math.max(1,...data.cells.map(c=>Number(c.count)));
-  return <div style={{padding:24}}><svg role="img" aria-label={"Difficulty heatmap for "+data.mapCode} viewBox={`${minX} ${minY} ${width} ${height}`} style={{width:'100%',height:360,background:'#182233'}}>{data.cells.map(c=><rect key={c.x+':'+c.y} x={Number(c.x)} y={Number(c.y)} width={size} height={size} fill={`rgba(249,149,90,${0.15+0.85*Number(c.count)/max})`}><title>X {c.x} {", Z"} {c.y}: {c.count} events</title></rect>)}</svg><p className="sv-table-note">World X / Z · {size} {"m cells ·"} {data.eventTypes.join(', ')} {"· peak"} {max}</p></div>;
+  // Sequential: one hue, opacity grows with the event count.
+  return <div className="grid gap-3 px-6 pb-6"><svg role="img" aria-label={"Difficulty heatmap for "+data.mapCode} viewBox={`${minX} ${minY} ${width} ${height}`} className="h-90 w-full rounded-lg bg-muted">{data.cells.map(c=><rect key={c.x+':'+c.y} x={Number(c.x)} y={Number(c.y)} width={size} height={size} fill="var(--chart-3)" fillOpacity={0.15+0.85*Number(c.count)/max} stroke="var(--muted)" strokeWidth={size*0.06}><title>X {c.x}, Z {c.y}: {c.count} events</title></rect>)}</svg>
+    <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground"><span>1 event</span><span className="h-2 w-32 rounded-sm bg-linear-to-r from-chart-3/15 to-chart-3"/><span>{max} events</span><span>· World X / Z · {size} m cells · {data.eventTypes.join(', ')}</span></div></div>;
 }
+const tabs=[['overview','Overview'],['heatmap','Heatmap'],['comparison','AI comparison'],['scalability','Scalability'],['versions','Version comparison'],['solvers','Solver configurations']] as const;
+type Tab=typeof tabs[number][0];
 export function ApiAnalyticsPage(){
-  const {state}=useWorkspace(),{user}=useAuth();
-
-  const [tab,setTab]=useState('overview'),[from,setFrom]=useState(()=>new Date(Date.now()-7*86400000).toISOString().slice(0,10)),[to,setTo]=useState(()=>new Date().toISOString().slice(0,10)),[source,setSource]=useState<'human'|'replay'>('human');
+  const {state}=useWorkspace(),{user}=useAuth(),analyst=user?.role==='analyst';
+  const [tab,setTab]=useState<Tab>('overview'),[from,setFrom]=useState(()=>new Date(Date.now()-7*86400000).toISOString().slice(0,10)),[to,setTo]=useState(()=>new Date().toISOString().slice(0,10)),[source,setSource]=useState<'human'|'replay'>('human');
   const [version,setVersion]=useState(''),[map,setMap]=useState(''),[family,setFamily]=useState(''),[solver,setSolver]=useState(''),[group,setGroup]=useState('configuration');
   const [a,setA]=useState(''),[b,setB]=useState(''),[cell,setCell]=useState(5),[cellError,setCellError]=useState(''),[event,setEvent]=useState('player_death');
-  const [data,setData]=useState<Data>({}),[enums,setEnums]=useState<EnumsDto>(),[solvers,setSolvers]=useState<SolverConfigurationDto[]>([]);
-  const [loading,setLoading]=useState(true),[error,setError]=useState(''),[retry,setRetry]=useState(0);
-  useEffect(()=>{let active=true;Promise.all([contentApi.enums(),analyticsApi.solvers()]).then(([e,s])=>{if(active){setEnums(e);setSolvers(s);}}).catch(e=>{if(active)setError(errorMessage(e));});return()=>{active=false;};},[]);
+  const enums=useQuery({queryKey:['enums'],queryFn:contentApi.enums,staleTime:Infinity});
+  const solvers=useQuery({queryKey:['solver-configurations'],queryFn:({signal})=>analyticsApi.solvers(signal)});
   const start=new Date(from+'T00:00:00'),end=new Date(to+'T23:59:59.999');
-  const validVersionIds=[version,a,b].every(id=>!id||/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id));
+  const validVersionIds=[version,a,b].every(id=>!id||guid.test(id));
   const validDates=Number.isFinite(start.getTime())&&Number.isFinite(end.getTime())&&end>=start&&(end.getTime()-start.getTime())<=366*86400000;
   const query:AnalyticsFilters={source,from:validDates?start.toISOString():'',to:validDates?end.toISOString():'',...(version?{contentVersionId:version}:{}),...(map.trim()?{mapCode:map.trim()}:{}),...(family?{family}:{}),...(solver?{solverConfigurationId:solver}:{})};
-  const queryKey=JSON.stringify(query);
-  useEffect(()=>{
-    const controller=new AbortController();
-    if(tab==='solvers')return;
-    if(!validDates||!validVersionIds)return;
-    if((tab==='heatmap'&&(!map.trim()||cellError))||(tab==='versions'&&(!a||!b)))return;
-    const q=JSON.parse(queryKey) as AnalyticsFilters;
-    const load=async():Promise<Data>=>{
-      if(tab==='overview')return {overview:await analyticsApi.overview(q,controller.signal)};
-      if(tab==='heatmap')return {heatmap:await analyticsApi.heatmap(q,cell,[event],controller.signal)};
-      if(tab==='comparison'){const [comparison,scalability]=await Promise.all([analyticsApi.comparison(q,group,controller.signal),analyticsApi.scalability(q,controller.signal)]);return {comparison,scalability};}
-      if(tab==='scalability')return {scalability:await analyticsApi.scalability(q,controller.signal)};
-      return {versions:await analyticsApi.versions(q,a,b,controller.signal)};
-    };
-    load().then(d=>{if(!controller.signal.aborted){setData(d);setError('');setLoading(false);}}).catch(e=>{if(!controller.signal.aborted){setError(errorMessage(e));setLoading(false);}});
-    return ()=>controller.abort();
-  },[tab,queryKey,validDates,validVersionIds,map,cellError,cell,event,group,a,b,retry]);
-  function change(job:()=>void){setLoading(true);setData({});setError('');job();}
-  const tabs=[['overview','Overview'],['heatmap','Heatmap'],['comparison','AI comparison'],['scalability','Scalability'],['versions','Version comparison'],['solvers','Solver configurations']];
   const needsInput=tab==='heatmap'&&!map.trim()||tab==='versions'&&(!a||!b);
+  const extra=tab==='heatmap'?{cell,event}:tab==='comparison'?{group}:tab==='versions'?{a,b}:{};
+  const analytics=useQuery({
+    queryKey:['analytics',tab,query,extra],
+    enabled:tab!=='solvers'&&validDates&&validVersionIds&&!needsInput&&!(tab==='heatmap'&&cellError),
+    queryFn:async({signal}):Promise<Data>=>{
+      if(tab==='overview')return {overview:await analyticsApi.overview(query,signal)};
+      if(tab==='heatmap')return {heatmap:await analyticsApi.heatmap(query,cell,[event],signal)};
+      if(tab==='comparison'){const [comparison,scalability]=await Promise.all([analyticsApi.comparison(query,group,signal),analyticsApi.scalability(query,signal)]);return {comparison,scalability};}
+      if(tab==='scalability')return {scalability:await analyticsApi.scalability(query,signal)};
+      return {versions:await analyticsApi.versions(query,a,b,signal)};
+    },
+    // A filter change keeps the same tab's numbers on screen (dimmed) until the new slice arrives.
+    placeholderData:(previous,previousQuery)=>previousQuery?.queryKey[1]===tab?previous:undefined,
+  });
+  const data=analytics.data;
+  const versionOptions=state.drafts.map(d=><NativeSelectOption key={d.id} value={d.id}>#{d.version_no} · {d.label}</NativeSelectOption>);
+  // Analyst has no content version catalog in the BE, so versions are entered as GUIDs.
+  const versionInput=(id:string,label:string,value:string,set:(v:string)=>void,empty:string)=><Field key={id}><FieldLabel htmlFor={id}>{label}</FieldLabel>{analyst?<Input id={id} value={value} onChange={e=>set(e.target.value)} placeholder={empty==='All versions'?'Version GUID · empty = all':'Version GUID'}/>:<NativeSelect id={id} className="w-full" value={value} onChange={e=>set(e.target.value)}><NativeSelectOption value="">{empty}</NativeSelectOption>{versionOptions}</NativeSelect>}</Field>;
+  const versionNo=(id:string,index:number)=>{const no=state.drafts.find(d=>d.id===id)?.version_no;return no?'Version #'+no:'Version '+(index===0?'A':'B');};
   return <div className="sv-page"><PageHeading title="Analytics" />
-    <div className="sv-content-tabs" role="tablist">{tabs.map(([id,label])=><button key={id} role="tab" aria-selected={tab===id} className={tab===id?'is-active':''} onClick={()=>change(()=>setTab(id))}>{(String(label))}</button>)}</div>
-    {tab==='solvers'?<SolverConfigurations enums={enums}/>:<>
-      <div className="sv-analytics-filters sv-form">
-        <label>Source<select value={source} onChange={e=>change(()=>setSource(e.target.value as 'human'|'replay'))}><option value="human">Human</option><option value="replay">Replay</option></select></label>
-        <label>From<input type="date" value={from} onChange={e=>change(()=>setFrom(e.target.value))}/></label><label>To<input type="date" value={to} onChange={e=>change(()=>setTo(e.target.value))}/></label>
-        <label>Content version {user?.role==='analyst'?<input value={version} onChange={e=>change(()=>setVersion(e.target.value))} placeholder="Version GUID · empty = all"/>:<select value={version} onChange={e=>change(()=>setVersion(e.target.value))}><option value="">All versions</option>{state.drafts.map(d=><option key={d.id} value={d.id}>#{d.version_no} · {d.label}</option>)}</select>}</label>
-        <label>Map code<input value={map} onChange={e=>change(()=>setMap(e.target.value))} placeholder="e.g. map_01"/></label>
-        <label>Solver family<select value={family} onChange={e=>change(()=>setFamily(e.target.value))}><option value="">All families</option>{enums?.solverFamilies.map(v=><option key={v}>{v}</option>)}</select></label>
-        <label>Solver configuration<select value={solver} onChange={e=>change(()=>setSolver(e.target.value))}><option value="">All configurations</option>{solvers.map(s=><option value={s.id} key={s.id}>{s.name}</option>)}</select></label>
+    <Tabs value={tab} onValueChange={value=>setTab(value as Tab)} className="overflow-x-auto">
+      <TabsList variant="line">{tabs.map(([id,label])=><TabsTrigger key={id} value={id} className="flex-none">{label}</TabsTrigger>)}</TabsList>
+    </Tabs>
+    {tab==='solvers'?<SolverConfigurations enums={enums.data}/>:<>
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-7">
+        <Field><FieldLabel htmlFor="an-source">Source</FieldLabel><NativeSelect id="an-source" className="w-full" value={source} onChange={e=>setSource(e.target.value as 'human'|'replay')}><NativeSelectOption value="human">Human</NativeSelectOption><NativeSelectOption value="replay">Replay</NativeSelectOption></NativeSelect></Field>
+        <Field><FieldLabel htmlFor="an-from">From</FieldLabel><Input id="an-from" type="date" value={from} onChange={e=>setFrom(e.target.value)}/></Field>
+        <Field><FieldLabel htmlFor="an-to">To</FieldLabel><Input id="an-to" type="date" value={to} onChange={e=>setTo(e.target.value)}/></Field>
+        {versionInput('an-version','Content version',version,setVersion,'All versions')}
+        <Field><FieldLabel htmlFor="an-map">Map code</FieldLabel><Input id="an-map" value={map} onChange={e=>setMap(e.target.value)} placeholder="e.g. map_01"/></Field>
+        <Field><FieldLabel htmlFor="an-family">Solver family</FieldLabel><NativeSelect id="an-family" className="w-full" value={family} onChange={e=>setFamily(e.target.value)}><NativeSelectOption value="">All families</NativeSelectOption>{enums.data?.solverFamilies.map(v=><NativeSelectOption key={v} value={v}>{v}</NativeSelectOption>)}</NativeSelect></Field>
+        <Field><FieldLabel htmlFor="an-solver">Solver configuration</FieldLabel><NativeSelect id="an-solver" className="w-full" value={solver} onChange={e=>setSolver(e.target.value)}><NativeSelectOption value="">All configurations</NativeSelectOption>{solvers.data?.map(s=><NativeSelectOption value={s.id} key={s.id}>{s.name}</NativeSelectOption>)}</NativeSelect></Field>
       </div>
-      {tab==='heatmap'&&<div className="sv-analytics-filters sv-form"><label>Event type<select value={event} onChange={e=>change(()=>setEvent(e.target.value))}><option value="player_death">Player death</option><option value="player_spotted">Player spotted</option></select></label><NumericControl label="Cell size" value={cell} min={1} max={50} step={1} sliderMin={1} sliderMax={50} unit="m" onChange={v=>change(()=>setCell(v!))} onError={setCellError}/></div>}
-      {tab==='comparison'&&<div className="sv-form"><label>Group by<select value={group} onChange={e=>change(()=>setGroup(e.target.value))}><option value="configuration">Configuration</option><option value="family">Family</option></select></label></div>}
-      {tab==='versions'&&<div className="sv-compare-controls sv-form">{[['From version',a,setA],['To version',b,setB]].map(([label,value,set])=><label key={(String(label))}>{(String(label))}{user?.role==='analyst'?<input value={String(value)} placeholder="Version GUID" onChange={e=>change(()=>(set as (v:string)=>void)(e.target.value))}/>:<select value={String(value)} onChange={e=>change(()=>(set as (v:string)=>void)(e.target.value))}><option value="">Choose version</option>{state.drafts.map(d=><option key={d.id} value={d.id}>#{d.version_no} · {d.label}</option>)}</select>}</label>)}</div>}
-      {!validVersionIds?<div className="sv-alert sv-alert-error">Enter a valid version GUID. The current BE does not expose a version catalog to Analyst.</div>:!validDates?<div className="sv-alert sv-alert-error">Choose a valid date range of at most 366 days.</div>:cellError&&tab==='heatmap'?<div className="sv-alert sv-alert-error">{cellError}</div>:needsInput?<Empty title={tab==='heatmap'?"Enter a map code":"Select two versions"}/>:error?<div className="sv-alert sv-alert-error" role="alert">{error}<button className="sv-button" onClick={()=>change(()=>setRetry(retry+1))}>Retry</button></div>:loading?<div className="sv-empty" role="status">Loading analytics…</div>:<>
+      {tab==='heatmap'&&<div className="grid items-start gap-4 sm:grid-cols-2 lg:max-w-3xl"><Field><FieldLabel htmlFor="an-event">Event type</FieldLabel><NativeSelect id="an-event" className="w-full" value={event} onChange={e=>setEvent(e.target.value)}><NativeSelectOption value="player_death">Player death</NativeSelectOption><NativeSelectOption value="player_spotted">Player spotted</NativeSelectOption></NativeSelect></Field><div className="sv-form"><NumericControl label="Cell size" value={cell} min={1} max={50} step={1} sliderMin={1} sliderMax={50} unit="m" onChange={v=>setCell(v!)} onError={setCellError}/></div></div>}
+      {tab==='comparison'&&<Field className="max-w-xs"><FieldLabel htmlFor="an-group">Group by</FieldLabel><NativeSelect id="an-group" className="w-full" value={group} onChange={e=>setGroup(e.target.value)}><NativeSelectOption value="configuration">Configuration</NativeSelectOption><NativeSelectOption value="family">Family</NativeSelectOption></NativeSelect></Field>}
+      {tab==='versions'&&<div className="grid gap-4 sm:grid-cols-2 lg:max-w-3xl">{versionInput('an-a','From version',a,setA,'Choose version')}{versionInput('an-b','To version',b,setB,'Choose version')}</div>}
+      {!validVersionIds?<Alert variant="destructive"><AlertDescription>Enter a valid version GUID. The current BE does not expose a version catalog to Analyst.</AlertDescription></Alert>
+      :!validDates?<Alert variant="destructive"><AlertDescription>Choose a valid date range of at most 366 days.</AlertDescription></Alert>
+      :cellError&&tab==='heatmap'?<Alert variant="destructive"><AlertDescription>{cellError}</AlertDescription></Alert>
+      :needsInput?<Empty title={tab==='heatmap'?"Enter a map code":"Select two versions"}/>
+      :analytics.error?<Alert variant="destructive"><AlertDescription className="flex items-center justify-between gap-4">{errorMessage(analytics.error)}<Button variant="outline" size="sm" onClick={()=>void analytics.refetch()}>Retry</Button></AlertDescription></Alert>
+      :!data?<div className="flex items-center justify-center gap-2 p-10 text-sm text-muted-foreground" role="status"><Spinner/>Loading analytics…</div>
+      :<div className={cn('sv-page transition-opacity',analytics.isPlaceholderData&&'opacity-60')} aria-busy={analytics.isFetching}>
         {data.overview&&<OverviewPanels data={data.overview}/>}
         {data.heatmap&&<Panel title="Difficulty heatmap"><Heatmap data={data.heatmap}/></Panel>}
-        {data.comparison&&<Panel title="AI comparison"><MetricsTable headers={['Version','Solver group','Family','Sessions','Encounters','Capture rate','Escape avg (s)','Score','p95 (ms)','Within budget','Fallback']} rows={data.comparison.map(r=>[r.contentVersionLabel||r.contentVersionId||'—',r.groupLabel,r.family,num(r.sessions),num(r.encounters),pct(r.captureRate),num(r.avgEscapeSeconds),num(r.avgCoordinationScore),num(r.latencyP95Ms),pct(r.withinBudgetRate),pct(r.fallbackRate)])}/></Panel>}
-        {data.scalability&&<Panel title="AI scalability"><LatencyChart rows={data.scalability}/><MetricsTable headers={['Configuration','Family','Agents','Nodes','Replans','p50 (ms)','p95 (ms)','Objective','Within budget']} rows={data.scalability.map(r=>[r.code,r.family,num(r.numAgents),r.nodesFrom+'–'+r.nodesTo,num(r.replans),num(r.latencyP50Ms),num(r.latencyP95Ms),num(r.avgObjective),pct(r.withinBudgetRate)])}/></Panel>}
-        {data.versions&&<div className="sv-version-comparison">{[data.versions.a,data.versions.b].map((v,index)=><div key={v.contentVersionId}><h2>{state.drafts.find(d=>d.id===v.contentVersionId)?.version_no ? "Version #"+state.drafts.find(d=>d.id===v.contentVersionId)!.version_no : "Version "+(index===0?"A":"B")}</h2><p className="sv-version-guid">{v.contentVersionId}</p><OverviewPanels data={{overview:v.overview,funnel:v.funnel,weapons:v.weapons,}}/></div>)}</div>}
-      </>}
+        {data.comparison&&<Panel title="AI comparison" description="Capture rate per solver group">
+          {data.comparison.length>0&&<HorizontalBars unit="Capture rate (%)" rows={data.comparison.map(r=>({label:(new Set(data.comparison!.map(x=>x.contentVersionId)).size>1?(r.contentVersionLabel||'—')+' · ':'')+r.groupLabel,value:Number(r.captureRate||0)*100,detail:pct(r.captureRate)+' · '+num(r.encounters)+' encounters'}))}/>}
+          <MetricsTable headers={['Version','Solver group','Family','Sessions','Encounters','Capture rate','Escape avg (s)','Score','p95 (ms)','Within budget','Fallback']} rows={data.comparison.map(r=>[r.contentVersionLabel||r.contentVersionId||'—',r.groupLabel,r.family,num(r.sessions),num(r.encounters),pct(r.captureRate),num(r.avgEscapeSeconds),num(r.avgCoordinationScore),num(r.latencyP95Ms),pct(r.withinBudgetRate),pct(r.fallbackRate)])}/>
+        </Panel>}
+        {data.scalability&&<Panel title="AI scalability" description="p95 solver latency by number of agents"><LatencyChart rows={data.scalability}/><MetricsTable headers={['Configuration','Family','Agents','Nodes','Replans','p50 (ms)','p95 (ms)','Objective','Within budget']} rows={data.scalability.map(r=>[r.code,r.family,num(r.numAgents),r.nodesFrom+'–'+r.nodesTo,num(r.replans),num(r.latencyP50Ms),num(r.latencyP95Ms),num(r.avgObjective),pct(r.withinBudgetRate)])}/></Panel>}
+        {data.versions&&<div className="grid items-start gap-6 xl:grid-cols-2">{[data.versions.a,data.versions.b].map((v,index)=><div key={v.contentVersionId} className="grid gap-6"><div><h2 className="text-lg font-semibold">{versionNo(v.contentVersionId,index)}</h2><p className="font-mono text-xs text-muted-foreground [overflow-wrap:anywhere]">{v.contentVersionId}</p></div><OverviewPanels compact data={{overview:v.overview,funnel:v.funnel,weapons:v.weapons}}/></div>)}</div>}
+      </div>}
     </>}
   </div>;
 }

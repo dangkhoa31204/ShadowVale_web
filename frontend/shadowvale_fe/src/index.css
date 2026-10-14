@@ -48,6 +48,7 @@ input:-webkit-autofill:active {
   --color-sidebar-primary: var(--sidebar-primary);
   --color-sidebar-foreground: var(--sidebar-foreground);
   --color-sidebar: var(--sidebar);
+  --color-chart-6: var(--chart-6);
   --color-chart-5: var(--chart-5);
   --color-chart-4: var(--chart-4);
   --color-chart-3: var(--chart-3);
@@ -105,11 +106,14 @@ input:-webkit-autofill:active {
   --border: #343e30;
   --input: #4a5744;
   --ring: #c3cf93;
-  --chart-1: #c3cf93;
-  --chart-2: #8ccea2;
-  --chart-3: #e2bf7b;
-  --chart-4: #f49c8c;
-  --chart-5: #adb6a4;
+  /* Chart series, in fixed order; validated with the dataviz palette checks against --card
+     (lightness band, chroma, adjacent CVD and normal-vision separation, 3:1 contrast). */
+  --chart-1: #7f9a3e;
+  --chart-2: #9085e9;
+  --chart-3: #d95926;
+  --chart-4: #3987e5;
+  --chart-5: #c98500;
+  --chart-6: #d55181;
   --radius: 0.5rem;
   --sidebar: #1a2119;
   --sidebar-foreground: #adb6a4;
