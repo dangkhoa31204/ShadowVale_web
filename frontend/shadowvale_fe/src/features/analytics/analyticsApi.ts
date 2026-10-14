@@ -2,7 +2,7 @@ import { axiosClient } from '../../services/api/axiosClient';
 import type { FunnelDto, WeaponUsageDto, PlaystyleDto, HeatmapDto, AiComparisonRowDto, SolverConfigurationDto, CreateSolverConfigurationRequest, UpdateSolverConfigurationRequest } from '../../services/api/contracts';
 export interface AnalyticsFilters { source:'human'|'replay';from:string;to:string;contentVersionId?:string;mapCode?:string;solverConfigurationId?:string;family?:string }
 export const analyticsApi={
-  overview:async(q:AnalyticsFilters,signal?:AbortSignal)=>{const [funnel,weapons,playstyle]=await Promise.all([
+  gameplay:async(q:AnalyticsFilters,signal?:AbortSignal)=>{const [funnel,weapons,playstyle]=await Promise.all([
     axiosClient.get<FunnelDto>('/analytics/funnel',{params:q,signal}),
     axiosClient.get<WeaponUsageDto>('/analytics/weapons',{params:q,signal}),
     axiosClient.get<PlaystyleDto>('/analytics/playstyle',{params:q,signal}),

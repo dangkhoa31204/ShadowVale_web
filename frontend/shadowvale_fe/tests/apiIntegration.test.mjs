@@ -74,9 +74,10 @@ function server(){
 }
 test('login sends usernameOrEmail and stores complete tokens and role mapping atomically',async()=>{
  handler=c=>{assert.equal(c.url,'/auth/login');assert.deepEqual(body(c),{usernameOrEmail:'alex',password:'test-password'});return ok(c,tokens);};
- const r=await api.authService.login({callsign:'alex',password:'test-password',rememberMe:true});
+ const r=await api.authService.login({callsign:'alex',password:'test-password'});
  assert.equal(r.user.callsign,'Alex Designer');assert.equal(r.user.role,'designer');
- assert.equal(api.storageService.getSession().refreshToken,'refresh-1');assert.equal(sessionStorage.getItem('shadowvale_session_v2'),null);
+ assert.equal(api.storageService.getSession().refreshToken,'refresh-1');// Sign-in is always tab-scoped: no 'keep me signed in' in the proposal.
+ assert.equal(localStorage.getItem('shadowvale_session_v2'),null);assert.ok(sessionStorage.getItem('shadowvale_session_v2'));
 });
 test('concurrent 401s perform one refresh and replay once with the rotated token',async()=>{
  let rotations=0;

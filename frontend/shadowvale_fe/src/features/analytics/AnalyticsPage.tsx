@@ -80,7 +80,7 @@ function DemoAnalyticsPage() {
   const heatLabel = heatLayers[heatLayer].toLowerCase();
 
   return <div className="sv-page">
-    <PageHeading eyebrow="ANALYST" title="Analytics" description="Sessions, telemetry events and squad coordination." />
+    <PageHeading title="Analytics" description="Sessions, telemetry events and squad coordination." />
     <Alert><AlertDescription>Demo data · sample sessions and events.</AlertDescription></Alert>
     <div className="flex flex-wrap items-end gap-4">
       <ToggleGroup type="single" variant="outline" spacing={0} value={String(days)} onValueChange={value => { if (value) setDays(Number(value)); }} aria-label="Date range">

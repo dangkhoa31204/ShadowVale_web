@@ -11,11 +11,11 @@ Read `README.md` → "Đối chiếu proposal — đọc trước khi sửa" bef
 - Branch from `origin/dev` (newest code), not `main`.
 - Stack is fixed: Tailwind 4 (no downgrade), shadcn/ui in `src/components/ui` (add with the
   shadcn CLI), TanStack Query for server data and mutations, Recharts via shadcn `chart`.
-  Use the shared pieces in `src/features/shared` (Panel, StatCard, Status, Empty, Modal,
+  Use the shared pieces in `src/features/shared` (Panel, Status, Empty, Modal,
   `useConfirm`) and `sonner` toasts; do not add `window.confirm`, custom modals or new
   `sv-*` CSS.
-- Chart colours come from `--chart-1…6` in `src/index.css`; keep that order and re-validate
-  if you change them.
+- Charts use `--chart-1` (bars) and `--chart-3` (heat maps) from `src/index.css`; re-validate the
+  colours with the dataviz checks if you change them.
 - Never point the BE at the shared Supabase database for testing; use demo mode or the
   Maestro mock API (`vite.maestro.config.mjs`).
 - Run `npm run lint`, `npm test` and `npm run build` before handing work back.

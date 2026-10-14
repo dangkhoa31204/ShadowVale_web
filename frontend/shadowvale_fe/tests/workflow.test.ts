@@ -10,7 +10,7 @@ import type { User } from '../src/types/user.ts';
 const schema = JSON.parse(readFileSync(new URL('../src/features/content/contracts/content.schema.json', import.meta.url), 'utf8'));
 const seed = JSON.parse(readFileSync(new URL('../src/features/content/contracts/demo-bundle.json', import.meta.url), 'utf8')) as ContentBundle;
 const validate = createBundleValidator(schema);
-const designer: User = { id: 'designer', callsign: 'Designer', email: 'd@sv.dev', role: 'designer', tier: 'internal', clearanceLevel: 'designer', createdAt: '' };
+const designer: User = { id: 'designer', callsign: 'Designer', email: 'd@sv.dev', role: 'designer', createdAt: '' };
 const admin: User = { ...designer, id: 'admin', callsign: 'Admin', role: 'admin' };
 const analyst: User = { ...designer, id: 'analyst', role: 'analyst' };
 function state(): Workspace {

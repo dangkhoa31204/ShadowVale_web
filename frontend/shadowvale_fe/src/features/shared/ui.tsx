@@ -1,9 +1,9 @@
 import type { ReactNode } from 'react';
 import {
-  Archive, ArrowRight, ArrowUpRight, BadgeCheck, Bot, Brain, ChartLine, Check, ChevronDown, ChevronRight, Circle, CircleAlert, CircleUser,
-  ClipboardCheck, Copy, Download, Eye, EyeOff, FilePen, Flag, GitBranch, Gift, Globe, GraduationCap, Hammer, HeartPulse, History, Inbox,
-  Key, KeyRound, LayoutDashboard, ListChecks, Lock, LogOut, Map as MapIcon, MapPin, MapPinned, Menu, Package, Pencil, Plus, RefreshCw,
-  Save, Search, Send, Shapes, ShieldUser, Swords, Trash2, Undo2, User, UserPlus, Users, Wrench, X, type LucideIcon,
+  Archive, ArrowRight, BadgeCheck, Bot, ChartLine, Check, ChevronDown, ChevronRight, Circle, CircleAlert, CircleUser,
+  ClipboardCheck, Copy, Eye, EyeOff, FilePen, Flag, Gift, Globe, GraduationCap, Hammer, HeartPulse, Inbox,
+  Key, KeyRound, ListChecks, Lock, LogOut, Map as MapIcon, MapPin, MapPinned, Menu, Package, Pencil, Plus, RefreshCw,
+  Save, Search, Send, Shapes, ShieldUser, Swords, Trash2, Undo2, UserPlus, Users, Wrench, type LucideIcon,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
@@ -13,12 +13,12 @@ import type { DraftStatus } from '../content/types';
 
 /** Names used by pages, navigation and content collections, mapped to shadcn's icon set (lucide). */
 const icons: Record<string, LucideIcon> = {
-  account_circle: CircleUser, account_tree: GitBranch, add: Plus, arrow_forward: ArrowRight, arrow_outward: ArrowUpRight, category: Shapes,
-  check: Check, chevron_right: ChevronRight, close: X, construction: Hammer, content_copy: Copy, dashboard: LayoutDashboard, delete: Trash2,
-  deployed_code: Package, download: Download, edit: Pencil, edit_note: FilePen, error: CircleAlert, expand_more: ChevronDown, fact_check: ClipboardCheck,
-  flag: Flag, group: Users, handyman: Wrench, healing: HeartPulse, history: History, inbox: Inbox, inventory_2: Archive, key: Key,
+  account_circle: CircleUser, add: Plus, arrow_forward: ArrowRight, category: Shapes,
+  check: Check, chevron_right: ChevronRight, construction: Hammer, content_copy: Copy, delete: Trash2,
+  deployed_code: Package, edit: Pencil, edit_note: FilePen, error: CircleAlert, expand_more: ChevronDown, fact_check: ClipboardCheck,
+  flag: Flag, group: Users, handyman: Wrench, healing: HeartPulse, inbox: Inbox, inventory_2: Archive, key: Key,
   list_alt: ListChecks, location_on: MapPinned, lock: Lock, lock_reset: KeyRound, logout: LogOut, map: MapIcon, menu: Menu, monitoring: ChartLine,
-  neurology: Brain, person: User, person_add: UserPlus, pin_drop: MapPin, public: Globe, redeem: Gift, save: Save, school: GraduationCap,
+  person_add: UserPlus, pin_drop: MapPin, public: Globe, redeem: Gift, save: Save, school: GraduationCap,
   search: Search, send: Send, shield_person: ShieldUser, smart_toy: Bot, swords: Swords, sync: RefreshCw, undo: Undo2, verified: BadgeCheck,
   visibility: Eye, visibility_off: EyeOff,
 };
