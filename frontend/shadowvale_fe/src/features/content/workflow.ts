@@ -68,7 +68,6 @@ export async function applyCommand(state: Workspace, command: Command, actor: Us
     } else {
       requirePermission('publish');
       if (draft.status !== 'approved') throw new Error('Only approved content can be published.');
-      if (!command.reason.trim()) throw new Error('A publication reason is required.');
       assertValid(draft.bundle);
       if (next.releases.some(release => release.version_no === draft.version_no)) throw new Error('This content version is already published.');
       const bundle = await sealBundle(draft.bundle, at);
@@ -77,7 +76,7 @@ export async function applyCommand(state: Workspace, command: Command, actor: Us
       next.releases.unshift(release); next.activeReleaseId = release.id;
       draft.status = 'published'; draft.bundle = bundle; draft.bundle_checksum = bundle.checksum;
       draft.published_by = actor.id; draft.published_at = at;
-      publication(draft.id, previous, 'publish', command.reason);
+      publication(draft.id, previous, 'publish', command.reason ?? '');
     }
     draft.updatedAt = at;
   } else if (command.type === 'createDraft') {

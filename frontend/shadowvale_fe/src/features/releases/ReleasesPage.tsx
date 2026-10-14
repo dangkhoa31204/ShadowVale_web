@@ -17,7 +17,6 @@ import { dateLabel } from '../shared/format';
 import { isDemoMode } from '../../config/environment';
 import { ApiReleasesPage } from './ApiVersions';
 
-type Confirmation = { type: 'publish'; id: string; revision: number } | { type: 'rollback'; id: string };
 
 export function ReleasesPage() { return isDemoMode ? <DemoReleasesPage /> : <ApiReleasesPage />; }
 function DemoReleasesPage() {
@@ -25,14 +24,14 @@ function DemoReleasesPage() {
   const active = state.releases.find(r => r.id === state.activeReleaseId);
   const [beforeId, setBeforeId] = useState(state.releases[1]?.id || state.releases[0]?.id || '');
   const [afterId, setAfterId] = useState(state.releases[0]?.id || '');
-  const [confirm, setConfirm] = useState<Confirmation | null>(null);
+  const [confirm, setConfirm] = useState<{ id: string } | null>(null);
   const [reason, setReason] = useState('');
   const [detailId, setDetailId] = useState('');
   const detailRef = useRef<HTMLElement>(null);
   const before = state.releases.find(r => r.id === beforeId), after = state.releases.find(r => r.id === afterId);
   const approved = state.drafts.filter(d => d.status === 'approved');
   const canPublish = !!user && can(user.role, 'publish');
-  const target = confirm?.type === 'publish' ? state.drafts.find(d => d.id === confirm.id) : state.releases.find(r => r.id === confirm?.id);
+  const target = state.releases.find(r => r.id === confirm?.id);
 
   useEffect(() => {
     if (detailId) detailRef.current?.scrollIntoView({ block: 'nearest' });
@@ -42,12 +41,14 @@ function DemoReleasesPage() {
     document.getElementById('release-toggle-' + detailId)?.focus();
     setDetailId('');
   }
-  function requestAction(next: Confirmation) { setReason(''); setConfirm(next); }
-  async function confirmAction() {
+  // Proposal: one-click publish of an approved version; only rollback asks for a reason.
+  async function publish(id: string, revision: number) {
+    try { await execute({ type: 'publishDraft', id, revision }); } catch { /* Provider displays the error. */ }
+  }
+  async function rollback() {
     if (!confirm || !reason.trim()) return;
     try {
-      if (confirm.type === 'rollback') await execute({ type: 'restoreRelease', id: confirm.id, reason });
-      else await execute({ type: 'publishDraft', id: confirm.id, revision: confirm.revision, reason });
+      await execute({ type: 'restoreRelease', id: confirm.id, reason });
       setConfirm(null); setReason('');
     } catch { /* Provider displays the error. */ }
   }
@@ -67,7 +68,7 @@ function DemoReleasesPage() {
     {canPublish && <Panel title="Approved content" action={<Badge variant="secondary">{approved.length}</Badge>}>
       {approved.length ? approved.map(d => <div className="flex flex-wrap items-center gap-4 border-b px-6 py-4 last:border-b-0" key={d.id}>
         <div className="min-w-0 flex-1"><strong className="block text-sm font-medium">{d.label}</strong><small className="text-xs text-muted-foreground">#{d.version_no} · Reviewed by {d.reviewedBy || '—'}</small></div>
-        <div className="flex gap-2"><Button asChild variant="outline"><Link to={'/admin/reviews?draft=' + encodeURIComponent(d.id)}>View changes</Link></Button><Button disabled={busy} onClick={() => requestAction({ type: 'publish', id: d.id, revision: d.revision })}>Publish version</Button></div>
+        <div className="flex gap-2"><Button asChild variant="outline"><Link to={'/admin/reviews?draft=' + encodeURIComponent(d.id)}>View changes</Link></Button><Button disabled={busy} onClick={() => void publish(d.id, d.revision)}>Publish version</Button></div>
       </div>) : <Empty title="No approved content" />}
     </Panel>}
 
@@ -83,7 +84,7 @@ function DemoReleasesPage() {
               <TableCell>{dateLabel(r.publishedAt)}</TableCell><TableCell>{r.publishedBy}</TableCell><TableCell><Status value={r.status} /></TableCell>
               <TableCell><div className="flex gap-2">
                 {canPublish && <Button variant="outline" size="sm" id={'release-toggle-' + r.id} aria-expanded={detailId === r.id} aria-controls={'release-detail-' + r.id} onClick={() => setDetailId(detailId === r.id ? '' : r.id)}>{detailId === r.id ? "Hide changes" : "View changes"}</Button>}
-                {canPublish && r.status === 'archived' && <Button variant="outline" size="sm" disabled={busy} onClick={() => requestAction({ type: 'rollback', id: r.id })}>Rollback</Button>}
+                {canPublish && r.status === 'archived' && <Button variant="outline" size="sm" disabled={busy} onClick={() => { setReason(''); setConfirm({ id: r.id }); }}>Rollback</Button>}
               </div></TableCell>
             </TableRow>
             {detailId === r.id && <TableRow className="hover:bg-transparent"><TableCell colSpan={6} className="p-0 whitespace-normal">
@@ -102,7 +103,7 @@ function DemoReleasesPage() {
         <TableHeader><TableRow>{['Action', 'Version', 'Previous version', 'Reason', 'Actor', 'Occurred'].map(label => <TableHead key={label}>{label}</TableHead>)}</TableRow></TableHeader>
         <TableBody>{state.publications.map(entry => <TableRow key={entry.id}>
           <TableCell>{entry.action === 'publish' ? "Publish" : "Rollback"}</TableCell><TableCell>{versionName(entry.content_version_id)}</TableCell><TableCell>{versionName(entry.previous_version_id)}</TableCell>
-          <TableCell className="max-w-80 whitespace-normal">{entry.reason}</TableCell><TableCell>{state.users.find(u => u.id === entry.actor_id)?.callsign || entry.actor_id || '—'}</TableCell><TableCell>{dateLabel(entry.occurred_at)}</TableCell>
+          <TableCell className="max-w-80 whitespace-normal">{entry.reason || '—'}</TableCell><TableCell>{state.users.find(u => u.id === entry.actor_id)?.callsign || entry.actor_id || '—'}</TableCell><TableCell>{dateLabel(entry.occurred_at)}</TableCell>
         </TableRow>)}</TableBody>
       </Table> : <Empty title="No publication history" />}
     </Panel>}
@@ -116,10 +117,10 @@ function DemoReleasesPage() {
       {after ? <BundleDetails key={beforeId + afterId} before={before?.bundle} after={after.bundle} /> : <Empty title="No versions" />}
     </Panel>
 
-    {confirm && <Modal title={(confirm.type === 'publish' ? 'Publish' : 'Rollback to') + ' version #' + target?.version_no + '?'} description={target?.label} busy={busy} onClose={() => setConfirm(null)}>
-      <form className="grid gap-4" onSubmit={e => { e.preventDefault(); void confirmAction(); }}>
-        <Field><FieldLabel htmlFor="release-reason">Reason</FieldLabel><Textarea id="release-reason" autoFocus required value={reason} onChange={e => setReason(e.target.value)} rows={3} placeholder={confirm.type === 'publish' ? "Describe this publication" : "Why roll back to this version?"} /></Field>
-        <div className="flex justify-end gap-2"><Button type="button" variant="outline" disabled={busy} onClick={() => setConfirm(null)}>Cancel</Button><Button disabled={busy || !reason.trim() || !target}>{busy && <Spinner />}{busy ? "Saving…" : confirm.type === 'publish' ? "Publish version" : "Rollback version"}</Button></div>
+    {confirm && <Modal title={'Rollback to version #' + target?.version_no + '?'} description={target?.label} busy={busy} onClose={() => setConfirm(null)}>
+      <form className="grid gap-4" onSubmit={e => { e.preventDefault(); void rollback(); }}>
+        <Field><FieldLabel htmlFor="release-reason">Reason</FieldLabel><Textarea id="release-reason" autoFocus required value={reason} onChange={e => setReason(e.target.value)} rows={3} placeholder="Why roll back to this version?" /></Field>
+        <div className="flex justify-end gap-2"><Button type="button" variant="outline" disabled={busy} onClick={() => setConfirm(null)}>Cancel</Button><Button disabled={busy || !reason.trim() || !target}>{busy && <Spinner />}{busy ? "Saving…" : "Rollback version"}</Button></div>
       </form>
     </Modal>}
   </div>;

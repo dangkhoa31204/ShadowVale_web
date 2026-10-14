@@ -123,11 +123,12 @@ export function ApiReleasesPage(){
   const [tab,setTab]=useState<'versions'|'history'|'compare'>('versions');
   const [search,setSearch]=useState(''),[status,setStatus]=useState('all');
   const [detail,setDetail]=useState(''),[before,setBefore]=useState(''),[after,setAfter]=useState(''),[page,setPage]=useState(1),[historyPage,setHistoryPage]=useState(1);
-  const [confirm,setConfirm]=useState<{id:string;type:'publish'|'rollback';revision?:number}|null>(null),[reason,setReason]=useState(''),[error,setError]=useState('');
+  const [confirm,setConfirm]=useState<{id:string}|null>(null),[reason,setReason]=useState(''),[error,setError]=useState('');
   const approved=state.drafts.filter(d=>d.status==='approved');
-  async function action(){if(!confirm||!reason.trim())return;setError('');try{
-    if(confirm.type==='publish')await execute({type:'publishDraft',id:confirm.id,revision:confirm.revision!,reason});
-    else await execute({type:'restoreRelease',id:confirm.id,reason});
+  // Proposal: one-click publish of an approved version (Admin already approved it in Review).
+  async function publish(id:string,revision:number){setError('');try{await execute({type:'publishDraft',id,revision});}catch(e){setError(errorMessage(e));}}
+  async function rollback(){if(!confirm||!reason.trim())return;setError('');try{
+    await execute({type:'restoreRelease',id:confirm.id,reason});
     setConfirm(null);setReason('');
   }catch(e){setError(errorMessage(e));}}
   const filtered=state.releases.filter(r=>(status==='all'||r.status===status)&&('#'+r.version_no+' '+r.label).toLowerCase().includes(search.toLowerCase()));
@@ -144,7 +145,7 @@ export function ApiReleasesPage(){
       {active&&<div className="flex items-center gap-2"><Status value="published"/></div>}
     </div></Panel>
     {admin&&<Panel title="Ready to publish" description="Only approved submissions can be released." action={<><Badge variant="secondary">{approved.length}</Badge><Button asChild variant="ghost" size="sm"><Link to="/admin/reviews">Review content<Icon name="arrow_forward"/></Link></Button></>}>
-      {approved.map(d=><div className="flex flex-wrap items-center gap-4 border-b px-6 py-4 last:border-b-0" key={d.id}><span className="font-mono text-xs text-muted-foreground">#{d.version_no}</span><div className="min-w-0 flex-1"><strong className="block text-sm font-medium">{d.label}</strong><small className="text-xs text-muted-foreground">Approved {dateLabel(d.reviewedAt||d.updatedAt)} · {d.reviewedBy||'Admin'}</small></div><div className="flex gap-2"><Button variant="outline" onClick={()=>setDetail(d.id)}>View changes</Button><Button disabled={busy} onClick={()=>{setError('');setReason('');setConfirm({type:'publish',id:d.id,revision:d.revision});}}><Icon name="deployed_code"/>Publish version</Button></div></div>)}
+      {approved.map(d=><div className="flex flex-wrap items-center gap-4 border-b px-6 py-4 last:border-b-0" key={d.id}><span className="font-mono text-xs text-muted-foreground">#{d.version_no}</span><div className="min-w-0 flex-1"><strong className="block text-sm font-medium">{d.label}</strong><small className="text-xs text-muted-foreground">Approved {dateLabel(d.reviewedAt||d.updatedAt)} · {d.reviewedBy||'Admin'}</small></div><div className="flex gap-2"><Button variant="outline" onClick={()=>setDetail(d.id)}>View changes</Button><Button disabled={busy} onClick={()=>void publish(d.id,d.revision)}><Icon name="deployed_code"/>Publish version</Button></div></div>)}
       {!approved.length&&<Empty title="No approved content waiting" description="Review a designer submission first. Approved versions will appear here."/>}
     </Panel>}
     <Panel>
@@ -153,11 +154,11 @@ export function ApiReleasesPage(){
       </Tabs>
       {tab==='versions'?<>
         <div className="grid grid-cols-2 items-end gap-4 border-b p-5 md:grid-cols-[minmax(220px,2fr)_minmax(160px,1fr)_auto]"><Field className="col-span-2 md:col-span-1"><FieldLabel htmlFor="release-search">Find version</FieldLabel><Input id="release-search" type="search" value={search} placeholder="Version number or title" onChange={e=>{setSearch(e.target.value);setPage(1);}}/></Field><Field><FieldLabel htmlFor="release-status">Status</FieldLabel><NativeSelect id="release-status" className="w-full" value={status} onChange={e=>{setStatus(e.target.value);setPage(1);}}><NativeSelectOption value="all">All published versions</NativeSelectOption><NativeSelectOption value="published">Live</NativeSelectOption><NativeSelectOption value="archived">Archived</NativeSelectOption></NativeSelect></Field><span className="pb-2 text-xs text-muted-foreground">{filtered.length} versions</span></div>
-        <Table className={panelTable}><TableHeader><TableRow><TableHead>Version</TableHead><TableHead>Status</TableHead><TableHead>Published</TableHead><TableHead>Actions</TableHead></TableRow></TableHeader><TableBody>{entries.map(r=><TableRow key={r.id}><TableCell><div className="font-medium">#{r.version_no} · {r.label}</div><div className="text-xs text-muted-foreground">{r.publishedBy}</div></TableCell><TableCell><Status value={r.status}/></TableCell><TableCell>{dateLabel(r.publishedAt)}</TableCell><TableCell><div className="flex gap-2"><Button variant="outline" size="sm" onClick={()=>setDetail(r.id)}>View changes</Button>{admin&&r.status==='archived'&&<Button variant="outline" size="sm" disabled={busy} onClick={()=>{setError('');setReason('');setConfirm({type:'rollback',id:r.id});}}>Rollback</Button>}</div></TableCell></TableRow>)}</TableBody></Table>
+        <Table className={panelTable}><TableHeader><TableRow><TableHead>Version</TableHead><TableHead>Status</TableHead><TableHead>Published</TableHead><TableHead>Actions</TableHead></TableRow></TableHeader><TableBody>{entries.map(r=><TableRow key={r.id}><TableCell><div className="font-medium">#{r.version_no} · {r.label}</div><div className="text-xs text-muted-foreground">{r.publishedBy}</div></TableCell><TableCell><Status value={r.status}/></TableCell><TableCell>{dateLabel(r.publishedAt)}</TableCell><TableCell><div className="flex gap-2"><Button variant="outline" size="sm" onClick={()=>setDetail(r.id)}>View changes</Button>{admin&&r.status==='archived'&&<Button variant="outline" size="sm" disabled={busy} onClick={()=>{setError('');setReason('');setConfirm({id:r.id});}}>Rollback</Button>}</div></TableCell></TableRow>)}</TableBody></Table>
         {!entries.length&&<Empty title="No matching versions"/>}{filtered.length>20&&<Pager page={page} setPage={setPage} total={filtered.length}/>}
       </>:tab==='history'?<>
         <div className="border-b px-6 py-4"><h2 className="font-semibold">Publication history</h2><p className="text-xs text-muted-foreground">Recorded publish and rollback decisions</p></div>
-        <Table className={panelTable}><TableHeader><TableRow>{['Action','Version','Previous','Reason','Actor','Occurred'].map(h=><TableHead key={h}>{h}</TableHead>)}</TableRow></TableHeader><TableBody>{state.publications.slice((historyPage-1)*20,historyPage*20).map(h=><TableRow key={h.id}><TableCell>{h.action==='publish'?"Publish":"Rollback"}</TableCell><TableCell>{versionNo(h.content_version_id)}</TableCell><TableCell>{versionNo(h.previous_version_id)}</TableCell><TableCell className="max-w-80 whitespace-normal">{h.reason}</TableCell><TableCell>{h.actor_id}</TableCell><TableCell>{dateLabel(h.occurred_at)}</TableCell></TableRow>)}</TableBody></Table>
+        <Table className={panelTable}><TableHeader><TableRow>{['Action','Version','Previous','Reason','Actor','Occurred'].map(h=><TableHead key={h}>{h}</TableHead>)}</TableRow></TableHeader><TableBody>{state.publications.slice((historyPage-1)*20,historyPage*20).map(h=><TableRow key={h.id}><TableCell>{h.action==='publish'?"Publish":"Rollback"}</TableCell><TableCell>{versionNo(h.content_version_id)}</TableCell><TableCell>{versionNo(h.previous_version_id)}</TableCell><TableCell className="max-w-80 whitespace-normal">{h.reason||"—"}</TableCell><TableCell>{h.actor_id}</TableCell><TableCell>{dateLabel(h.occurred_at)}</TableCell></TableRow>)}</TableBody></Table>
         {!state.publications.length&&<Empty title="No publication history"/>}{state.publications.length>20&&<Pager page={historyPage} setPage={setHistoryPage} total={state.publications.length}/>}
       </>:<>
         <div className="border-b px-6 py-4"><h2 className="font-semibold">Compare versions</h2><p className="text-xs text-muted-foreground">Choose a baseline and a target version.</p></div>
@@ -166,11 +167,11 @@ export function ApiReleasesPage(){
       </>}
     </Panel>
     {selected&&<Modal wide scrollable eyebrow="VERSION DETAILS" title={'#'+selected.version_no+' · '+selected.label} onClose={()=>setDetail('')}><ApiCompare key={detail+':'+baseline} beforeId={baseline} afterId={detail}/></Modal>}
-    {confirm&&<Modal eyebrow={confirm.type==='publish'?'RELEASE CONTENT':'RESTORE A RELEASE'} title={(confirm.type==='publish'?'Publish':'Rollback to')+' #'+target?.version_no+'?'} description={<>{target?.label}<br/>{confirm.type==='publish'?'This becomes the live content version available to the game.':'This restores the previously published bundle and archives the current live version.'}</>} busy={busy} onClose={()=>setConfirm(null)}>
-      <form className="grid gap-4" onSubmit={e=>{e.preventDefault();void action();}}>
-        <Field><FieldLabel htmlFor="release-reason">{confirm.type==='publish'?'Release note':'Rollback reason'}</FieldLabel><Textarea id="release-reason" disabled={busy} maxLength={500} required rows={3} value={reason} onChange={e=>setReason(e.target.value)} placeholder="Required · explain this publication decision"/></Field>
+    {confirm&&<Modal eyebrow="RESTORE A RELEASE" title={'Rollback to #'+target?.version_no+'?'} description={<>{target?.label}<br/>This restores the previously published bundle and archives the current live version.</>} busy={busy} onClose={()=>setConfirm(null)}>
+      <form className="grid gap-4" onSubmit={e=>{e.preventDefault();void rollback();}}>
+        <Field><FieldLabel htmlFor="release-reason">Rollback reason</FieldLabel><Textarea id="release-reason" disabled={busy} maxLength={500} required rows={3} value={reason} onChange={e=>setReason(e.target.value)} placeholder="Required · why roll back to this version?"/></Field>
         {error&&<Alert variant="destructive"><AlertDescription>{error}</AlertDescription></Alert>}
-        <div className="flex justify-end gap-2"><Button type="button" variant="outline" disabled={busy} onClick={()=>setConfirm(null)}>Cancel</Button><Button disabled={busy||!reason.trim()}>{busy&&<Spinner/>}{busy?'Processing…':confirm.type==='publish'?'Publish version':'Confirm rollback'}</Button></div>
+        <div className="flex justify-end gap-2"><Button type="button" variant="outline" disabled={busy} onClick={()=>setConfirm(null)}>Cancel</Button><Button disabled={busy||!reason.trim()}>{busy&&<Spinner/>}{busy?'Processing…':'Confirm rollback'}</Button></div>
       </form>
     </Modal>}
   </div>;

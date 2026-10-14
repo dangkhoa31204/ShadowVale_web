@@ -425,7 +425,7 @@ export type ProblemDetails = {
 };
 export type PublishContentVersionRequest = {
   "revision": null | number | string;
-  "reason": string;
+  "reason"?: null | string;
 };
 export type QuestDto = {
   "id": string;

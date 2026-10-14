@@ -127,9 +127,10 @@ test('rejected content explicitly returns to draft before editing; only content 
   assert.equal(saved.drafts[0].status, 'draft'); assert.equal(saved.drafts[0].revision, 2);
   assert.equal(saved.drafts[0].reviewedBy, undefined); assert.equal(saved.drafts[0].bundle.label, 'Updated');
 });
-test('publish and rollback require a reason; rollback selects archived content without rewriting its bundle', async () => {
+test('publish is one click, rollback requires a reason and selects archived content without rewriting its bundle', async () => {
   const s = state(); s.drafts[0].status = 'approved';
-  await assert.rejects(applyCommand(s, { type: 'publishDraft', id: 'd1', revision: 1, reason: ' ' }, admin, validate), /reason/);
+  const oneClick = await applyCommand(structuredClone(s), { type: 'publishDraft', id: 'd1', revision: 1 }, admin, validate);
+  assert.equal(oneClick.drafts[0].status, 'published'); assert.equal(oneClick.publications[0].reason, '');
   const published = await publish(s);
   await assert.rejects(applyCommand(published, { type: 'restoreRelease', id: 'r1', reason: '' }, admin, validate), /reason/);
   const restored = await applyCommand(published, { type: 'restoreRelease', id: 'r1', reason: ' Regression found ' }, admin, validate);

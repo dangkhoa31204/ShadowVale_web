@@ -2586,8 +2586,7 @@
   },
   "PublishContentVersionRequest": {
     "required": [
-      "revision",
-      "reason"
+      "revision"
     ],
     "type": "object",
     "properties": {
@@ -2604,7 +2603,10 @@
       },
       "reason": {
         "maxLength": 500,
-        "type": "string"
+        "type": [
+          "null",
+          "string"
+        ]
       }
     }
   },

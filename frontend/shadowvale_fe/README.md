@@ -26,7 +26,7 @@ Functional Requirements (Content & Balancing Platform, Telemetry & Analytics Das
 | Login `/login` | Tất cả | Authenticated (JWT) access; role-based access |
 | Content authoring `/admin/content` (trang đầu của Designer) | Designer | Authoring maps, enemy archetypes & parameters, loot tables, recipes, quests, weapon stats, with schema validation |
 | Review content `/admin/reviews` (trang đầu của Admin) | Admin | Review/approval workflow |
-| Versions / Publish versions `/admin/releases` | Designer / Admin | Version history with compare/rollback and publish to a validated JSON bundle |
+| Versions / Publish versions `/admin/releases` | Designer / Admin | Version history with compare/rollback and one-click publish to a validated JSON bundle |
 | Users `/admin/users` | Admin | User/role management (Designer, Analyst, Admin) — role gán trên từng tài khoản |
 | Analytics `/admin/analytics` (trang đầu của Analyst) | Tất cả | Tab Gameplay: mission completion funnels, weapon-usage, stealth-vs-combat distributions · Heatmap: difficulty heat maps · AI comparison: capture rate, escape time, coordination score per content version |
 | Analytics → Solver configurations | Xem: tất cả · Sửa: Analyst, Admin | Admin "configuration": cấu hình duy nhất BE hỗ trợ là cấu hình solver (classical vs quantum-inspired) |
@@ -72,8 +72,6 @@ Users, Analytics, Change password). Admin mở Analytics và Change password t�
 
 ### Lệch do BE (FE không tự sửa được)
 
-- Proposal ghi "one-click publish"; BE bắt buộc lý do 1–500 ký tự cho publish và rollback nên FE
-  hỏi lý do trước khi gửi.
 - Analyst phải nhập GUID khi lọc theo content version vì BE chỉ cho Admin/Designer đọc danh sách
   version.
 
@@ -98,6 +96,7 @@ Users, Analytics, Change password). Admin mở Analytics và Change password t�
    DropdownMenu, sonner, icon lucide) và React Query cho dữ liệu server.
 4. Analytics vẽ bằng Recharts; demo có funnel nhiệm vụ, stealth vs combat và lớp Detections.
 5. Soát toàn bộ chữ/nút/cột/bộ lọc của mọi màn theo quy tắc phân loại ở trên và bỏ phần thừa.
+6. Publish một lần bấm: BE cho phép bỏ trống lý do publish (rollback vẫn bắt buộc lý do).
 
 ## Run
 
@@ -172,9 +171,11 @@ lists committed and remaining resources and keeps edits for retry. Metadata and 
 requests send the revision; entity writes have no transaction-level concurrency guarantee
 in the BE.
 
-Validate, submit, approve/reject, publish and rollback use BE endpoints. Admin review
-loads the changes before enabling approval and rechecks the server revision. Reject,
-publish and rollback require reasons (BE rule).
+Validate, submit, approve/reject, publish and rollback use BE endpoints. Two Admin steps,
+as in the proposal: **Approve** in Review content (one button; feedback is required only when
+returning), then **Publish version** in Publish versions — one click, no dialog (the BE
+publish note is optional since this branch). Admin review loads the changes before enabling
+approval and rechecks the server revision. Return and rollback require a reason.
 
 ## Analytics and solver configurations
 

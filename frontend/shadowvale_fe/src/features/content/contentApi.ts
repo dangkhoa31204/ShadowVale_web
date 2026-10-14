@@ -89,7 +89,7 @@ export const contentApi={
       }else if(command.type==='reviewDraft'){
         if(current.status!=='InReview')throw new Error('This version is no longer in review.');
         await axiosClient.post(root+'/'+command.id+(command.approve?'/approve':'/reject'),{revision:Number(current.revision),reviewNote:command.note});
-      }else if(command.type==='publishDraft')await axiosClient.post(root+'/'+command.id+'/publish',{revision:Number(current.revision),reason:command.reason});
+      }else if(command.type==='publishDraft')await axiosClient.post(root+'/'+command.id+'/publish',{revision:Number(current.revision),...(command.reason?{reason:command.reason}:{})});
       else if(command.type==='restoreRelease')await axiosClient.post(root+'/'+command.id+'/rollback',{revision:Number(current.revision),reason:command.reason});
     }else throw new Error('This action has no supported backend endpoint.');
     const workspace=await this.workspace();

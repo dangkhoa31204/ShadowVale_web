@@ -209,8 +209,8 @@ approve/reject/publish và publication history chỉ cho JWT role `Admin` (Desig
   Chỉ `InReview` -> `Approved`; ghi reviewer/time/note và tăng revision.
 - `POST /api/content-versions/{id}/reject` (ADMIN): `{ "revision": 4, "reviewNote": "Damage too high" }`.
   Chỉ `InReview` -> `Rejected`; note bắt buộc, không quá 2000 ký tự. Designer xử lý reopen/resubmit ở phần riêng.
-- `POST /api/content-versions/{id}/publish` (ADMIN): `{ "revision": 5, "reason": "Weapon balance release" }`.
-  Chỉ `Approved` -> `Published`, cần thông tin Admin đã duyệt; reason bắt buộc, tối đa 500 ký tự.
+- `POST /api/content-versions/{id}/publish` (ADMIN): `{ "revision": 5 }` — publish một lần bấm theo proposal;
+  `reason` là ghi chú tuỳ chọn, tối đa 500 ký tự. Chỉ `Approved` -> `Published`, cần thông tin Admin đã duyệt.
 - `GET /api/content-publications?contentVersionId={id}&page=1&pageSize=20` (ADMIN): lịch sử phân trang;
   bỏ `contentVersionId` để xem tất cả. Mỗi row gồm version, previousVersion, action, actor, reason và createdAt,
   kèm `versionNo`, `versionLabel`, `previousVersionNo`, `actorUsername` để hiển thị. `action` là `Publish` hoặc `Rollback`.

@@ -176,7 +176,8 @@ test('submit/reject/approve/publish/rollback use backend workflow endpoints',asy
  await api.contentApi.execute({type:'reviewDraft',id:version.id,revision:s.v.revision,approve:false,note:'Tune damage'});assert.equal(s.v.status,'Rejected');
  s.v.status='Draft';s.v.bundleChecksum=null;await api.contentApi.execute({type:'submitDraft',id:version.id,revision:s.v.revision});
  await api.contentApi.execute({type:'reviewDraft',id:version.id,revision:s.v.revision,approve:true,note:''});
- await api.contentApi.execute({type:'publishDraft',id:version.id,revision:s.v.revision,reason:'Release'});assert.equal(s.v.status,'Published');
+ await api.contentApi.execute({type:'publishDraft',id:version.id,revision:s.v.revision});assert.equal(s.v.status,'Published');
+ assert.equal('reason' in body(calls.find(c=>c.url.endsWith('/publish'))),false);
  await api.contentApi.execute({type:'restoreRelease',id:version.id,reason:'Restore'});
  assert.ok(calls.some(c=>c.url.endsWith('/validate')));assert.ok(calls.some(c=>c.url.endsWith('/rollback')));
 });

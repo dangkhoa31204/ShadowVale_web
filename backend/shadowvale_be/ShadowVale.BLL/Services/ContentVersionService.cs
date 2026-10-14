@@ -65,8 +65,9 @@ public class ContentVersionService(IContentVersionRepository versions, IContentB
     public async Task<ServiceResult<ContentVersionDto>> PublishAsync(Guid id, PublishContentVersionRequest request,
         Guid actorId, CancellationToken ct = default)
     {
-        if (string.IsNullOrWhiteSpace(request.Reason) || request.Reason.Length > 500)
-            return Invalid("Reason", "A publication reason of 1-500 characters is required.");
+        var reason = request.Reason?.Trim() ?? "";
+        if (reason.Length > 500)
+            return Invalid("Reason", "A publication note can have at most 500 characters.");
         var result = await FindInStatusAsync(id, request.Revision, ContentStatus.Approved, ct);
         if (result.Error is not null) return result.Error;
         var version = result.Data!;
@@ -76,7 +77,7 @@ public class ContentVersionService(IContentVersionRepository versions, IContentB
             return new ServiceError(ServiceErrorKind.Conflict, "CONTENT_VERSION_NOT_REVIEWED", "An Admin approval is required before publishing.");
         try
         {
-            await versions.PublishAsync(version, actorId, request.Reason.Trim(), time.GetUtcNow().UtcDateTime, ct);
+            await versions.PublishAsync(version, actorId, reason, time.GetUtcNow().UtcDateTime, ct);
         }
         catch (DbUpdateConcurrencyException) { return Changed(); }
         return ToDto(version);

@@ -55,5 +55,5 @@ export type Command =
   | { type: 'editRejectedDraft'; id: string; revision: number }
   | { type: 'submitDraft'; id: string; revision: number }
   | { type: 'reviewDraft'; id: string; revision: number; approve: boolean; note: string }
-  | { type: 'publishDraft'; id: string; revision: number; reason: string }
+  | { type: 'publishDraft'; id: string; revision: number; reason?: string }
   | { type: 'restoreRelease'; id: string; reason: string };
