@@ -19,7 +19,6 @@ import { validateBundle } from './workspaceService';
 import { Empty, Icon, PageHeading, Status } from '../shared/ui';
 import { useConfirm } from '../shared/confirmContext';
 import { NumericControl } from '../shared/NumericControl';
-import './editor.css';
 import { isDemoMode } from '../../config/environment';
 import { apiFields, validateEditor, rebindEditorImport } from './apiModel';
 import { contentApi } from './contentApi';

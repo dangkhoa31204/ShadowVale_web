@@ -2,7 +2,7 @@
 .sv-editor-meta .sv-changelog { grid-column: 1 / -1; }
 .sv-editor-meta .sv-changelog textarea { resize: vertical; min-height: 64px; }
 .sv-editor-meta .sv-version-number strong { font-size: 20px; }
-.sv-content-tabs { scrollbar-width: thin; }
+
 .sv-records-heading button { padding: 5px; border: 1px solid var(--sv-border); border-radius: 6px; display: grid; place-items: center; }
 .sv-record-detail .sv-field-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 23px 28px; }
 .sv-record-detail .sv-field-grid label { text-transform: none; }
