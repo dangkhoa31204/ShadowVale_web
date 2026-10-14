@@ -20,7 +20,6 @@ function percent(value: number, total: number) { return total ? (100 * value / t
 function mean(values: number[], digits = 1) { return values.length ? (values.reduce((a, b) => a + b, 0) / values.length).toFixed(digits) : '—'; }
 const familyLabels: Record<SolverFamily, string> = { classical: 'Classical', quantum_inspired: 'Quantum inspired', quantum_hardware: 'Quantum hardware' };
 const taskLabels: Record<CoordinationTask, string> = { route_coverage: 'Route coverage', cover_assignment: 'Cover assignment', flanking: 'Flanking' };
-const outcomeLabels = { in_progress: 'In progress', completed: 'Completed', died: 'Died', quit: 'Quit', crashed: 'Crashed' };
 const heatLayers = { player_died: 'Deaths', player_spotted: 'Detections' } as const;
 type HeatLayer = keyof typeof heatLayers;
 const humanize = (code: string) => code.replaceAll('_', ' ').replace(/^./, char => char.toUpperCase());
@@ -44,7 +43,6 @@ function DemoAnalyticsPage() {
   const events = telemetry.telemetry_events.filter(e => mapFilter === 'all' || e.map_code === mapFilter);
   const sessionIds = new Set(events.map(e => e.session_id).concat(telemetry.coordination_results.filter(r => mapFilter === 'all' || r.map_code === mapFilter).map(r => r.session_id)));
   const sessions = telemetry.game_sessions.filter(s => mapFilter === 'all' || sessionIds.has(s.id));
-  const closedSessions = sessions.filter(s => s.outcome !== 'in_progress');
   const configurations = telemetry.solver_configurations.filter(c => familyFilter === 'all' || c.family === familyFilter);
   const configurationIds = new Set(configurations.map(c => c.id));
   const results = telemetry.coordination_results.filter(r => (mapFilter === 'all' || r.map_code === mapFilter) && configurationIds.has(r.solver_configuration_id) && (taskFilter === 'all' || r.task_type === taskFilter));
@@ -71,10 +69,6 @@ function DemoAnalyticsPage() {
   const takedowns = kills.filter(e => e.payload.method === 'takedown').length;
   const styles = playStyleDistribution(kills);
 
-  const outcomeRows = Object.entries(outcomeLabels).map(([outcome, label]) => {
-    const count = sessions.filter(s => s.outcome === outcome).length;
-    return { label, value: count, detail: count + ' · ' + percent(count, sessions.length) };
-  });
   const weaponRows = weaponCodes.map(code => {
     const count = shots.filter(e => e.payload.weapon_code === code).length;
     return { label: itemName(code), value: count, detail: count + ' shots · ' + percent(count, shots.length) };
@@ -85,8 +79,6 @@ function DemoAnalyticsPage() {
   }));
   const styleRows = styles.groups.map(group => ({ label: group.label, value: group.count, detail: group.count + ' · ' + percent(group.count, styles.sessions) }));
   const stats = [
-    { label: 'Game sessions', value: String(sessions.length), detail: 'game_sessions' },
-    { label: 'Session completion', value: percent(closedSessions.filter(s => s.outcome === 'completed').length, closedSessions.length), detail: 'Completed / ended sessions' },
     { label: 'Encounter capture rate', value: percent(encounters.filter(r => r.encounter_outcome === 'player_captured').length, encounters.length), detail: 'Aborted encounters excluded' },
     { label: 'Within time budget', value: percent(results.filter(r => r.within_budget).length, results.length), detail: 'coordination_results.within_budget' },
   ];
@@ -111,9 +103,8 @@ function DemoAnalyticsPage() {
       : error ? <Alert variant="destructive"><AlertDescription className="flex items-center justify-between gap-4 text-destructive">{error instanceof Error ? error.message : 'Could not load telemetry.'}<Button variant="outline" size="sm" onClick={() => void refetch()}>Try again</Button></AlertDescription></Alert>
       : !sessions.length ? <Empty title="No telemetry" description="Choose another date range, content version or map." />
       : <div className={cn('sv-page transition-opacity', isFetching && 'opacity-60')}>
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">{stats.map(s => <StatCard key={s.label} label={s.label} value={s.value} detail={s.detail} />)}</div>
-        <div className="grid gap-5 xl:grid-cols-2">
-          <Panel title="Session outcomes" description="Sessions per game_sessions.outcome"><HorizontalBars rows={outcomeRows} unit="Sessions" /></Panel>
+        <div className="grid gap-4 sm:grid-cols-2">{stats.map(s => <StatCard key={s.label} label={s.label} value={s.value} detail={s.detail} />)}</div>
+        <div className="grid gap-5">
           <Panel title="Weapon usage" description="Shots per weapon · shot_fired.payload.weapon_code">
             {shots.length ? <HorizontalBars rows={weaponRows} unit="Shots" /> : <Empty title="No weapon events" description="Weapon usage comes from shot_fired telemetry." />}
           </Panel>

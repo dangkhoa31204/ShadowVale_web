@@ -25,21 +25,6 @@ export function HorizontalBars({ rows, unit }: { rows: BarRow[]; unit: string })
   </ChartContainer>;
 }
 
-/** Sessions per day: one series over time, as columns on a shared zero baseline. */
-export function DailyColumns({ rows, unit }: { rows: { day: string; value: number }[]; unit: string }) {
-  if (!rows.length) return <Empty title="No data" />;
-  const config = { value: { label: unit, color: 'var(--chart-1)' } } satisfies ChartConfig;
-  return <ChartContainer config={config} className="aspect-auto h-64 w-full px-4 pb-4">
-    <BarChart data={rows} margin={{ top: 16, right: 8, bottom: 0, left: 0 }} accessibilityLayer>
-      <CartesianGrid vertical={false} stroke="var(--border)" />
-      <XAxis dataKey="day" tickLine={false} axisLine={false} tickMargin={8} minTickGap={16} tickFormatter={(day: string) => day.slice(5)} />
-      <YAxis width={36} tickLine={false} axisLine={false} allowDecimals={false} />
-      <ChartTooltip cursor={{ fill: 'var(--muted)' }} content={<ChartTooltipContent indicator="line" />} />
-      <Bar dataKey="value" fill="var(--color-value)" radius={[4, 4, 0, 0]} maxBarSize={32} />
-    </BarChart>
-  </ChartContainer>;
-}
-
 // Six validated categorical slots; more series than that are listed in the table only.
 const maxSeries = 6;
 

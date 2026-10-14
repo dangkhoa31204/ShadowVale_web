@@ -13,10 +13,7 @@ const enums = { solverAlgorithms: ['Greedy','Genetic','ClassicalSa','Sqa','Qiea'
 const solverConfigs = [['greedy_default','Greedy','classical'],['sa_default','ClassicalSa','classical'],['sqa_default','Sqa','quantum_inspired'],['qaoa_default','Qaoa','quantum_inspired']]
   .map(([code, algorithm, family], i) => ({ id: `solver-${i + 1}`, code, name: code.replace('_default', '').toUpperCase() + ' default', algorithm, family, variant: 'default', library: null, params: {}, quboWeights: {},
     timeBudgetMs: 250, isActive: i < 3, isAbArm: family !== 'quantum_hardware', sessionCount: i < 2 ? 12 : 0, resultCount: i < 2 ? 40 : 0, createdAt, updatedAt: createdAt }));
-const days = Array.from({ length: 7 }, (_, i) => ({ day: `2026-10-${String(7 + i).padStart(2, '0')}`, sessions: [6, 9, 4, 11, 8, 13, 7][i] }));
 const analytics = {
-  '/analytics/overview': { sessions: 58, players: 21, unfinishedSessions: 3, avgDurationSeconds: 742.5, medianDurationSeconds: 690,
-    outcomes: [['Completed', 31], ['Died', 15], ['Quit', 7], ['Crashed', 2], ['InProgress', 3]].map(([outcome, sessions]) => ({ outcome, sessions, share: sessions / 58 })), sessionsPerDay: days },
   '/analytics/funnel': { sessionsStarted: 52, objectives: [{ objectiveIndex: 1, sessions: 44, shareOfStarted: 44 / 52 }, { objectiveIndex: 2, sessions: 33, shareOfStarted: 33 / 52 }], missionsCompleted: 31, completionRate: 31 / 52 },
   '/analytics/weapons': { finishedSessions: 55, weapons: [['rifle_standard', 410, 61, 30], ['smg_compact', 288, 37, 22], ['pistol_silenced', 96, 19, 17], ['sniper_bolt', 41, 14, 9]]
     .map(([weapon, shots, kills, sessionsUsed]) => ({ weapon, shots, kills, killsPerShot: kills / shots, sessionsUsed, sessionShare: sessionsUsed / 55 })) },

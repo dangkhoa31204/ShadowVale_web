@@ -38,6 +38,11 @@ Admin mở Analytics và Change password từ menu **Account**.
 - Game delivery (Git/CI build, game assets, nút "Git changes"/"Game assets", `source=game`).
 - Profile; song ngữ EN/VI và giao diện sáng (portal chỉ có theme tối, tiếng Anh).
 - Xuất CSV / JSON ở Analytics (endpoint CSV ở BE giữ nguyên, FE không gọi), panel Skill.
+- Thông tin Analytics proposal không nêu: ô tổng quan Sessions / Players / Average duration,
+  biểu đồ Session outcomes và Daily sessions, tab Version comparison (yêu cầu "per content
+  version" đã có bộ lọc Content version và cột Version ở AI comparison), khối Scalability
+  lặp lại trong tab AI comparison. Endpoint `/analytics/overview` và `/analytics/versions/compare`
+  ở BE giữ nguyên, FE không gọi.
 - `player_id` trong telemetry demo (proposal yêu cầu telemetry ẩn danh).
 - Trang Roles và Settings (không có route; Settings không có API BE), đăng ký công khai,
   quên mật khẩu, lệnh demo quản lý user/cấu hình, các trang/layout/component template cũ.
@@ -65,6 +70,22 @@ Admin mở Analytics và Change password từ menu **Account**.
 4. Analytics vẽ bằng Recharts; demo có thêm funnel nhiệm vụ, stealth vs combat và lớp
    Detections cho heat map (kèm unit test).
 5. Dọn CSS cũ không còn dùng; mock API cho UI test có dữ liệu analytics/solver.
+6. Bỏ thông tin Analytics proposal không nêu (xem "Đã bỏ").
+
+### Thông tin giữ lại dù proposal không gọi tên trực tiếp (có căn cứ)
+
+- Bảng Items, Consumables, Skills trong Content: "fully data-driven content", "content fully
+  separated from code", Package 5 có skills; weapons/loot/recipes/rewards tham chiếu items.
+- Cột p95 latency, within budget, fallback ở AI comparison: phần đánh giá "latency
+  percentiles, success rate" và yêu cầu "bounded latency budget".
+- Tab Scalability: O4 "latency and scalability, identify the viable real-time regime".
+- Bộ lọc Human/Replay: "deterministic replay harness" và "A/B study".
+- Demo: ô Encounter capture rate và Within time budget (chỉ số so sánh AI).
+
+### Còn thiếu một phần (do BE)
+
+Analyst phải nhập GUID khi lọc theo content version vì BE chỉ cho Admin/Designer đọc danh
+sách version. Cần BE cho Analyst đọc danh sách version (số và nhãn).
 
 ## Run
 
@@ -148,12 +169,11 @@ is a staging tool.
 
 ## Analytics and solver configurations
 
-Overview uses BE aggregates: session outcomes, mission funnel, weapon usage,
-stealth-vs-combat histogram and daily sessions. Other tabs: difficulty heat map
-(map/event/cell size), AI comparison (capture rate, escape time, coordination score,
-latency, budget, fallback), scalability (p95 latency by agent count) and two-column
-version comparison. Filters: dates, content version, map code, solver family/configuration,
-Human/Replay.
+Gameplay uses BE aggregates: mission completion funnel, weapon usage and the
+stealth-vs-combat histogram. Other tabs: difficulty heat map (map/event/cell size),
+AI comparison (capture rate, escape time, coordination score, latency, budget, fallback)
+and scalability (p95 latency by agent count). Filters: dates, content version, map code,
+solver family/configuration, Human/Replay.
 
 Solver forms switch parameters by algorithm and expose all six QUBO weights. Used
 configurations can only be renamed; clone them to tune. New and cloned configurations
