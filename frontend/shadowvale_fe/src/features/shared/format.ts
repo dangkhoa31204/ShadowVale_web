@@ -10,3 +10,9 @@ export const actionLabels: Record<string, string> = {
   createDraft: 'Created draft', saveDraft: 'Saved draft', submitDraft: 'Submitted for review',
   reviewDraft: 'Reviewed content', publishDraft: 'Published version', restoreRelease: 'Rolled back version', editRejectedDraft: 'Resumed draft',
 };
+/** Readable form of a content field value in diffs and snapshots. */
+export function displayValue(value: unknown) {
+  if (value === null || value === undefined) return '—';
+  if (typeof value === 'boolean') return value ? 'Yes' : 'No';
+  return typeof value === 'object' ? JSON.stringify(value, null, 2) : String(value);
+}
