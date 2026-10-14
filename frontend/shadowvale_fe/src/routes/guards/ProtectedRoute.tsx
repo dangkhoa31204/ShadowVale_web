@@ -2,6 +2,7 @@ import React from 'react';
 import { Navigate, useLocation, Outlet } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import type { Role } from '../../types/user';
+import { Spinner } from '@/components/ui/spinner';
 
 interface ProtectedRouteProps {
   allowedRoles?: readonly Role[];
@@ -17,10 +18,8 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-4 text-on-surface">
-        <div className="w-10 h-10 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-        <p className="font-data-mono text-xs text-primary tracking-widest uppercase animate-pulse">
-          Validating your session…</p>
+      <div className="flex min-h-screen items-center justify-center gap-2 text-sm text-muted-foreground" role="status">
+        <Spinner />Validating your session…
       </div>
     );
   }
