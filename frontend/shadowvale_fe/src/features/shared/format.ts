@@ -1,5 +1,5 @@
 export function dateLabel(value: string) {
-  return new Intl.DateTimeFormat(typeof document !== 'undefined' && document.documentElement.lang === 'vi' ? 'vi-VN' : 'en-GB', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value));
+  return new Intl.DateTimeFormat('en-GB', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value));
 }
 export function downloadJson(value: unknown, filename: string) {
   const url = URL.createObjectURL(new Blob([JSON.stringify(value, null, 2)], { type: 'application/json' }));
@@ -9,5 +9,4 @@ export function downloadJson(value: unknown, filename: string) {
 export const actionLabels: Record<string, string> = {
   createDraft: 'Created draft', saveDraft: 'Saved draft', submitDraft: 'Submitted for review',
   reviewDraft: 'Reviewed content', publishDraft: 'Published version', restoreRelease: 'Rolled back version', editRejectedDraft: 'Resumed draft',
-  createUser: 'Created account', updateUser: 'Updated account', deleteUser: 'Deleted account', saveConfig: 'Updated configuration',
 };

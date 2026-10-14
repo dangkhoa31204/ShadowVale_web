@@ -144,9 +144,7 @@ test('cloning versions keeps placement identities but allocates the next managed
   const edited = structuredClone(next.drafts[0].bundle); edited.version_no = 99;
   await assert.rejects(applyCommand(next, { type: 'saveDraft', id: next.drafts[0].id, revision: 0, title: 'Next', bundle: edited }, designer, validate), /managed/);
 });
-test('account safeguards and canonical checksum remain stable', async () => {
-  await assert.rejects(applyCommand(state(), { type: 'deleteUser', id: 'admin' }, admin, validate), /own access/);
-  await assert.rejects(applyCommand(state(), { type: 'deleteUser', id: 'admin' }, { ...admin, id: 'admin2' }, validate), /active admin/);
+test('canonical checksum remains stable', async () => {
   assert.equal(canonicalJson({ b: 2, a: 1 }), canonicalJson({ a: 1, b: 2 }));
   assert.equal((await sealBundle(seed, '2026-10-08T00:00:00Z')).checksum, (await sealBundle(seed, '2026-10-08T00:00:00Z')).checksum);
 });

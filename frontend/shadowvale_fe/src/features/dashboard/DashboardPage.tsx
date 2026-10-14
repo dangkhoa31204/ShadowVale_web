@@ -1,28 +1,42 @@
 import { Link } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useAuth } from '../../hooks/useAuth';
 import { useWorkspace } from '../content/workspaceContext';
 import { can } from '../auth/access';
 import { collections } from '../content/types';
-import { Empty, Icon, PageHeading, Status } from '../shared/ui';
-import { actionLabels, dateLabel } from '../shared/format';
+import { ActivityList, Empty, Icon, PageHeading, Panel, StatCard, Status, panelTable } from '../shared/ui';
+import { dateLabel } from '../shared/format';
 import { isDemoMode } from '../../config/environment';
-import { ApiDashboard } from './ApiDashboard';
+import { ApiDashboard, ContentCounts } from './ApiDashboard';
 import { AdminDashboard } from './AdminDashboard';
 export function InternalDashboardPage() { const { user } = useAuth(); return user?.role === 'admin' ? <AdminDashboard /> : isDemoMode ? <DemoDashboard /> : <ApiDashboard />; }
 function DemoDashboard() {
   const { user } = useAuth(), { state } = useWorkspace();
   const active = state.releases.find(r => r.id === state.activeReleaseId);
   const drafts = user?.role === 'designer' ? state.drafts.filter(d => d.authorId === user.id) : state.drafts;
-  const pending = drafts.filter(d => d.status === 'in_review').length;
+  const author = !!user && can(user.role, 'author');
   const entities = active ? collections.reduce((n, c) => n + active.bundle[c.key].length, 0) : 0;
   return <div className="sv-page">
-    <PageHeading eyebrow={user?.role === 'analyst' ? 'ANALYST' : 'DESIGNER'} title="Overview" description="Content versions and recent activity." action={user && can(user.role, 'author') && <Link className="sv-button sv-button-primary" to="/admin/content"><Icon name="edit_note" />Content versions</Link>} />
-    <div className="sv-stats-grid">
-      {[{ icon: 'inventory_2', label: 'Published records', value: entities, detail: collections.length + ' content tables' }, { icon: 'edit_note', label: 'Drafts & returned', value: drafts.filter(d => ['draft', 'rejected'].includes(d.status)).length, detail: 'Draft or rejected' }, { icon: 'fact_check', label: 'In review', value: pending, detail: 'Waiting for approval' }, { icon: 'deployed_code', label: 'Published version', value: active ? '#' + active.version_no : '—', detail: active ? active.label : 'No published bundle' }].map(s => <article className="sv-stat" key={s.label}><div><span>{s.label}</span><Icon name={s.icon} /></div><strong>{s.value}</strong><small>{s.detail}</small></article>)}
+    <PageHeading eyebrow={user?.role === 'analyst' ? 'ANALYST' : 'DESIGNER'} title="Overview" description="Content versions and recent activity." action={author && <Button asChild><Link to="/admin/content"><Icon name="edit_note" />Content versions</Link></Button>} />
+    <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <StatCard label="Published records" value={entities} detail={collections.length + ' content tables'} icon="inventory_2" />
+      <StatCard label="Drafts & returned" value={drafts.filter(d => ['draft', 'rejected'].includes(d.status)).length} detail="Draft or rejected" icon="edit_note" />
+      <StatCard label="In review" value={drafts.filter(d => d.status === 'in_review').length} detail="Waiting for approval" icon="fact_check" />
+      <StatCard label="Published version" value={active ? '#' + active.version_no : '—'} detail={active ? active.label : 'No published bundle'} icon="deployed_code" />
     </div>
-    <div className="sv-dashboard-columns"><section className="sv-panel"><div className="sv-panel-heading"><div><h2>Recent content versions</h2></div>{user && can(user.role, 'author') && <Link to="/admin/content" className="sv-text-link">View all<Icon name="arrow_forward" /></Link>}</div>
-      {drafts.length ? <div className="sv-table-wrap"><table className="sv-table"><thead><tr><th>Label</th><th>Status</th><th>Version no.</th><th /></tr></thead><tbody>{drafts.slice(0, 5).map(d => <tr key={d.id}><td><strong>{d.label}</strong><small>{d.authorName} · {dateLabel(d.updatedAt)}</small></td><td><Status value={d.status} /></td><td className="sv-mono">#{d.version_no}</td><td>{user && can(user.role, 'author') && <Link className="sv-table-link" aria-label={"Open " + d.label} to={'/admin/content/' + d.id}><Icon name="arrow_outward" /></Link>}</td></tr>)}</tbody></table></div> : <Empty title="No content versions" description="Create a draft from a published version." />}
-    </section><section className="sv-panel"><div className="sv-panel-heading"><div><h2>Recent activity</h2></div><Icon name="history" /></div><div className="sv-activity">{state.audit.slice(0, 5).map(a => <div key={a.id}><span className="sv-activity-dot" /><div><strong>{actionLabels[a.action] || a.action}</strong><p>{a.target}</p><small>{a.actor} · {dateLabel(a.at)}</small></div></div>)}</div></section></div>
-    <section className="sv-panel"><div className="sv-panel-heading"><div><h2>Published content</h2><p>{active ? '#' + active.version_no + " · Published " + dateLabel(active.publishedAt) : "No published version"}</p></div><Link to="/admin/releases" className="sv-text-link">Publication history<Icon name="arrow_forward" /></Link></div><div className="sv-library-grid">{collections.map(c => <div key={c.key}><Icon name={c.icon} /><strong>{active?.bundle[c.key].length || 0}</strong><span>{c.label}</span></div>)}</div></section>
+    <div className="grid gap-6 lg:grid-cols-[minmax(0,1.75fr)_minmax(0,1fr)]">
+      <Panel title="Recent content versions" action={author && <Button asChild variant="ghost" size="sm"><Link to="/admin/content">View all<Icon name="arrow_forward" /></Link></Button>}>
+        {drafts.length ? <Table className={panelTable}><TableHeader><TableRow><TableHead>Label</TableHead><TableHead>Status</TableHead><TableHead>Version no.</TableHead><TableHead /></TableRow></TableHeader><TableBody>{drafts.slice(0, 5).map(d => <TableRow key={d.id}>
+          <TableCell><div className="font-medium">{d.label}</div><div className="text-xs text-muted-foreground">{d.authorName} · {dateLabel(d.updatedAt)}</div></TableCell>
+          <TableCell><Status value={d.status} /></TableCell><TableCell className="font-mono">#{d.version_no}</TableCell>
+          <TableCell>{author && <Button asChild variant="ghost" size="icon-sm"><Link aria-label={'Open ' + d.label} to={'/admin/content/' + d.id}><Icon name="arrow_outward" /></Link></Button>}</TableCell>
+        </TableRow>)}</TableBody></Table> : <Empty title="No content versions" description="Create a draft from a published version." />}
+      </Panel>
+      <Panel title="Recent activity" action={<Icon name="history" className="text-muted-foreground" />}><ActivityList items={state.audit.slice(0, 5)} empty="No recent activity" /></Panel>
+    </div>
+    <Panel title="Published content" description={active ? '#' + active.version_no + ' · Published ' + dateLabel(active.publishedAt) : 'No published version'} action={<Button asChild variant="ghost" size="sm"><Link to="/admin/releases">Publication history<Icon name="arrow_forward" /></Link></Button>}>
+      <ContentCounts counts={Object.fromEntries(collections.map(c => [c.key, active?.bundle[c.key].length || 0]))} />
+    </Panel>
   </div>;
 }

@@ -1,29 +1,39 @@
-import { useEffect,useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useWorkspace } from '../content/workspaceContext';
 import { useAuth } from '../../hooks/useAuth';
 import { contentApi } from '../content/contentApi';
 import { errorMessage } from '../../services/api/errors';
 import { resources } from '../content/apiModel';
 import { collections, type ContentBundle } from '../content/types';
-type ContentCounts = Record<string, number>;
-import { Empty,Icon,PageHeading,Status } from '../shared/ui';
+import { ActivityList, Empty, Icon, PageHeading, Panel, StatCard, Status, panelTable } from '../shared/ui';
 import { dateLabel } from '../shared/format';
 export function ApiDashboard(){
  const {state}=useWorkspace(),{user}=useAuth();
- const [counts,setCounts]=useState<ContentCounts|null>(null),[error,setError]=useState('');
  const active=state.releases.find(r=>r.id===state.activeReleaseId);
- const activeId=active?.id;
- useEffect(()=>{let live=true;if(activeId)contentApi.details(activeId).then(v=>{if(live){const b=v.bundle as ContentBundle;setCounts(Object.fromEntries(resources.map(([key])=>[key,b[key]?.length||0])));}}).catch(e=>{if(live)setError(errorMessage(e));});return()=>{live=false;};},[activeId]);
+ // Resource counts of the published version; a published version never changes, so it is fetched once.
+ const published=useQuery({queryKey:['content-version',active?.id],queryFn:()=>contentApi.details(active!.id),enabled:!!active,staleTime:Infinity,
+  select:v=>{const b=v.bundle as ContentBundle;return Object.fromEntries(resources.map(([key])=>[key,b[key]?.length||0])) as Record<string,number>;}});
+ const counts=published.data;
  const drafts=user?.role==='designer'?state.drafts.filter(d=>d.authorId===user.id):state.drafts;
- if(user?.role==='analyst')return <div className="sv-page"><PageHeading title="Overview"/><div className="sv-alert">The current BE restricts content version metadata and publication history to Admin/Designer. Use Analytics for game data.</div><Link className="sv-button" to="/admin/analytics">Analytics</Link></div>;
- return <div className="sv-page"><PageHeading title="Overview" description="Content versions and publication activity." action={<Link className="sv-button sv-button-primary" to={user?.role==='designer'?'/admin/content':'/admin/analytics'}>{user?.role==='designer'?"Content authoring":"Analytics"}</Link>}/>
- <div className="sv-stats-grid">{[
- ['Published version',active?'#'+active.version_no:'—'],['Content resources',counts?Object.values(counts).reduce<number>((sum,v)=>sum+Number(v),0):'—'],
- ['Drafts & returned',drafts.filter(d=>['draft','rejected'].includes(d.status)).length],['In review',drafts.filter(d=>d.status==='in_review').length],
- ].map(([label,value])=><article className="sv-stat" key={label}><span>{(String(label))}</span><strong>{value}</strong></article>)}</div>
- {error&&<div className="sv-alert sv-alert-error" role="alert">{error}</div>}
- <div className="sv-dashboard-columns"><section className="sv-panel"><div className="sv-panel-heading"><h2>Recent content versions</h2></div><div className="sv-table-wrap"><table className="sv-table"><thead><tr><th>Version</th><th>Label</th><th>Status</th><th>Updated</th></tr></thead><tbody>{drafts.slice(0,5).map(d=><tr key={d.id}><td>#{d.version_no}</td><td>{user?.role==='designer'?<Link to={'/admin/content/'+d.id}>{d.label}</Link>:d.label}</td><td><Status value={d.status}/></td><td>{dateLabel(d.updatedAt)}</td></tr>)}</tbody></table></div>{!drafts.length&&<Empty title="No content versions"/>}</section>
- <section className="sv-panel"><div className="sv-panel-heading"><h2>Publication activity</h2><Icon name="history"/></div><div className="sv-activity">{state.audit.slice(0,5).map(a=><div key={a.id}><span className="sv-activity-dot"/><div><strong>{a.action}</strong><p>{a.target}</p><small>{a.actor} · {dateLabel(a.at)}</small></div></div>)}</div>{!state.audit.length&&<Empty title="No publication history"/>}</section></div>
- <section className="sv-panel"><div className="sv-panel-heading"><h2>Published content</h2><Link className="sv-text-link" to="/admin/releases">Versions</Link></div>{counts?<div className="sv-library-grid">{Object.entries(counts).map(([key,value])=><div key={key}><Icon name="inventory_2"/><strong>{value}</strong><span>{(collections.find(c => c.key === key)?.label || key)}</span></div>)}</div>:<Empty title="No published content"/>}</section></div>;
+ if(user?.role==='analyst')return <div className="sv-page"><PageHeading title="Overview"/><Alert><AlertDescription>The current BE restricts content version metadata and publication history to Admin/Designer. Use Analytics for game data.</AlertDescription></Alert><Button asChild variant="outline" className="w-fit"><Link to="/admin/analytics">Analytics</Link></Button></div>;
+ return <div className="sv-page"><PageHeading title="Overview" description="Content versions and publication activity." action={<Button asChild><Link to={user?.role==='designer'?'/admin/content':'/admin/analytics'}>{user?.role==='designer'?"Content authoring":"Analytics"}</Link></Button>}/>
+ <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+  <StatCard label="Published version" value={active?'#'+active.version_no:'—'} icon="deployed_code"/>
+  <StatCard label="Content resources" value={counts?Object.values(counts).reduce((sum,v)=>sum+v,0):'—'} icon="inventory_2"/>
+  <StatCard label="Drafts & returned" value={drafts.filter(d=>['draft','rejected'].includes(d.status)).length} icon="edit_note"/>
+  <StatCard label="In review" value={drafts.filter(d=>d.status==='in_review').length} icon="fact_check"/>
+ </div>
+ {published.error&&<Alert variant="destructive"><AlertDescription>{errorMessage(published.error)}</AlertDescription></Alert>}
+ <div className="grid gap-6 lg:grid-cols-[minmax(0,1.75fr)_minmax(0,1fr)]">
+  <Panel title="Recent content versions">{drafts.length?<Table className={panelTable}><TableHeader><TableRow><TableHead>Version</TableHead><TableHead>Label</TableHead><TableHead>Status</TableHead><TableHead>Updated</TableHead></TableRow></TableHeader><TableBody>{drafts.slice(0,5).map(d=><TableRow key={d.id}><TableCell className="font-mono">#{d.version_no}</TableCell><TableCell>{user?.role==='designer'?<Link className="underline-offset-4 hover:underline" to={'/admin/content/'+d.id}>{d.label}</Link>:d.label}</TableCell><TableCell><Status value={d.status}/></TableCell><TableCell>{dateLabel(d.updatedAt)}</TableCell></TableRow>)}</TableBody></Table>:<Empty title="No content versions"/>}</Panel>
+  <Panel title="Publication activity" action={<Icon name="history" className="text-muted-foreground"/>}><ActivityList items={state.audit.slice(0,5)} empty="No publication history"/></Panel>
+ </div>
+ <Panel title="Published content" action={<Button asChild variant="ghost" size="sm"><Link to="/admin/releases">Versions</Link></Button>}>{counts?<ContentCounts counts={counts}/>:<Empty title="No published content"/>}</Panel></div>;
+}
+export function ContentCounts({counts}:{counts:Record<string,number>}){
+ return <div className="grid grid-cols-2 gap-px bg-border sm:grid-cols-3 lg:grid-cols-5">{collections.map(c=><div key={c.key} className="grid gap-1 bg-card p-5"><Icon name={c.icon} className="text-muted-foreground"/><strong className="text-2xl font-semibold tabular-nums">{counts[c.key]??0}</strong><span className="text-xs text-muted-foreground">{c.label}</span></div>)}</div>;
 }

@@ -1,4 +1,4 @@
-import type { User, Role } from '../../types/user';
+import type { User } from '../../types/user';
 export type JsonValue = string | number | boolean | null | JsonValue[] | { [key: string]: JsonValue };
 export type ContentRecord = { [key: string]: JsonValue };
 export const collections = [
@@ -56,8 +56,4 @@ export type Command =
   | { type: 'submitDraft'; id: string; revision: number }
   | { type: 'reviewDraft'; id: string; revision: number; approve: boolean; note: string }
   | { type: 'publishDraft'; id: string; revision: number; reason: string }
-  | { type: 'restoreRelease'; id: string; reason: string }
-  | { type: 'createUser'; email: string; name: string; role: Role }
-  | { type: 'updateUser'; id: string; role: Role; active: boolean }
-  | { type: 'deleteUser'; id: string }
-  | { type: 'saveConfig'; telemetryEnabled: boolean };
+  | { type: 'restoreRelease'; id: string; reason: string };

@@ -1,7 +1,16 @@
 import { Link } from 'react-router-dom';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { useWorkspace } from '../content/workspaceContext';
 import { dateLabel } from '../shared/format';
-import { Empty, Icon, PageHeading, Status } from '../shared/ui';
+import { ActivityList, Empty, Icon, PageHeading, Panel, StatCard, Status } from '../shared/ui';
+
+function TaskRow({ title, detail, to, action }: { title: string; detail: string; to: string; action: string }) {
+  return <div className="flex items-center gap-4 border-b px-6 py-4 last:border-b-0">
+    <div className="min-w-0 flex-1"><strong className="block truncate text-sm font-medium">{title}</strong><small className="text-xs text-muted-foreground">{detail}</small></div>
+    <Button asChild variant="outline" size="sm"><Link to={to}>{action}<Icon name="arrow_forward" /></Link></Button>
+  </div>;
+}
 
 export function AdminDashboard() {
   const { state, reload, busy } = useWorkspace();
@@ -9,28 +18,33 @@ export function AdminDashboard() {
   const approved = state.drafts.filter(d => d.status === 'approved');
   const rejected = state.drafts.filter(d => d.status === 'rejected');
   const active = state.releases.find(r => r.id === state.activeReleaseId);
-  return <div className="sv-page sv-admin-page">
-    <PageHeading eyebrow="CONTENT OPERATIONS" title="Dashboard" description="Review submissions and manage game content releases." action={<button className="sv-button" disabled={busy} onClick={() => void reload()}><Icon name="sync"/>Refresh</button>}/>
-    <div className="sv-admin-stats">
-      {[{label:'Awaiting review',value:pending.length,detail:'Needs your decision',icon:'fact_check',path:'/admin/reviews'},
-        {label:'Ready to publish',value:approved.length,detail:'Approved content',icon:'deployed_code',path:'/admin/releases'},
-        {label:'Returned to designer',value:rejected.length,detail:'Awaiting revisions',icon:'undo',path:'/admin/reviews?status=rejected'},
-        {label:'Live version',value:active?'#'+active.version_no:'—',detail:active?.label || 'No published version',icon:'public',path:'/admin/releases'}].map(s => <Link className="sv-panel sv-admin-stat" key={s.label} to={s.path}><div><span>{s.label}</span><Icon name={s.icon}/></div><strong>{s.value}</strong><small>{s.detail}</small></Link>)}
+  return <div className="sv-page">
+    <PageHeading eyebrow="CONTENT OPERATIONS" title="Dashboard" description="Review submissions and manage game content releases." action={<Button variant="outline" disabled={busy} onClick={() => void reload()}><Icon name="sync"/>Refresh</Button>}/>
+    <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <StatCard label="Awaiting review" value={pending.length} detail="Needs your decision" icon="fact_check" to="/admin/reviews" />
+      <StatCard label="Ready to publish" value={approved.length} detail="Approved content" icon="deployed_code" to="/admin/releases" />
+      <StatCard label="Returned to designer" value={rejected.length} detail="Awaiting revisions" icon="undo" to="/admin/reviews?status=rejected" />
+      <StatCard label="Live version" value={active ? '#' + active.version_no : '—'} detail={active?.label || 'No published version'} icon="public" to="/admin/releases" />
     </div>
-    <div className="sv-admin-workflow" aria-label="Publication workflow"><span><b>1</b>Review content</span><Icon name="arrow_forward"/><span><b>2</b>Approve or return</span><Icon name="arrow_forward"/><span><b>3</b>Publish version</span></div>
-    <div className="sv-admin-dashboard-grid">
-      <section className="sv-panel"><div className="sv-panel-heading"><div><h2>Awaiting your review</h2><p>Oldest submissions first</p></div><Link className="sv-text-link" to="/admin/reviews">View queue<Icon name="arrow_forward"/></Link></div>
-        {pending.slice(0,5).map(d => <div className="sv-admin-task" key={d.id}><span className="sv-admin-version">#{d.version_no}</span><div><strong>{d.label}</strong><small>{d.authorName} · {dateLabel(d.submitted_at || d.updatedAt)}</small></div><Link className="sv-button sv-button-small" to={'/admin/reviews?draft='+d.id}>Review<Icon name="arrow_forward"/></Link></div>)}
+    <ol className="flex flex-wrap items-center gap-3 rounded-xl border px-5 py-3 text-sm text-muted-foreground" aria-label="Publication workflow">
+      {['Review content', 'Approve or return', 'Publish version'].map((step, i) => <li key={step} className="flex items-center gap-3">{i > 0 && <Icon name="arrow_forward" />}<span className="flex items-center gap-2"><b className="grid size-6 place-items-center rounded-full border text-xs text-foreground">{i + 1}</b>{step}</span></li>)}
+    </ol>
+    <div className="grid gap-6 lg:grid-cols-2">
+      <Panel title="Awaiting your review" description="Oldest submissions first" action={<Button asChild variant="ghost" size="sm"><Link to="/admin/reviews">View queue<Icon name="arrow_forward"/></Link></Button>}>
+        {pending.slice(0,5).map(d => <TaskRow key={d.id} title={'#' + d.version_no + ' · ' + d.label} detail={d.authorName + ' · ' + dateLabel(d.submitted_at || d.updatedAt)} to={'/admin/reviews?draft=' + d.id} action="Review" />)}
         {!pending.length && <Empty title="You're up to date" description="New submissions from designers will appear here."/>}
-      </section>
-      <section className="sv-panel"><div className="sv-panel-heading"><div><h2>Ready for release</h2><p>Approved and waiting to publish</p></div><span className="sv-count">{approved.length}</span></div>
-        {approved.slice(0,4).map(d => <div className="sv-admin-task" key={d.id}><div><strong>#{d.version_no} · {d.label}</strong><small>Reviewed {dateLabel(d.reviewedAt || d.updatedAt)}</small></div><Link className="sv-button sv-button-small" to="/admin/releases">Open<Icon name="arrow_forward"/></Link></div>)}
+      </Panel>
+      <Panel title="Ready for release" description="Approved and waiting to publish" action={<Badge variant="secondary">{approved.length}</Badge>}>
+        {approved.slice(0,4).map(d => <TaskRow key={d.id} title={'#' + d.version_no + ' · ' + d.label} detail={'Reviewed ' + dateLabel(d.reviewedAt || d.updatedAt)} to="/admin/releases" action="Open" />)}
         {!approved.length && <Empty title="No releases waiting" description="Approved submissions appear here before publication."/>}
-      </section>
+      </Panel>
     </div>
-    <div className="sv-admin-dashboard-grid">
-      <section className="sv-panel"><div className="sv-panel-heading"><h2>Live content</h2><Status value={active?'published':'inactive'}/></div><div className="sv-admin-live">{active?<><span className="sv-eyebrow">CURRENT GAME VERSION</span><h2>#{active.version_no} · {active.label}</h2><p>{active.changelog || 'Published content bundle'}</p><small>Published {dateLabel(active.publishedAt)} · {active.publishedBy}</small><Link className="sv-button" to="/admin/releases">Manage versions<Icon name="arrow_forward"/></Link></>:<Empty title="No live version" description="Publish an approved bundle to make it available to the game."/>}</div></section>
-      <section className="sv-panel"><div className="sv-panel-heading"><h2>Publication activity</h2><Icon name="history"/></div><div className="sv-activity">{state.audit.slice(0,5).map(a => <div key={a.id}><span className="sv-activity-dot"/><div><strong>{a.action}</strong><p>{a.target}</p><small>{a.actor} · {dateLabel(a.at)}</small></div></div>)}</div>{!state.audit.length&&<Empty title="No publication activity"/>}</section>
+    <div className="grid gap-6 lg:grid-cols-2">
+      <Panel title="Live content" action={<Status value={active ? 'published' : 'inactive'}/>}>
+        {active ? <div className="grid gap-2 p-6"><span className="sv-eyebrow">CURRENT GAME VERSION</span><h3 className="text-xl font-semibold">#{active.version_no} · {active.label}</h3><p className="text-sm text-muted-foreground">{active.changelog || 'Published content bundle'}</p><small className="text-xs text-muted-foreground">Published {dateLabel(active.publishedAt)} · {active.publishedBy}</small><Button asChild variant="outline" className="mt-2 w-fit"><Link to="/admin/releases">Manage versions<Icon name="arrow_forward"/></Link></Button></div>
+          : <Empty title="No live version" description="Publish an approved bundle to make it available to the game."/>}
+      </Panel>
+      <Panel title="Publication activity" action={<Icon name="history" className="text-muted-foreground"/>}><ActivityList items={state.audit.slice(0,5)} empty="No publication activity" /></Panel>
     </div>
   </div>;
 }

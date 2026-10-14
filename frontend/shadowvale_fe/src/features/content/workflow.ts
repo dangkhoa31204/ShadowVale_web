@@ -95,7 +95,7 @@ export async function applyCommand(state: Workspace, command: Command, actor: Us
     }
     const draft: Draft = { id: contentId, version_no: bundle.version_no, label, changelog: bundle.changelog, parent_version_id: source.sourceDraftId, title: label, authorId: actor.id, authorName: actor.callsign, status: 'draft', revision: 0, created_at: at, updatedAt: at, bundle, note: '' };
     next.drafts.unshift(draft); target = label;
-  } else if (command.type === 'restoreRelease') {
+  } else {
     requirePermission('publish');
     if (!command.reason.trim()) throw new Error('A rollback reason is required.');
     const release = next.releases.find(entry => entry.id === command.id);
@@ -107,23 +107,6 @@ export async function applyCommand(state: Workspace, command: Command, actor: Us
     const content = next.drafts.find(draft => draft.id === release.sourceDraftId);
     if (content) { content.status = 'published'; delete content.archived_at; }
     publication(release.sourceDraftId, previous, 'rollback', command.reason); target = release.label;
-  } else if (command.type === 'saveConfig') {
-    requirePermission('settings'); next.config = { reviewRequired: true, telemetryEnabled: command.telemetryEnabled }; target = 'Portal configuration';
-  } else {
-    requirePermission('users');
-    if (command.type === 'createUser') {
-      if (!command.name.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(command.email)) throw new Error('A name and valid email are required.');
-      if (next.users.some(user => user.email.toLowerCase() === command.email.toLowerCase())) throw new Error('An account with this email already exists.');
-      next.users.push({ id: id(), callsign: command.name.trim(), email: command.email.toLowerCase(), role: command.role, active: true, tier: 'Internal team', clearanceLevel: command.role, createdAt: at }); target = command.email;
-    } else {
-      const user = next.users.find(entry => entry.id === command.id);
-      if (!user) throw new Error('User not found.');
-      if (user.id === actor.id) throw new Error('You cannot remove or change your own access.');
-      if (user.role === 'admin' && user.active && next.users.filter(entry => entry.role === 'admin' && entry.active).length <= 1 && (command.type === 'deleteUser' || command.role !== 'admin' || !command.active)) throw new Error('At least one active admin must remain.');
-      target = user.email;
-      if (command.type === 'deleteUser') next.users = next.users.filter(entry => entry.id !== user.id);
-      else { user.role = command.role; user.active = command.active; }
-    }
   }
   next.audit.unshift({ id: id(), at, actor: actor.callsign, action: command.type, target });
   return next;
