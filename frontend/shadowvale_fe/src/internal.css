@@ -39,13 +39,7 @@
 .sv-nav-link:hover { background: #1b262d; color: #e2ece9; }
 .sv-nav-link.is-active { background: #253830; color: #c8ead7; }
 .sv-nav-link b { margin-left: auto; border-radius: 4px; background: #374c42; padding: 0 6px; font-size: 10px; }
-.sv-sidebar-bottom { margin-top: auto; padding: 20px 18px; }
 
-.sv-user { display: flex; align-items: center; gap: 9px; padding-top: 16px; border-top: 1px solid var(--sv-border); }
-.sv-avatar { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 50%; background: #304137; color: #b3d7c3; }
-.sv-user strong { font-size: 11px; display: block; }
-.sv-user small { text-transform: capitalize; color: var(--sv-muted); font-size: 10px; display: block; }
-.sv-user button { margin-left: auto; color: #81939e; }
 .sv-shell-body { margin-left: 250px; display: flex; flex-direction: column; width: calc(100% - 250px); min-width: 0; }
 .sv-header { display: flex; align-items: center; justify-content: space-between; padding: 0 34px; min-height: 70px; border-bottom: 1px solid var(--sv-border); background: #131a20; gap: 15px; }
 .sv-header > div { display: flex; align-items: center; gap: 12px; font-size: 12px; }

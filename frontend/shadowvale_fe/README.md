@@ -41,6 +41,11 @@ Users, Analytics, Change password). Admin mở Analytics và Change password t�
 - Dashboard (Admin), Overview (Designer) và thẻ "Published content" trên sidebar: chỉ lặp lại
   thông tin của Review, Publish và Content.
 - Login: ô "Keep me signed in", dải trang trí Author → Review → Publish.
+- Thành phần lặp lại: thẻ tên/role/nút Sign out ở cuối sidebar (đã có trong menu Account), mục
+  Analytics trong menu Account của Designer/Analyst (đã có trên sidebar), badge "pending"/"in review"
+  ở hàng chờ Review (đã có số trên tab và badge sidebar), nút "Go to publish queue" và "Review
+  content" (trùng sidebar), nhãn trang trí "STEP 1 · REVIEW", "STEP 2 · PUBLISH", "CONTENT
+  VERSIONS", "RESTORE A RELEASE".
 - Content: import editor JSON, nút Delete version.
 - Versions: nút Download JSON (bundle do game tải từ BE, không cần tải tay).
 - Analytics: tab Scalability (thuộc phần nghiên cứu O4, đo trên benchmark); ở AI comparison các

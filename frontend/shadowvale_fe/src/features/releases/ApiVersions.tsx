@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
@@ -84,12 +84,12 @@ export function ApiReviewsPage(){
   }
   const valid=!!draft?.validated_at&&!!draft?.bundle_checksum&&!draft?.validation_errors?.length;
   return <div className="sv-page">
-    <PageHeading eyebrow="STEP 1 · REVIEW" title="Review content" description="Inspect the changes before approving a version for publication." action={<Button variant="outline" disabled={busy} onClick={()=>void reload()}><Icon name="sync"/>Refresh</Button>}/>
+    <PageHeading title="Review content" description="Inspect the changes before approving a version for publication." action={<Button variant="outline" disabled={busy} onClick={()=>void reload()}><Icon name="sync"/>Refresh</Button>}/>
     <Tabs value={status} onValueChange={chooseStatus} className="overflow-x-auto">
       <TabsList variant="line" aria-label="Submission status">{([['in_review','Awaiting review',pending.length],['approved','Approved',all.filter(d=>d.status==='approved').length],['rejected','Returned',all.filter(d=>d.status==='rejected').length],['all','All submissions',all.length]] as const).map(([value,label,count])=><TabsTrigger key={value} value={value} className="flex-none">{label}<Badge variant="secondary">{count}</Badge></TabsTrigger>)}</TabsList>
     </Tabs>
     <div className="grid items-start gap-6 lg:grid-cols-[minmax(260px,340px)_minmax(0,1fr)]">
-      <Panel title="Submission queue" description={submissions.length+' matching versions'} action={<Badge variant="secondary">{pending.length} pending</Badge>}>
+      <Panel title="Submission queue" description={submissions.length+' matching versions'}>
         <Field className="border-b p-5"><FieldLabel htmlFor="review-search">Find submission</FieldLabel><Input id="review-search" type="search" value={search} placeholder="Version, title or author" onChange={e=>{setSearch(e.target.value);setPage(1);setNote('');setError('');}}/></Field>
         <div>{visible.map(d=><QueueItem key={d.id} active={draft?.id===d.id} onClick={()=>chooseDraft(d.id)}><div className="flex items-center justify-between gap-2"><span className="font-mono text-xs text-muted-foreground">#{d.version_no}</span><Status value={d.status}/></div><strong className="text-sm font-medium">{d.label}</strong><small className="text-xs text-muted-foreground">{d.authorName} · Submitted {dateLabel(d.submitted_at||d.updatedAt)}</small></QueueItem>)}</div>
         {submissions.length>20&&<Pager page={page} setPage={setPage} total={submissions.length}/>}
@@ -111,7 +111,7 @@ export function ApiReviewsPage(){
           <div><h3 className="font-medium">Review decision</h3><p className="text-sm text-muted-foreground">Approve to move this version to the publish queue, or return it with a reason.</p></div>
           <Field><FieldLabel htmlFor="review-note">Feedback to designer</FieldLabel><Textarea id="review-note" rows={2} maxLength={2000} value={note} onChange={e=>setNote(e.target.value)} placeholder="Explain what needs changing. Required when returning a submission."/></Field>
           <div className="flex flex-wrap items-center justify-between gap-3"><small className="text-xs text-muted-foreground">{ready!==reviewKey?"Changes must finish loading before approval.":!valid?"Approval requires a validated snapshot.":"Changes loaded · review this version before approving."}</small><div className="flex gap-2"><Button variant="outline" disabled={busy||!note.trim()} onClick={()=>void review(false)}><Icon name="undo"/>Return to designer</Button><Button disabled={busy||ready!==reviewKey||!valid} onClick={()=>void review(true)}><Icon name="check"/>Approve content</Button></div></div>
-        </div>:<div className="grid gap-2 border-t p-6"><strong className="font-medium">{draft.status==='approved'?"Approved for publication":"Review status: "+draft.status}</strong>{draft.note&&<p className="text-sm text-muted-foreground">{draft.note}</p>}{draft.status==='approved'&&<Button asChild className="w-fit"><Link to="/admin/releases">Go to publish queue<Icon name="arrow_forward"/></Link></Button>}</div>}
+        </div>:<div className="grid gap-2 border-t p-6"><strong className="font-medium">{draft.status==='approved'?"Approved for publication":"Review status: "+draft.status}</strong>{draft.note&&<p className="text-sm text-muted-foreground">{draft.note}</p>}</div>}
       </Panel>:<Panel><Empty title="Select a submission" description="Changes and review actions appear here when a submission is available."/></Panel>}
     </div>
   </div>;
@@ -138,13 +138,13 @@ export function ApiReleasesPage(){
   const target=state.drafts.find(d=>d.id===confirm?.id);
   const versionNo=(id:string|null)=>id?'#'+(state.drafts.find(d=>d.id===id)?.version_no||id):'—';
   return <div className="sv-page">
-    <PageHeading eyebrow={admin?'STEP 2 · PUBLISH':undefined} title={admin?"Publish versions":"Versions"} description="Publish approved content and keep track of the version running in the game." action={<Button variant="outline" disabled={busy} onClick={()=>void reload()}><Icon name="sync"/>Refresh</Button>}/>
+    <PageHeading title={admin?"Publish versions":"Versions"} description={admin?"Publish approved content and keep track of the version running in the game.":"Published versions and the version running in the game."} action={<Button variant="outline" disabled={busy} onClick={()=>void reload()}><Icon name="sync"/>Refresh</Button>}/>
     {error&&!confirm&&<Alert variant="destructive"><AlertDescription className="whitespace-pre-wrap">{error}</AlertDescription></Alert>}
     <Panel><div className="flex flex-wrap items-center justify-between gap-4 p-6">
       <div className="flex items-center gap-4"><span className="grid size-11 shrink-0 place-items-center rounded-lg bg-primary/10 text-primary"><Icon name="public" className="size-5"/></span><div><span className="sv-eyebrow">LIVE GAME CONTENT</span><h2 className="text-lg font-semibold">{active?'#'+active.version_no+' · '+active.label:"No published version"}</h2><p className="text-sm text-muted-foreground">{active?"Published "+dateLabel(active.publishedAt)+' · '+active.publishedBy:"Publish an approved version to make content available to the game."}</p></div></div>
       {active&&<div className="flex items-center gap-2"><Status value="published"/></div>}
     </div></Panel>
-    {admin&&<Panel title="Ready to publish" description="Only approved submissions can be released." action={<><Badge variant="secondary">{approved.length}</Badge><Button asChild variant="ghost" size="sm"><Link to="/admin/reviews">Review content<Icon name="arrow_forward"/></Link></Button></>}>
+    {admin&&<Panel title="Ready to publish" description="Only approved submissions can be released." action={<Badge variant="secondary">{approved.length}</Badge>}>
       {approved.map(d=><div className="flex flex-wrap items-center gap-4 border-b px-6 py-4 last:border-b-0" key={d.id}><span className="font-mono text-xs text-muted-foreground">#{d.version_no}</span><div className="min-w-0 flex-1"><strong className="block text-sm font-medium">{d.label}</strong><small className="text-xs text-muted-foreground">Approved {dateLabel(d.reviewedAt||d.updatedAt)} · {d.reviewedBy||'Admin'}</small></div><div className="flex gap-2"><Button variant="outline" onClick={()=>setDetail(d.id)}>View changes</Button><Button disabled={busy} onClick={()=>void publish(d.id,d.revision)}><Icon name="deployed_code"/>Publish version</Button></div></div>)}
       {!approved.length&&<Empty title="No approved content waiting" description="Review a designer submission first. Approved versions will appear here."/>}
     </Panel>}
@@ -167,7 +167,7 @@ export function ApiReleasesPage(){
       </>}
     </Panel>
     {selected&&<Modal wide scrollable eyebrow="VERSION DETAILS" title={'#'+selected.version_no+' · '+selected.label} onClose={()=>setDetail('')}><ApiCompare key={detail+':'+baseline} beforeId={baseline} afterId={detail}/></Modal>}
-    {confirm&&<Modal eyebrow="RESTORE A RELEASE" title={'Rollback to #'+target?.version_no+'?'} description={<>{target?.label}<br/>This restores the previously published bundle and archives the current live version.</>} busy={busy} onClose={()=>setConfirm(null)}>
+    {confirm&&<Modal title={'Rollback to #'+target?.version_no+'?'} description={<>{target?.label}<br/>This restores the previously published bundle and archives the current live version.</>} busy={busy} onClose={()=>setConfirm(null)}>
       <form className="grid gap-4" onSubmit={e=>{e.preventDefault();void rollback();}}>
         <Field><FieldLabel htmlFor="release-reason">Rollback reason</FieldLabel><Textarea id="release-reason" disabled={busy} maxLength={500} required rows={3} value={reason} onChange={e=>setReason(e.target.value)} placeholder="Required · why roll back to this version?"/></Field>
         {error&&<Alert variant="destructive"><AlertDescription>{error}</AlertDescription></Alert>}

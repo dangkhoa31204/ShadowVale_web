@@ -14,7 +14,7 @@ body { background:var(--sv-bg); }
 .portal h1, .portal h2, .portal h3, .portal input, .portal select, .portal textarea, .portal .sv-form label { font-family:Inter,system-ui,sans-serif; }
 .portal .sv-brand-mark { background:var(--sv-accent); color:var(--sv-on-accent); border-radius:7px; }
 .portal .sv-brand { color:var(--sv-text); }
-.portal .sv-nav-link.is-active, .portal .sv-nav-link b, .portal .sv-avatar { background:var(--sv-accent-dark); color:var(--sv-accent-text); }
+.portal .sv-nav-link.is-active, .portal .sv-nav-link b { background:var(--sv-accent-dark); color:var(--sv-accent-text); }
 .portal .sv-nav-link:hover { background:var(--sv-raised); color:var(--sv-text); }
 .portal .sv-nav-heading { color:var(--sv-subtle); }
 .portal .sv-sidebar, .portal .sv-header, .portal .sv-panel, .portal .sv-editor { background:var(--sv-surface); border-color:var(--sv-border); }
@@ -57,7 +57,7 @@ body { background:var(--sv-bg); }
 @media(max-width:850px) { .portal.sv-login { grid-template-columns:1fr;padding:90px 24px 36px;gap:32px; }.portal .sv-login-story { gap:30px; }.portal .sv-login-story > div { margin:0; }.portal .sv-login-story h1 { font-size:32px;margin:12px 0 20px; }.portal .sv-login-main { max-width:440px;width:100%; } }
 @media(max-width:600px) { .sv-header-tools { gap:8px; }.portal .sv-header-role, .sv-account-name { display:none; }.portal .sv-header { padding:0 12px;min-height:64px; }.portal .sv-login-story h1 { font-size:28px; } }
 
-.portal .sv-header-role, .portal .sv-user small { text-transform:none; }
+.portal .sv-header-role { text-transform:none; }
 
 .portal .sv-login-story::after { display:none; }
 

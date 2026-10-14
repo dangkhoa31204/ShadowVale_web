@@ -11,7 +11,7 @@ export function AccountMenu() {
       <DropdownMenuLabel className="grid"><strong className="font-medium text-foreground">{user?.callsign}</strong><small className="text-xs font-normal [overflow-wrap:anywhere]">{user?.email}</small></DropdownMenuLabel>
       <DropdownMenuSeparator />
       <DropdownMenuItem asChild><Link to="/admin/change-password"><Icon name="lock_reset" />Change password</Link></DropdownMenuItem>
-      <DropdownMenuItem asChild><Link to="/admin/analytics"><Icon name="monitoring" />Analytics</Link></DropdownMenuItem>
+      {user?.role === 'admin' && <DropdownMenuItem asChild><Link to="/admin/analytics"><Icon name="monitoring" />Analytics</Link></DropdownMenuItem>}
       <DropdownMenuSeparator />
       <DropdownMenuItem onSelect={() => { void logout().catch(() => {}); }}><Icon name="logout" />Sign out</DropdownMenuItem>
     </DropdownMenuContent>

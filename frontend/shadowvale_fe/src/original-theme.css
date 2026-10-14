@@ -41,10 +41,6 @@
 .portal .sv-nav-link.is-active { background: var(--sv-accent-dark); color: var(--sv-accent-text); }
 .portal .sv-nav-link b { background: #abcae820; color: var(--sv-accent-text); border-radius: 2px; }
 
-.portal .sv-avatar { background: #abcae820; border: 1px solid #abcae866; color: var(--sv-accent); border-radius: 2px; font-family: 'JetBrains Mono', monospace; }
-.portal .sv-user strong { font-size: 12px; }.portal .sv-user small { font-size: 11px; }
-.portal .sv-user button { color: var(--sv-muted); }.portal .sv-user button:hover { color: var(--sv-error); }
-
 .portal .sv-page-heading { border-bottom: 1px solid var(--sv-border); padding-bottom: 16px; }
 .portal .sv-panel, .portal .sv-editor { border-radius: 2px; }
 
