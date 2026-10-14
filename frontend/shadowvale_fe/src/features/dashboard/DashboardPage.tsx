@@ -4,11 +4,10 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { useAuth } from '../../hooks/useAuth';
 import { useWorkspace } from '../content/workspaceContext';
 import { can } from '../auth/access';
-import { collections } from '../content/types';
 import { ActivityList, Empty, Icon, PageHeading, Panel, StatCard, Status, panelTable } from '../shared/ui';
 import { dateLabel } from '../shared/format';
 import { isDemoMode } from '../../config/environment';
-import { ApiDashboard, ContentCounts } from './ApiDashboard';
+import { ApiDashboard } from './ApiDashboard';
 import { AdminDashboard } from './AdminDashboard';
 export function InternalDashboardPage() { const { user } = useAuth(); return user?.role === 'admin' ? <AdminDashboard /> : isDemoMode ? <DemoDashboard /> : <ApiDashboard />; }
 function DemoDashboard() {
@@ -16,11 +15,9 @@ function DemoDashboard() {
   const active = state.releases.find(r => r.id === state.activeReleaseId);
   const drafts = user?.role === 'designer' ? state.drafts.filter(d => d.authorId === user.id) : state.drafts;
   const author = !!user && can(user.role, 'author');
-  const entities = active ? collections.reduce((n, c) => n + active.bundle[c.key].length, 0) : 0;
   return <div className="sv-page">
     <PageHeading eyebrow="DESIGNER" title="Overview" description="Content versions and recent activity." action={author && <Button asChild><Link to="/admin/content"><Icon name="edit_note" />Content versions</Link></Button>} />
-    <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-      <StatCard label="Published records" value={entities} detail={collections.length + ' content tables'} icon="inventory_2" />
+    <div className="grid gap-4 sm:grid-cols-3">
       <StatCard label="Drafts & returned" value={drafts.filter(d => ['draft', 'rejected'].includes(d.status)).length} detail="Draft or rejected" icon="edit_note" />
       <StatCard label="In review" value={drafts.filter(d => d.status === 'in_review').length} detail="Waiting for approval" icon="fact_check" />
       <StatCard label="Published version" value={active ? '#' + active.version_no : '—'} detail={active ? active.label : 'No published bundle'} icon="deployed_code" />
@@ -35,8 +32,5 @@ function DemoDashboard() {
       </Panel>
       <Panel title="Recent activity" action={<Icon name="history" className="text-muted-foreground" />}><ActivityList items={state.audit.slice(0, 5)} empty="No recent activity" /></Panel>
     </div>
-    <Panel title="Published content" description={active ? '#' + active.version_no + ' · Published ' + dateLabel(active.publishedAt) : 'No published version'} action={<Button asChild variant="ghost" size="sm"><Link to="/admin/releases">Publication history<Icon name="arrow_forward" /></Link></Button>}>
-      <ContentCounts counts={Object.fromEntries(collections.map(c => [c.key, active?.bundle[c.key].length || 0]))} />
-    </Panel>
   </div>;
 }

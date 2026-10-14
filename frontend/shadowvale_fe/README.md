@@ -49,6 +49,8 @@ Designer/Admin.
   báo hạn chế), thẻ "Published content" trên sidebar của Analyst.
 - Panel "Publication activity" ở Overview của Designer (lịch sử publish chỉ Admin đọc được nên luôn
   trống) và dải "Review → Approve → Publish" chỉ để trang trí ở Dashboard của Admin.
+- Bảng "Published content" (số bản ghi từng bảng của version đang chạy) và ô "Content resources" /
+  "Published records" ở Overview.
 - `player_id` trong telemetry demo (proposal yêu cầu telemetry ẩn danh).
 - Trang Roles và Settings (không có route; Settings không có API BE), đăng ký công khai,
   quên mật khẩu, lệnh demo quản lý user/cấu hình, các trang/layout/component template cũ.
