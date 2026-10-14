@@ -1,5 +1,10 @@
 # API integration coverage and gaps
 
+> **Cập nhật 2026-10-14 (nhánh `feat/fe-align-proposal`):** FE đã bỏ các phần ngoài proposal —
+> change reports/ảnh local, game delivery (Git/CI, game assets), Profile, song ngữ EN/VI, theme sáng
+> và nút/hộp thoại xuất CSV. Các đoạn dưới đây nhắc tới chúng là lịch sử, không còn đúng với FE.
+> Danh sách màn hiện tại và phần đã bỏ: `README.md` → "Đối chiếu proposal".
+
 Cập nhật 2026-10-10, hợp đồng BE dev commit **f2c8b8c**. Đã fast-forward nhánh
 Khoa từ 7089d01 qua ba commit upstream; không sửa thêm BE, DB hay Unity.
 Phần tích hợp và ghi chú do lượt làm FE này sửa thuộc frontend.
@@ -132,7 +137,6 @@ bằng chứng và điều kiện nghiệm thu ở [BE_HANDOFF.md](BE_HANDOFF.md
 Admin có màn Users: list/detail/create/update/reset password. Không có DELETE user;
 vô hiệu hóa tài khoản dùng PUT update. Trang Change password tách khỏi Profile,
 mở từ menu Account và gọi /auth/me/password.
-Xem USER_PROFILE_APPEARANCE.md về scope, ngôn ngữ, theme và kết quả UI QA.
 
 ## Dành cho Unity
 
@@ -176,8 +180,6 @@ qua JWT user endpoint /api/content-versions/{id}/bundle.
   - Report local: nhập description/commit, import JPG, save/reload giữ ảnh và
     nội dung, export review JSON có image; nút gửi server khóa. Account scope
     và không gọi HTTP report được kiểm tra bằng contract tests.
-  - Ảnh [admin-review-qa.jpg](admin-review-qa.jpg) dùng dữ liệu fixture, không phải
-    ảnh chứng minh BE/DB thật đã chạy.
   - Chưa kiểm tra thủ công UI delete solver/version, mọi nhánh lỗi upload/quota,
     đổi mật khẩu và refresh hai browser tab thật; các nhánh request đã có tests.
 - **Chưa kiểm chứng BE thật/DB**: GET http://localhost:5079/health hai lần connection

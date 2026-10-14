@@ -1,5 +1,5 @@
 /* Adapted from TailAdmin React's dark theme, sidebar, form and table system.
-   See LICENSE.md and upstream.css.txt in this directory. */
+   See LICENSE.md in this directory. */
 .portal, .portal-state {
   --sv-bg: #0c111d; --sv-surface: #101828; --sv-raised: #1d2939;
   --sv-border: #263247; --sv-outline: #344054;
