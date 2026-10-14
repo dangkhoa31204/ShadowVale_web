@@ -1,6 +1,7 @@
-import { useEffect, useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { queryClient } from '../lib/queryClient';
 import type { User } from '../types/user';
-import type { LoginCredentials, RegisterPayload } from '../types/auth';
+import type { LoginCredentials } from '../types/auth';
 import { authService } from '../services/auth/authService';
 import { storageService, AUTH_CHANGED_EVENT, SESSION_KEY } from '../services/storage/storageService';
 import { statusOf } from '../services/api/errors';
@@ -26,11 +27,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       active = false; window.removeEventListener(AUTH_CHANGED_EVENT, clear); window.removeEventListener('storage', sync);
     };
   }, []);
+  // Cached server data belongs to one account: drop it whenever the signed-in user changes or signs out.
+  const userId = user?.id ?? null, previousUserId = useRef(userId);
+  useEffect(() => {
+    if (previousUserId.current !== userId) queryClient.clear();
+    previousUserId.current = userId;
+  }, [userId]);
   const login = async (credentials: LoginCredentials) => {
     const response = await authService.login(credentials);
     setSessionError(''); setUser(response.user); return response.user;
   };
-  const register = async (payload: RegisterPayload) => (await authService.register(payload)).user;
   const logout = async () => { await authService.logout(); setUser(null); };
-  return <AuthContext.Provider value={{ user, isAuthenticated: !!user, isLoading, sessionError, login, register, logout }}>{children}</AuthContext.Provider>;
+  return <AuthContext.Provider value={{ user, isAuthenticated: !!user, isLoading, sessionError, login, logout }}>{children}</AuthContext.Provider>;
 };

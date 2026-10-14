@@ -1,4 +1,4 @@
-import type { LoginCredentials, RegisterPayload, AuthResponse, PasswordResetPayload } from '../../types/auth';
+import type { LoginCredentials, AuthResponse } from '../../types/auth';
 import type { Role, User } from '../../types/user';
 import { storageService } from '../storage/storageService';
 import { axiosClient, authClient, withSessionLock } from '../api/axiosClient';
@@ -41,14 +41,6 @@ export const authService = {
     }
     storageService.setAuth(response.token, response.user, credentials.rememberMe ?? false);
     return response;
-  },
-  register: async (payload: RegisterPayload): Promise<AuthResponse> => {
-    void payload;
-    throw new Error('Internal accounts are provisioned by an administrator.');
-  },
-  resetPassword: async (payload: PasswordResetPayload): Promise<{ success: boolean; message: string }> => {
-    void payload;
-    throw new Error('Password recovery has no backend API. Contact your administrator.');
   },
   logout: async (): Promise<void> => {
     try { await withSessionLock(async () => {

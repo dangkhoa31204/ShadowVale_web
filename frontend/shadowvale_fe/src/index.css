@@ -1,58 +1,23 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+/* Portal layout styles. In a layer so shadcn's utility classes override them. */
+@import "./internal.css" layer(components);
+@import "./original-theme.css" layer(components);
+@import "./template/tailadmin/tailadmin-theme.css" layer(components);
+@import "./features/content/editor.css" layer(components);
+@import "./military-theme.css" layer(components);
 
-/* Custom tactical grid background effect */
-.bg-tactical-grid {
-  background-size: 40px 40px;
-  background-image: 
-    linear-gradient(to right, rgba(45, 49, 53, 0.3) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(45, 49, 53, 0.3) 1px, transparent 1px);
-}
-
-/* Subtle glow animation for the brand header */
-@keyframes pulse-glow {
-  0%, 100% { text-shadow: 0 0 10px rgba(171, 202, 232, 0.2); }
-  50% { text-shadow: 0 0 20px rgba(171, 202, 232, 0.5); }
-}
-
-.brand-glow {
-  animation: pulse-glow 4s infinite alternate ease-in-out;
-}
-
-/* Scanning beam effect */
-@keyframes scanline {
-  0% { transform: translateY(-100%); }
-  100% { transform: translateY(1000%); }
-}
-
-.animate-scan {
-  animation: scanline 3s linear infinite;
-}
+@custom-variant dark (&:is(.dark *));
 
 /* Input autofill override for dark theme */
 input:-webkit-autofill,
-input:-webkit-autofill:hover, 
-input:-webkit-autofill:focus, 
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
 input:-webkit-autofill:active {
-  -webkit-box-shadow: 0 0 0 30px #121315 inset !important;
-  -webkit-text-fill-color: #e3e2e4 !important;
+  -webkit-box-shadow: 0 0 0 30px var(--background) inset !important;
+  -webkit-text-fill-color: var(--foreground) !important;
   transition: background-color 5000s ease-in-out 0s;
-}
-
-@layer utilities {
-  .loading-spinner {
-    animation: spin 1s linear infinite;
-  }
-}
-
-@keyframes spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
 }
 
 /* Custom Scrollbar for stealth aesthetic */
@@ -61,23 +26,113 @@ input:-webkit-autofill:active {
   height: 8px;
 }
 ::-webkit-scrollbar-track {
-  background: #0D0E10; 
+  background: var(--background);
 }
 ::-webkit-scrollbar-thumb {
-  background: #2D3135; 
+  background: var(--border);
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #42474d; 
+  background: var(--input);
 }
 
-/* Tactical Checkbox Styles */
-.tactical-checkbox:checked {
-  background-color: #abcae8;
-  border-color: #abcae8;
-  background-image: url("data:image/svg+xml,%3csvg viewBox='0 0 16 16' fill='%2312334b' xmlns='http://www.w3.org/2000/svg'%3e%3cpath d='M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z'/%3e%3c/svg%3e");
+@theme inline {
+  --font-heading: var(--font-sans);
+  --font-sans: Inter, system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --color-foreground: var(--foreground);
+  --color-background: var(--background);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
 }
-.tactical-checkbox:focus {
-  --tw-ring-color: #abcae8;
-  --tw-ring-offset-color: #16181A;
+
+:root {
+  /* ShadowVale menu palette (olive, field green, sand); same values as --sv-* in military-theme.css.
+     The portal has no light theme. */
+  --background: #121711;
+  --foreground: #eff0e6;
+  --card: #1a2119;
+  --card-foreground: #eff0e6;
+  --popover: #1a2119;
+  --popover-foreground: #eff0e6;
+  --primary: #c3cf93;
+  --primary-foreground: #182012;
+  --secondary: #252e23;
+  --secondary-foreground: #eff0e6;
+  --muted: #252e23;
+  --muted-foreground: #adb6a4;
+  --accent: #252e23;
+  --accent-foreground: #eff0e6;
+  --destructive: #f49c8c;
+  --success: #8ccea2;
+  --warning: #e2bf7b;
+  --border: #343e30;
+  --input: #4a5744;
+  --ring: #c3cf93;
+  --chart-1: #c3cf93;
+  --chart-2: #8ccea2;
+  --chart-3: #e2bf7b;
+  --chart-4: #f49c8c;
+  --chart-5: #adb6a4;
+  --radius: 0.5rem;
+  --sidebar: #1a2119;
+  --sidebar-foreground: #adb6a4;
+  --sidebar-primary: #c3cf93;
+  --sidebar-primary-foreground: #182012;
+  --sidebar-accent: #252e23;
+  --sidebar-accent-foreground: #eff0e6;
+  --sidebar-border: #343e30;
+  --sidebar-ring: #c3cf93;
+  color-scheme: dark;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  button:not(:disabled), [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+  html {
+    @apply font-sans;
+  }
 }
