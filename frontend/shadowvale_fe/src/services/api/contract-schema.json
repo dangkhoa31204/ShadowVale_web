@@ -168,6 +168,40 @@
       }
     }
   },
+  "AnalyticsContentVersionDto": {
+    "required": [
+      "id",
+      "versionNo",
+      "label",
+      "publishedAt",
+      "isLive"
+    ],
+    "type": "object",
+    "properties": {
+      "id": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "versionNo": {
+        "pattern": "^-?(?:0|[1-9]\\d*)$",
+        "type": [
+          "integer",
+          "string"
+        ],
+        "format": "int64"
+      },
+      "label": {
+        "type": "string"
+      },
+      "publishedAt": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "isLive": {
+        "type": "boolean"
+      }
+    }
+  },
   "ApiError": {
     "type": "object",
     "properties": {

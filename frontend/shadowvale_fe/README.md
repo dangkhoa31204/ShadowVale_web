@@ -16,7 +16,7 @@ Functional Requirements (Content & Balancing Platform, Telemetry & Analytics Das
   phân trang danh sách; hộp xác nhận; thông báo lỗi; chọn dữ liệu.
 - **Bỏ:** mọi màn, panel, cột, nút, chỉ số mà không câu nào trong proposal yêu cầu, kể cả khi
   "tiện" hay "có ích".
-- **BE quy định khác proposal:** FE làm theo BE và ghi vào mục "Lệch do BE" bên dưới.
+- **BE quy định khác proposal:** FE làm theo BE và ghi rõ chỗ lệch vào README (hiện không còn chỗ nào).
 - Ngoại lệ do nhóm quyết định: ghi ở "Giữ theo quyết định của nhóm".
 
 ### Màn hình ↔ yêu cầu proposal
@@ -75,11 +75,6 @@ Users, Analytics, Change password). Admin mở Analytics và Change password t�
 - Trang Change password (tự đổi mật khẩu).
 - Cột "Last sign-in" ở Users.
 
-### Lệch do BE (FE không tự sửa được)
-
-- Analyst phải nhập GUID khi lọc theo content version vì BE chỉ cho Admin/Designer đọc danh sách
-  version.
-
 ### Quyết định đã chốt
 
 - **Stack đúng mục 3.2.a:** Tailwind + shadcn/ui, React Query (TanStack Query), Recharts.
@@ -102,6 +97,8 @@ Users, Analytics, Change password). Admin mở Analytics và Change password t�
 4. Analytics vẽ bằng Recharts; demo có funnel nhiệm vụ, stealth vs combat và lớp Detections.
 5. Soát toàn bộ chữ/nút/cột/bộ lọc của mọi màn theo quy tắc phân loại ở trên và bỏ phần thừa.
 6. Publish một lần bấm: BE cho phép bỏ trống lý do publish (rollback vẫn bắt buộc lý do).
+7. Bộ lọc Content version của Analytics dùng `GET /api/analytics/content-versions` (các version đã
+   publish, cả 3 role gọi được); Analyst không còn phải nhập GUID.
 
 ## Run
 
@@ -157,7 +154,7 @@ synthetic, stored in the browser, and separate from API mode.
 | Publish / rollback | — | — | Yes |
 | Version history, detail, comparison | Yes | — | Yes |
 | Publication history | — (BE restriction) | — | Yes |
-| Analytics (manual version GUID for Analyst) | Yes | Yes | Yes |
+| Analytics | Yes | Yes | Yes |
 | Solver configurations: view | Yes | Yes | Yes |
 | Solver configurations: create / edit / clone / activate / delete | — | Yes | Yes |
 | Users and roles | — | — | Yes |
@@ -187,7 +184,8 @@ approval and rechecks the server revision. Return and rollback require a reason.
 Gameplay uses BE aggregates: mission completion funnel, shots per weapon and the
 stealth-vs-combat histogram. Heatmap: map, event type (player death / spotted) and cell
 size. AI comparison: capture rate, escape time and coordination score per content version
-and solver group (configuration or family). Filters: dates, content version, map code,
+and solver group (configuration or family). Filters: dates, content version (published
+versions from `GET /api/analytics/content-versions`, same list for every role), map code,
 solver family/configuration, Human/Replay.
 
 Solver forms switch parameters by algorithm and expose all six QUBO weights. Used

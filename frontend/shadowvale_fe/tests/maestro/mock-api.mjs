@@ -54,6 +54,7 @@ export function mockApi() {
     if (route === '/meta/enums') return send(enums);
     if (route === '/users') return send(page(['admin','designer','analyst'].map(user)));
     if (route === '/content-publications') return send(page([]));
+    if (route === '/analytics/content-versions') return send(versions.filter(v => v.publishedAt).map(v => ({ id: v.id, versionNo: v.versionNo, label: v.label, publishedAt: v.publishedAt, isLive: v.status === 'Published' })));
     if (Object.hasOwn(analytics, route)) return send(analytics[route]);
     if (route === '/solver-configurations') return send(solverConfigs);
     const solverMatch = route.match(/^\/solver-configurations\/([^/]+)$/);

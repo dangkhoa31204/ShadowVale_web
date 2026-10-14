@@ -21,6 +21,13 @@ export type AiComparisonRowDto = {
   "withinBudgetRate": null | number | string;
   "fallbackRate": null | number | string;
 };
+export type AnalyticsContentVersionDto = {
+  "id": string;
+  "versionNo": number | string;
+  "label": string;
+  "publishedAt": string;
+  "isLive": boolean;
+};
 export type ApiError = {
   "type"?: null | string;
   "title"?: null | string;

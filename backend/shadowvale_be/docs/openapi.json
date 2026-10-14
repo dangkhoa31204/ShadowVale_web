@@ -5,6 +5,144 @@
     "version": "1.0.0"
   },
   "paths": {
+    "/api/analytics/content-versions": {
+      "get": {
+        "tags": [
+          "Analytics"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AnalyticsContentVersionDto"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AnalyticsContentVersionDto"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AnalyticsContentVersionDto"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid JSON, missing fields, invalid types or business validation. Check errors for field details. JSON includes code, message, traceId and optional errors. These are possible infrastructure/business responses, not a promise that every action produces each status. See docs/api-errors.md for endpoint-specific cases.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid, expired or revoked authentication (Bearer token or X-Game-Key). JSON includes code, message, traceId and optional errors. These are possible infrastructure/business responses, not a promise that every action produces each status. See docs/api-errors.md for endpoint-specific cases.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated caller does not have the required role. JSON includes code, message, traceId and optional errors. These are possible infrastructure/business responses, not a promise that every action produces each status. See docs/api-errors.md for endpoint-specific cases.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Route or requested resource does not exist. JSON includes code, message, traceId and optional errors. These are possible infrastructure/business responses, not a promise that every action produces each status. See docs/api-errors.md for endpoint-specific cases.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "HTTP method not supported for this route. JSON includes code, message, traceId and optional errors. These are possible infrastructure/business responses, not a promise that every action produces each status. See docs/api-errors.md for endpoint-specific cases.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Resource state, revision, uniqueness or references conflict with this action. JSON includes code, message, traceId and optional errors. These are possible infrastructure/business responses, not a promise that every action produces each status. See docs/api-errors.md for endpoint-specific cases.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Request body exceeds the configured limit. JSON includes code, message, traceId and optional errors. These are possible infrastructure/business responses, not a promise that every action produces each status. See docs/api-errors.md for endpoint-specific cases.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Unsupported Content-Type; send application/json for JSON bodies. JSON includes code, message, traceId and optional errors. These are possible infrastructure/business responses, not a promise that every action produces each status. See docs/api-errors.md for endpoint-specific cases.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded on endpoints with a rate-limit policy. JSON includes code, message, traceId and optional errors. These are possible infrastructure/business responses, not a promise that every action produces each status. See docs/api-errors.md for endpoint-specific cases.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unexpected server error. Report traceId; internal exception details are not returned. JSON includes code, message, traceId and optional errors. These are possible infrastructure/business responses, not a promise that every action produces each status. See docs/api-errors.md for endpoint-specific cases.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/analytics/overview": {
       "get": {
         "tags": [
@@ -12469,6 +12607,40 @@
               "string"
             ],
             "format": "double"
+          }
+        }
+      },
+      "AnalyticsContentVersionDto": {
+        "required": [
+          "id",
+          "versionNo",
+          "label",
+          "publishedAt",
+          "isLive"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "versionNo": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int64"
+          },
+          "label": {
+            "type": "string"
+          },
+          "publishedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "isLive": {
+            "type": "boolean"
           }
         }
       },

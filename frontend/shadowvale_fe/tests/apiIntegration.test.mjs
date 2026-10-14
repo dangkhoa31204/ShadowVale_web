@@ -188,6 +188,11 @@ test('analytics renders aggregate responses and sends the exact filter query',as
  const data=await api.analyticsApi.comparison(q,'family');assert.equal(data[0].captureRate,0.25);
  assert.equal(calls[0].params.source,'replay');assert.equal(calls[0].params.groupBy,'family');
 });
+test('analytics version filter reads published versions from the analytics API every role can call',async()=>{
+ handler=c=>ok(c,[{id:'v3',versionNo:3,label:'Balance pass',publishedAt:'2026-10-12T00:00:00Z',isLive:true}]);
+ const versions=await api.analyticsApi.contentVersions();
+ assert.equal(calls[0].url,'/analytics/content-versions');assert.deepEqual(versions.map(v=>[v.versionNo,v.isLive]),[[3,true]]);
+});
 test('solver CRUD, clone and activation use dedicated endpoints and retain payloads',async()=>{
  handler=c=>ok(c,{id:'solver1',...body(c)});
  await api.analyticsApi.create({code:'genetic_v2',name:'Genetic',algorithm:'Genetic',timeBudgetMs:250,params:{population:50},quboWeights:{weight_cover:0.5}});

@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using ShadowVale.DAL.Data;
+using ShadowVale.DAL.Entities;
 using ShadowVale.DAL.Repositories.Interfaces;
 
 namespace ShadowVale.DAL.Repositories;
@@ -39,4 +40,11 @@ public class GameContentRepository(ShadowValeDbContext context) : IGameContentRe
 
     public Task<bool> VersionExistsAsync(Guid versionId, CancellationToken ct = default) =>
         context.ContentVersions.AnyAsync(v => v.Id == versionId, ct);
+
+    public async Task<IReadOnlyList<PublishedVersionRow>> GetEverPublishedVersionsAsync(CancellationToken ct = default) =>
+        await context.ContentVersions.AsNoTracking()
+            .Where(v => v.PublishedAt != null && v.Bundle != null)
+            .OrderByDescending(v => v.VersionNo)
+            .Select(v => new PublishedVersionRow(v.Id, v.VersionNo, v.Label, v.PublishedAt!.Value, v.Status == ContentStatus.Published))
+            .ToListAsync(ct);
 }

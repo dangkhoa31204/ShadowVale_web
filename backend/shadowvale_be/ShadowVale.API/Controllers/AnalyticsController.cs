@@ -13,6 +13,11 @@ namespace ShadowVale.API.Controllers;
 [Authorize(Roles = $"{AppRoles.Admin},{AppRoles.Analyst},{AppRoles.Designer}")]
 public class AnalyticsController(IAnalyticsService analytics) : ControllerBase
 {
+    // Published content versions for the version filters (Analysts cannot read /api/content-versions)
+    [HttpGet("content-versions")]
+    public async Task<ActionResult<IReadOnlyList<AnalyticsContentVersionDto>>> ContentVersions(CancellationToken ct) =>
+        Ok(await analytics.GetContentVersionsAsync(ct));
+
     [HttpGet("overview")]
     public async Task<ActionResult<OverviewDto>> Overview([FromQuery] AnalyticsQuery query, CancellationToken ct) =>
         Ok(await analytics.GetOverviewAsync(query, ct));

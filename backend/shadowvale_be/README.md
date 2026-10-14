@@ -327,6 +327,7 @@ Bộ lọc chung (query string): `source`, `contentVersionId`, `mapCode`, `from`
 
 | Endpoint | Nội dung |
 |---|---|
+| `GET content-versions` | Các content version đã từng publish (mới nhất trước): `id`, `versionNo`, `label`, `publishedAt`, `isLive` — cho bộ lọc version của cả 3 role (Analyst không đọc được `/api/content-versions`) |
 | `GET overview` | Số phiên, số player, số phiên chưa kết thúc, thời lượng trung bình / trung vị, tỉ lệ outcome, số phiên theo ngày |
 | `GET heatmap` | `mapCode` bắt buộc, `eventTypes` (mặc định `player_death`, `player_spotted`), `cellSize` 1–50 m → `{ x, y, count }` |
 | `GET funnel` | Phiên bắt đầu → `objective_completed` theo `index` → `mission_result` có `result = "completed"` |

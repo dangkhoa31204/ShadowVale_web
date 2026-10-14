@@ -4,6 +4,7 @@ namespace ShadowVale.BLL.Interfaces;
 
 public interface IAnalyticsService
 {
+    Task<IReadOnlyList<AnalyticsContentVersionDto>> GetContentVersionsAsync(CancellationToken ct = default);
     Task<OverviewDto> GetOverviewAsync(AnalyticsQuery query, CancellationToken ct = default);
     Task<HeatmapDto> GetHeatmapAsync(HeatmapQuery query, CancellationToken ct = default);
     Task<FunnelDto> GetFunnelAsync(AnalyticsQuery query, CancellationToken ct = default);

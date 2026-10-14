@@ -106,6 +106,7 @@ Các giới hạn cụ thể từng field được thể hiện trong schema req
 
 Đọc: Admin/Analyst/Designer; export: Admin/Analyst. Query source phải human/replay, family hợp lệ, from không sau to và khoảng ngày trong giới hạn service.
 
+- `GET /api/analytics/content-versions`: 401/403 theo quyền chung của analytics; không có lỗi nghiệp vụ.
 - `GET /api/analytics/overview`: 400 bộ lọc sai.
 - `GET /api/analytics/heatmap`: 400 bộ lọc/cellSize/eventTypes sai.
 - `GET /api/analytics/funnel`: 400 bộ lọc sai.
