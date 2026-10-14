@@ -483,3 +483,12 @@ API đã bật `ForwardedHeaders` để rate limit thấy IP thật của ngư�
 
 Gói Free của Render tắt service khi không có request, request đầu tiên sau đó mất vài chục giây: game cần
 timeout hợp lý và dùng bundle đã lưu khi không kết nối được.
+
+## Thay đổi để khớp proposal (nhánh `feat/fe-align-proposal`, cần review trước khi merge)
+
+| Thay đổi | Lý do (proposal) | File |
+|---|---|---|
+| `POST content-versions/{id}/publish`: `reason` không còn bắt buộc (vẫn tối đa 500 ký tự; bỏ trống thì lưu chuỗi rỗng, không đổi schema). Rollback vẫn bắt buộc lý do. | "one-click publish to a validated JSON bundle" — Admin đã duyệt ở bước Review, publish chỉ cần một lần bấm | `PublishContentVersionRequest`, `ContentVersionService.PublishAsync`, `AdminContentVersionTests` |
+| Thêm `GET /api/analytics/content-versions` (cả 3 role): các version đã từng publish, chỉ `id`, `versionNo`, `label`, `publishedAt`, `isLive`. | "AI-variant comparison … per content version" cho Analyst; Analyst không đọc được `/api/content-versions` nên trước đó phải nhập GUID | `AnalyticsController`, `AnalyticsService`, `IGameContentRepository` / `GameContentRepository`, `AnalyticsContentVersionTests` |
+
+`docs/openapi.json` và `docs/api-errors.md` đã cập nhật theo. Unit test BLL pass; integration test cần database test nên chưa chạy.
