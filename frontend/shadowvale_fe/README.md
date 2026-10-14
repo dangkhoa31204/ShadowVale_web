@@ -22,15 +22,17 @@ Functional Requirements (Content & Balancing Platform, Telemetry & Analytics Das
 | Màn (route) | Vai trò | Yêu cầu trong proposal |
 | --- | --- | --- |
 | Login `/login`, Change password `/admin/change-password` | Tất cả | Authenticated (JWT) access; JWT sessions and role-based access |
-| Overview / Dashboard `/admin/dashboard` | Tất cả (Analyst mặc định mở Analytics) | Trang chính của workspace: version đang chạy, hàng chờ, hoạt động publish |
+| Overview / Dashboard `/admin/dashboard` | Designer, Admin | Trang chính của workspace: version đang chạy, hàng chờ, hoạt động publish |
 | Content authoring `/admin/content` | Designer | Authoring maps, enemy archetypes & parameters, loot tables, recipes, quests, weapon stats, with schema validation |
 | Review content `/admin/reviews` | Admin | Review/approval workflow |
-| Versions / Publish versions `/admin/releases` | Tất cả / Admin | Version history with compare/rollback and one-click publish to a validated JSON bundle |
+| Versions / Publish versions `/admin/releases` | Designer / Admin | Version history with compare/rollback and one-click publish to a validated JSON bundle |
 | Users `/admin/users` | Admin | User/role management (Designer, Analyst, Admin) — role gán trên từng tài khoản |
 | Analytics `/admin/analytics` | Tất cả | Difficulty heat maps, mission completion funnels, weapon-usage and stealth-vs-combat distributions; AI-variant comparison (capture rate, escape time, coordination score) per content version |
 | Analytics → Solver configurations | Xem: tất cả · Sửa: Analyst, Admin | Admin "configuration": cấu hình duy nhất BE hỗ trợ là cấu hình solver (classical vs quantum-inspired) |
 
-Admin mở Analytics và Change password từ menu **Account**.
+Admin mở Analytics và Change password từ menu **Account**. Analyst chỉ có Analytics (và Change
+password): proposal đặt Analyst ở Telemetry & Analytics Dashboard, version history ở phần
+Designer/Admin.
 
 ### Đã bỏ vì nằm ngoài proposal (đừng thêm lại)
 
@@ -43,6 +45,10 @@ Admin mở Analytics và Change password từ menu **Account**.
   version" đã có bộ lọc Content version và cột Version ở AI comparison), khối Scalability
   lặp lại trong tab AI comparison. Endpoint `/analytics/overview` và `/analytics/versions/compare`
   ở BE giữ nguyên, FE không gọi.
+- Overview và Versions của Analyst (BE không cho Analyst đọc version nên hai trang chỉ hiện thông
+  báo hạn chế), thẻ "Published content" trên sidebar của Analyst.
+- Panel "Publication activity" ở Overview của Designer (lịch sử publish chỉ Admin đọc được nên luôn
+  trống) và dải "Review → Approve → Publish" chỉ để trang trí ở Dashboard của Admin.
 - `player_id` trong telemetry demo (proposal yêu cầu telemetry ẩn danh).
 - Trang Roles và Settings (không có route; Settings không có API BE), đăng ký công khai,
   quên mật khẩu, lệnh demo quản lý user/cấu hình, các trang/layout/component template cũ.
@@ -70,7 +76,8 @@ Admin mở Analytics và Change password từ menu **Account**.
 4. Analytics vẽ bằng Recharts; demo có thêm funnel nhiệm vụ, stealth vs combat và lớp
    Detections cho heat map (kèm unit test).
 5. Dọn CSS cũ không còn dùng; mock API cho UI test có dữ liệu analytics/solver.
-6. Bỏ thông tin Analytics proposal không nêu (xem "Đã bỏ").
+6. Bỏ thông tin Analytics proposal không nêu, các trang rỗng của Analyst và panel luôn trống
+   (xem "Đã bỏ").
 
 ### Thông tin giữ lại dù proposal không gọi tên trực tiếp (có căn cứ)
 
@@ -140,7 +147,7 @@ synthetic, stored in the browser, and separate from API mode.
 | Author and submit own content drafts | Yes | — | — |
 | Review / approve / reject | — | — | Yes |
 | Publish / rollback | — | — | Yes |
-| Version metadata, detail and comparison | Yes | — (BE restriction) | Yes |
+| Overview and version history, detail, comparison | Yes | — | Yes |
 | Publication history | — (BE restriction) | — | Yes |
 | Validated JSON bundle download | Yes | — | Yes |
 | Analytics (manual version GUID for Analyst) | Yes | Yes | Yes |

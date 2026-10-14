@@ -26,9 +26,6 @@ export function AdminDashboard() {
       <StatCard label="Returned to designer" value={rejected.length} detail="Awaiting revisions" icon="undo" to="/admin/reviews?status=rejected" />
       <StatCard label="Live version" value={active ? '#' + active.version_no : '—'} detail={active?.label || 'No published version'} icon="public" to="/admin/releases" />
     </div>
-    <ol className="flex flex-wrap items-center gap-3 rounded-xl border px-5 py-3 text-sm text-muted-foreground" aria-label="Publication workflow">
-      {['Review content', 'Approve or return', 'Publish version'].map((step, i) => <li key={step} className="flex items-center gap-3">{i > 0 && <Icon name="arrow_forward" />}<span className="flex items-center gap-2"><b className="grid size-6 place-items-center rounded-full border text-xs text-foreground">{i + 1}</b>{step}</span></li>)}
-    </ol>
     <div className="grid gap-6 lg:grid-cols-2">
       <Panel title="Awaiting your review" description="Oldest submissions first" action={<Button asChild variant="ghost" size="sm"><Link to="/admin/reviews">View queue<Icon name="arrow_forward"/></Link></Button>}>
         {pending.slice(0,5).map(d => <TaskRow key={d.id} title={'#' + d.version_no + ' · ' + d.label} detail={d.authorName + ' · ' + dateLabel(d.submitted_at || d.updatedAt)} to={'/admin/reviews?draft=' + d.id} action="Review" />)}

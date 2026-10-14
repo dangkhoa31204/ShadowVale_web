@@ -66,6 +66,9 @@ test('role policy and internal redirects deny unauthorized access', async () => 
   assert.equal(can('admin', 'publish'), true);
   assert.equal(safeRedirect('//evil.test', 'designer'), '/admin/dashboard');
   assert.equal(safeRedirect('/admin\\evil', 'analyst'), '/admin/analytics');
+  // Analyst works only in the analytics dashboard; version history is Designer/Admin.
+  assert.equal(can('analyst', 'overview'), false); assert.equal(can('analyst', 'versions'), false);
+  assert.equal(safeRedirect('/admin/releases', 'analyst'), '/admin/analytics');
   assert.equal(safeRedirect('/admin/content', 'designer'), '/admin/content');
   assert.equal(safeRedirect('/admin/content?section=report', 'designer'), '/admin/content?section=report');
   assert.equal(safeRedirect('/admin/change-reports/d1', 'designer'), '/admin/dashboard');

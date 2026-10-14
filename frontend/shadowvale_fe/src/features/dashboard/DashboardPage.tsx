@@ -18,7 +18,7 @@ function DemoDashboard() {
   const author = !!user && can(user.role, 'author');
   const entities = active ? collections.reduce((n, c) => n + active.bundle[c.key].length, 0) : 0;
   return <div className="sv-page">
-    <PageHeading eyebrow={user?.role === 'analyst' ? 'ANALYST' : 'DESIGNER'} title="Overview" description="Content versions and recent activity." action={author && <Button asChild><Link to="/admin/content"><Icon name="edit_note" />Content versions</Link></Button>} />
+    <PageHeading eyebrow="DESIGNER" title="Overview" description="Content versions and recent activity." action={author && <Button asChild><Link to="/admin/content"><Icon name="edit_note" />Content versions</Link></Button>} />
     <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
       <StatCard label="Published records" value={entities} detail={collections.length + ' content tables'} icon="inventory_2" />
       <StatCard label="Drafts & returned" value={drafts.filter(d => ['draft', 'rejected'].includes(d.status)).length} detail="Draft or rejected" icon="edit_note" />

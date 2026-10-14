@@ -24,7 +24,7 @@ function Shell() {
     <aside id="portal-sidebar" className={'sv-sidebar ' + (open ? 'is-open' : '')}>
       <Link to="/admin" className="sv-brand" onClick={() => setOpen(false)}><span className="sv-brand-mark">S</span><span>SHADOWVALE</span></Link>
       <nav aria-label="Main navigation"><span className="sv-nav-heading">Workspace</span>{links.map(n => <NavLink key={n.path} to={n.path} onClick={() => setOpen(false)} className={({ isActive }) => 'sv-nav-link ' + (isActive ? 'is-active' : '')}><Icon name={n.icon} /><span>{n.label}</span>{n.path === '/admin/reviews' && inReview > 0 && <Badge className="ml-auto">{inReview}</Badge>}</NavLink>)}</nav>
-      <div className="sv-sidebar-bottom"><div className="sv-game-card"><Icon name="deployed_code" /><div><span>Published content</span><strong>{active ? '#' + active.version_no : '—'}</strong></div></div>
+      <div className="sv-sidebar-bottom">{user?.role !== 'analyst' && <div className="sv-game-card"><Icon name="deployed_code" /><div><span>Published content</span><strong>{active ? '#' + active.version_no : '—'}</strong></div></div>}
         <div className="sv-user"><span className="sv-avatar">{user?.callsign[0]}</span><div><strong>{user?.callsign}</strong><small>{user && roleName[user.role]}</small></div><Button variant="ghost" size="icon-sm" onClick={signOut} aria-label="Sign out" title="Sign out"><Icon name="logout" /></Button></div>
       </div>
     </aside>
