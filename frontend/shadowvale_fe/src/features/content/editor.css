@@ -46,3 +46,6 @@
 .sv-authoring-section[hidden] { display: none !important; }
 .sv-authoring-report .sv-panel-heading small { font-size: 12px; font-weight: 400; color: var(--sv-muted); margin-left: 8px; }
 @media (max-width: 620px) { .sv-authoring-tabs { padding: 16px 18px; } }
+
+.portal .sv-content-subtabs { padding: 0 24px; background: var(--sv-bg); }
+.portal .sv-content-subtabs button { padding: 12px 14px; font-size: 12px; }

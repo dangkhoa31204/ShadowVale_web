@@ -20,16 +20,17 @@ export function ReleasesPage() { return isDemoMode ? <DemoReleasesPage /> : <Api
 function DemoReleasesPage() {
   const t = useTranslation();
   const { state, execute, busy } = useWorkspace(), { user } = useAuth();
+  const visibleReleases = state.releases.filter(r => user?.role !== 'designer' || r.status !== 'archived');
   const active = state.releases.find(r => r.id === state.activeReleaseId);
-  const [beforeId, setBeforeId] = useState(state.releases[1]?.id || state.releases[0]?.id || '');
-  const [afterId, setAfterId] = useState(state.releases[0]?.id || '');
+  const [beforeId, setBeforeId] = useState(visibleReleases[1]?.id || visibleReleases[0]?.id || '');
+  const [afterId, setAfterId] = useState(visibleReleases[0]?.id || '');
   const [confirm, setConfirm] = useState<Confirmation | null>(null);
   const [reason, setReason] = useState('');
   const [detailId, setDetailId] = useState('');
   const detailRef = useRef<HTMLElement>(null);
   const [params, setParams] = useSearchParams();
   const view = params.get('source') === 'game' ? 'game' : 'content';
-  const before = state.releases.find(r => r.id === beforeId), after = state.releases.find(r => r.id === afterId);
+  const before = visibleReleases.find(r => r.id === beforeId), after = visibleReleases.find(r => r.id === afterId);
   const approved = state.drafts.filter(d => d.status === 'approved');
   const canPublish = !!user && can(user.role, 'publish');
   const canCompare = user?.role !== 'admin';
@@ -88,7 +89,7 @@ function DemoReleasesPage() {
         <div className="sv-panel-heading"><h2>{t("Content versions")}</h2></div>
         <div className="sv-table-wrap sv-release-table-wrap"><Table className="sv-table sv-release-table">
           <thead><tr><th>{t("Version")}</th><th>{t("Label")}</th><th>{t("Published")}</th><th>{t("Published by")}</th><th>{t("Status")}</th><th>{t("Actions")}</th></tr></thead>
-          <tbody>{state.releases.map(r => {
+          <tbody>{visibleReleases.map(r => {
             const parentId = state.drafts.find(d => d.id === r.sourceDraftId)?.parent_version_id;
             const baseline = state.releases.find(entry => entry.sourceDraftId === parentId);
             return <Fragment key={r.id}>
@@ -127,8 +128,8 @@ function DemoReleasesPage() {
 
       {canCompare && <section className="sv-panel">
         <div className="sv-panel-heading"><h2>{t("Compare versions")}</h2><div className="sv-compare-controls sv-form">
-          <label>{t("From")}<select value={beforeId} onChange={e => setBeforeId(e.target.value)}>{state.releases.map(r => <option key={r.id} value={r.id}>#{r.version_no} · {r.label}</option>)}</select></label><Icon name="arrow_forward" />
-          <label>{t("To")}<select value={afterId} onChange={e => setAfterId(e.target.value)}>{state.releases.map(r => <option key={r.id} value={r.id}>#{r.version_no} · {r.label}</option>)}</select></label>
+          <label>{t("From")}<select value={beforeId} onChange={e => setBeforeId(e.target.value)}>{visibleReleases.map(r => <option key={r.id} value={r.id}>#{r.version_no} · {r.label}</option>)}</select></label><Icon name="arrow_forward" />
+          <label>{t("To")}<select value={afterId} onChange={e => setAfterId(e.target.value)}>{visibleReleases.map(r => <option key={r.id} value={r.id}>#{r.version_no} · {r.label}</option>)}</select></label>
         </div></div>
         {after ? <BundleDetails key={beforeId + afterId} before={before?.bundle} after={after.bundle} /> : <Empty title={t("No versions")} />}
       </section>}

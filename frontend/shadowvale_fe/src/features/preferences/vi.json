@@ -781,5 +781,6 @@
   "Remove this record? Related references must be updated before submitting.": "Xóa nội dung này? Cần cập nhật các tham chiếu liên quan trước khi gửi duyệt.",
   "Key fields are locked for existing records.": "Các trường khóa đã được khóa với bản ghi hiện có.",
   "Local draft — not synced to the server. Save/export stores this report in your browser. Reports and images cannot be submitted through the current BE.": "Bản nháp local — chưa đồng bộ server. Báo cáo được lưu trên trình duyệt. BE chưa hỗ trợ gửi báo cáo và ảnh.",
-  "Local report could not be loaded. Gameplay content is still available.": "Không tải được báo cáo local. Bạn vẫn có thể chỉnh sửa nội dung gameplay."
+  "Local report could not be loaded. Gameplay content is still available.": "Không tải được báo cáo local. Bạn vẫn có thể chỉnh sửa nội dung gameplay.",
+  "Content groups": "Nhóm nội dung"
 }

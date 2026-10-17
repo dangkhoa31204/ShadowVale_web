@@ -354,3 +354,37 @@ test('new record keys remain selectable until saved, including nullable weapon a
  assert.equal(api.isExistingRecord('weapons',fresh,[...saved,fresh]),true);
  assert.equal(api.recordEditorFields('items',api.apiFields('items'),false).find(f=>f.key==='code').readOnly,false);
 });
+
+test('designer presentation keeps every collection and preserves hidden values in the API request', () => {
+  assert.equal(api.contentGroups.length, 7);
+  assert.equal(new Set(api.contentGroups.flat()).size, 14);
+  const data = entities();
+  data.items.push({ id: 'medkit-id', code: 'medkit', name: 'Medkit', description: null, type: 'Consumable', rarity: 'Common', maxStack: 5, weight: 1, baseValue: 3, stats: {}, iconKey: null, weapon: null, updatedAt: version.updatedAt,
+    consumable: { healHp: 25, restoreStamina: 7, useTimeSeconds: 2, cures: ['bleeding'], extraEffects: { duration: 4 } } });
+  const bundle = api.entitiesToEditor(version, data);
+  const current = bundle.consumables[0];
+  const shown = api.designerRecord('consumables', current);
+  assert.equal(Object.hasOwn(shown, 'restore_stamina'), false);
+  assert.equal(Object.hasOwn(shown, 'cures'), false);
+  assert.equal(Object.hasOwn(shown, 'extra_effects'), false);
+  assert.equal(Object.hasOwn(current, 'cures'), true);
+  bundle.consumables[0] = api.restoreDesignerFields('consumables', current, { ...shown, heal_hp: 40 });
+  const saved = api.editorToEntities(bundle).items.find(i => i.code === 'medkit').consumable;
+  assert.deepEqual(saved, { healHp: 40, restoreStamina: 7, useTimeSeconds: 2, cures: ['bleeding'], extraEffects: { duration: 4 } });
+});
+test('hidden settings survive JSON edits without adding absent keys or allowing hidden overwrites', () => {
+  const examples = [
+    ['crafting_recipes', { code: 'recipe', name: 'Before', required_skill_code: 'engineering', required_skill_level: 2, station: 'workbench' }],
+    ['quests', { code: 'quest', title: 'Before', reward_xp: 50, prerequisites: ['intro'], is_main: true, sort_order: 8 }],
+    ['enemy_types', { code: 'guard', name: 'Before', accuracy: 0.7, fsm_params: { search: 8 } }],
+  ];
+  for (const [collection, current] of examples) {
+    const visible = api.designerRecord(collection, current);
+    const editableKey = collection === 'quests' ? 'title' : 'name';
+    assert.deepEqual(api.restoreDesignerFields(collection, current, { ...visible, [editableKey]: 'After' }), { ...current, [editableKey]: 'After' });
+  }
+  assert.deepEqual(api.restoreDesignerFields('consumables', { item_code: 'medkit', heal_hp: 5 }, { item_code: 'medkit', heal_hp: 10 }), { item_code: 'medkit', heal_hp: 10 });
+  assert.throws(() => api.restoreDesignerFields('enemy_types', examples[2][1], { ...api.designerRecord('enemy_types', examples[2][1]), accuracy: 0.1 }), /not available/);
+  assert.throws(() => api.restoreDesignerFields('items', { code: 'new', item_type: 'material' }, { code: 'new', item_type: 'armor' }), /Armor/);
+  assert.equal(api.restoreDesignerFields('items', { code: 'old', item_type: 'armor' }, { code: 'old', item_type: 'armor' }).item_type, 'armor');
+});

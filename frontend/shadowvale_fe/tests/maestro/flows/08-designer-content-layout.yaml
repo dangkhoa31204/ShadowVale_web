@@ -1,0 +1,51 @@
+url: http://127.0.0.1:15174/login?redirect=%2Fadmin%2Fcontent%2F00000000-0000-4000-8000-000000000002
+name: Designer content groups hide unsupported settings
+---
+- launchApp:
+    clearState: true
+- tapOn:
+    id: login-username
+- inputText: designer
+- tapOn:
+    id: Password
+- inputText: UiTest123!
+- tapOn:
+    id: login-submit
+- scrollUntilVisible:
+    element:
+      id: content-group-items
+    direction: DOWN
+- assertVisible:
+    id: content-table-weapons
+- tapOn:
+    id: content-table-consumables
+- scrollUntilVisible:
+    element: Heal HP
+    direction: DOWN
+- assertNotVisible: Restore stamina
+- assertNotVisible: Cures
+- assertNotVisible: Extra effects
+- scrollUntilVisible:
+    element:
+      id: content-group-crafting_recipes
+    direction: UP
+- tapOn:
+    id: content-group-crafting_recipes
+- assertVisible:
+    id: content-table-crafting_recipe_ingredients
+- assertNotVisible: Required skill
+- assertNotVisible: Required skill level
+- assertNotVisible: Station
+- tapOn:
+    id: content-group-quests
+- assertVisible:
+    id: content-table-quest_rewards
+- assertNotVisible: Reward XP
+- assertNotVisible: Main quest
+- assertNotVisible: Prerequisites
+- assertNotVisible: Sort order
+- tapOn:
+    id: content-group-enemy_types
+- assertNotVisible: Accuracy
+- assertNotVisible: FSM parameters
+- takeScreenshot: designer-content-groups

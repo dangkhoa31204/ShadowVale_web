@@ -18,3 +18,5 @@ export { compareBundles } from '../src/features/content/validation';
 export { usersApi } from '../src/features/administration/usersApi';
 export { readPreferences, formatTranslation } from '../src/features/preferences/preferences';
 export { isExistingRecord, recordEditorFields, assertReadOnlyFields } from '../src/features/content/recordFieldPolicy';
+
+export * from '../src/features/content/designerPresentation';

@@ -13,6 +13,7 @@ export function mockApi() {
   const versions = [
     { id: publishedId, versionNo: 1, label: 'Maestro published content', status: 'Published', publishedAt: createdAt },
     { id: draftId, versionNo: 2, label: 'Maestro draft content', status: 'Draft', publishedAt: null },
+    { id: '00000000-0000-4000-8000-000000000003', versionNo: 3, label: 'Maestro archived content', status: 'Archived', publishedAt: createdAt, archivedAt: createdAt },
   ].map(v => ({ changelog: 'Local UI fixture only', parentVersionId: null, revision: 1, schemaVersion: '1.0', validationErrors: [], authoredById: 'designer', submittedAt: null, reviewedById: 'admin', reviewedAt: createdAt, reviewNote: null, publishedById: 'admin', archivedAt: null, createdAt, updatedAt: createdAt, validatedAt: createdAt, bundleChecksum: 'ui-fixture-checksum', ...v }));
   const entities = Object.fromEntries(versions.map(v => {
     const bundle = structuredClone(seed);
