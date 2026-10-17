@@ -21,14 +21,15 @@ import { ApiReleasesPage } from './ApiVersions';
 export function ReleasesPage() { return isDemoMode ? <DemoReleasesPage /> : <ApiReleasesPage />; }
 function DemoReleasesPage() {
   const { state, execute, busy } = useWorkspace(), { user } = useAuth();
+  const visibleReleases = state.releases.filter(r => user?.role !== 'designer' || r.status !== 'archived');
   const active = state.releases.find(r => r.id === state.activeReleaseId);
-  const [beforeId, setBeforeId] = useState(state.releases[1]?.id || state.releases[0]?.id || '');
-  const [afterId, setAfterId] = useState(state.releases[0]?.id || '');
+  const [beforeId, setBeforeId] = useState(visibleReleases[1]?.id || visibleReleases[0]?.id || '');
+  const [afterId, setAfterId] = useState(visibleReleases[0]?.id || '');
   const [confirm, setConfirm] = useState<{ id: string } | null>(null);
   const [reason, setReason] = useState('');
   const [detailId, setDetailId] = useState('');
   const detailRef = useRef<HTMLElement>(null);
-  const before = state.releases.find(r => r.id === beforeId), after = state.releases.find(r => r.id === afterId);
+  const before = visibleReleases.find(r => r.id === beforeId), after = visibleReleases.find(r => r.id === afterId);
   const approved = state.drafts.filter(d => d.status === 'approved');
   const canPublish = !!user && can(user.role, 'publish');
   const target = state.releases.find(r => r.id === confirm?.id);
@@ -57,7 +58,7 @@ function DemoReleasesPage() {
     const version = state.drafts.find(d => d.id === id) || state.releases.find(r => r.sourceDraftId === id);
     return version ? '#' + version.version_no : id;
   }
-  const versionOptions = state.releases.map(r => <NativeSelectOption key={r.id} value={r.id}>#{r.version_no} · {r.label}</NativeSelectOption>);
+  const versionOptions = visibleReleases.map(r => <NativeSelectOption key={r.id} value={r.id}>#{r.version_no} · {r.label}</NativeSelectOption>);
 
   return <div className="sv-page">
     <PageHeading title={canPublish ? "Publish versions" : "Versions"} />
@@ -75,7 +76,7 @@ function DemoReleasesPage() {
     <Panel title="Content versions">
       <Table className={panelTable}>
         <TableHeader><TableRow>{['Version', 'Label', 'Published', 'Published by', 'Status', 'Actions'].map(h => <TableHead key={h}>{h}</TableHead>)}</TableRow></TableHeader>
-        <TableBody>{state.releases.map(r => {
+        <TableBody>{visibleReleases.map(r => {
           const parentId = state.drafts.find(d => d.id === r.sourceDraftId)?.parent_version_id;
           const baseline = state.releases.find(entry => entry.sourceDraftId === parentId);
           return <Fragment key={r.id}>

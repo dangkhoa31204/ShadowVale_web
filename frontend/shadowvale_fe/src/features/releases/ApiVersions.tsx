@@ -60,9 +60,9 @@ function QueueItem({active,onClick,children}:{active:boolean;onClick:()=>void;ch
 export function ApiReviewsPage(){
   const {state,execute,busy,reload}=useWorkspace();
   const [params,setParams]=useSearchParams();
-  const [note,setNote]=useState(''),[status,setStatus]=useState(() => params.get('status') || (params.get('draft')?'all':'in_review'));
+  const [note,setNote]=useState(''),[status,setStatus]=useState(() => params.get('status') === 'archived' ? 'all' : params.get('status') || (params.get('draft')?'all':'in_review'));
   const [search,setSearch]=useState(''),[page,setPage]=useState(1),[error,setError]=useState(''),[ready,setReady]=useState('');
-  const all=state.drafts.filter(d=>d.status!=='draft');
+  const all=state.drafts.filter(d=>d.status!=='draft'&&d.status!=='archived');
   const pending=all.filter(d=>d.status==='in_review');
   const submissions=all.filter(d=>(status==='all'||d.status===status)&&('#'+d.version_no+' '+d.label+' '+d.authorName).toLowerCase().includes(search.toLowerCase()))
     .sort((a,b)=>status==='in_review'?(a.submitted_at||a.updatedAt).localeCompare(b.submitted_at||b.updatedAt):b.version_no-a.version_no);
@@ -131,7 +131,8 @@ export function ApiReleasesPage(){
     await execute({type:'restoreRelease',id:confirm.id,reason});
     setConfirm(null);setReason('');
   }catch(e){setError(errorMessage(e));}}
-  const filtered=state.releases.filter(r=>(status==='all'||r.status===status)&&('#'+r.version_no+' '+r.label).toLowerCase().includes(search.toLowerCase()));
+  const filtered=state.releases.filter(r=>(admin||r.status!=='archived')&&(status==='all'||r.status===status)&&('#'+r.version_no+' '+r.label).toLowerCase().includes(search.toLowerCase()));
+  const compareVersions=state.drafts.filter(d=>admin||d.status!=='archived');
   const entries=filtered.slice((page-1)*20,page*20);
   const selected=state.drafts.find(d=>d.id===detail);
   const baseline=selected?.parent_version_id||(state.activeReleaseId!==selected?.id?state.activeReleaseId:undefined);
@@ -153,7 +154,7 @@ export function ApiReleasesPage(){
         <TabsList variant="line" aria-label="Version information" className="h-12">{([['versions','Published versions'],...(admin?[['history','Publication history']]:[]),['compare','Compare versions']] as [typeof tab,string][]).map(([value,label])=><TabsTrigger key={value} value={value} className="flex-none">{label}</TabsTrigger>)}</TabsList>
       </Tabs>
       {tab==='versions'?<>
-        <div className="grid grid-cols-2 items-end gap-4 border-b p-5 md:grid-cols-[minmax(220px,2fr)_minmax(160px,1fr)_auto]"><Field className="col-span-2 md:col-span-1"><FieldLabel htmlFor="release-search">Find version</FieldLabel><Input id="release-search" type="search" value={search} placeholder="Version number or title" onChange={e=>{setSearch(e.target.value);setPage(1);}}/></Field><Field><FieldLabel htmlFor="release-status">Status</FieldLabel><NativeSelect id="release-status" className="w-full" value={status} onChange={e=>{setStatus(e.target.value);setPage(1);}}><NativeSelectOption value="all">All published versions</NativeSelectOption><NativeSelectOption value="published">Live</NativeSelectOption><NativeSelectOption value="archived">Archived</NativeSelectOption></NativeSelect></Field><span className="pb-2 text-xs text-muted-foreground">{filtered.length} versions</span></div>
+        <div className="grid grid-cols-2 items-end gap-4 border-b p-5 md:grid-cols-[minmax(220px,2fr)_minmax(160px,1fr)_auto]"><Field className="col-span-2 md:col-span-1"><FieldLabel htmlFor="release-search">Find version</FieldLabel><Input id="release-search" type="search" value={search} placeholder="Version number or title" onChange={e=>{setSearch(e.target.value);setPage(1);}}/></Field><Field><FieldLabel htmlFor="release-status">Status</FieldLabel><NativeSelect id="release-status" className="w-full" value={status} onChange={e=>{setStatus(e.target.value);setPage(1);}}><NativeSelectOption value="all">All published versions</NativeSelectOption><NativeSelectOption value="published">Live</NativeSelectOption>{admin&&<NativeSelectOption value="archived">Archived</NativeSelectOption>}</NativeSelect></Field><span className="pb-2 text-xs text-muted-foreground">{filtered.length} versions</span></div>
         <Table className={panelTable}><TableHeader><TableRow><TableHead>Version</TableHead><TableHead>Status</TableHead><TableHead>Published</TableHead><TableHead>Actions</TableHead></TableRow></TableHeader><TableBody>{entries.map(r=><TableRow key={r.id}><TableCell><div className="font-medium">#{r.version_no} · {r.label}</div><div className="text-xs text-muted-foreground">{r.publishedBy}</div></TableCell><TableCell><Status value={r.status}/></TableCell><TableCell>{dateLabel(r.publishedAt)}</TableCell><TableCell><div className="flex gap-2"><Button variant="outline" size="sm" onClick={()=>setDetail(r.id)}>View changes</Button>{admin&&r.status==='archived'&&<Button variant="outline" size="sm" disabled={busy} onClick={()=>{setError('');setReason('');setConfirm({id:r.id});}}>Rollback</Button>}</div></TableCell></TableRow>)}</TableBody></Table>
         {!entries.length&&<Empty title="No matching versions"/>}{filtered.length>20&&<Pager page={page} setPage={setPage} total={filtered.length}/>}
       </>:tab==='history'?<>
@@ -162,7 +163,7 @@ export function ApiReleasesPage(){
         {!state.publications.length&&<Empty title="No publication history"/>}{state.publications.length>20&&<Pager page={historyPage} setPage={setHistoryPage} total={state.publications.length}/>}
       </>:<>
         <div className="border-b px-6 py-4"><h2 className="font-semibold">Compare versions</h2><p className="text-xs text-muted-foreground">Choose a baseline and a target version.</p></div>
-        <div className="grid gap-4 border-b p-6 sm:grid-cols-2">{([['Baseline',before,setBefore],['Target',after,setAfter]] as const).map(([label,value,set])=><Field key={label}><FieldLabel htmlFor={'compare-'+label}>{label}</FieldLabel><NativeSelect id={'compare-'+label} className="w-full" value={value} onChange={e=>set(e.target.value)}><NativeSelectOption value="">Choose version</NativeSelectOption>{state.drafts.map(d=><NativeSelectOption key={d.id} value={d.id}>#{d.version_no} · {d.label}</NativeSelectOption>)}</NativeSelect></Field>)}</div>
+        <div className="grid gap-4 border-b p-6 sm:grid-cols-2">{([['Baseline',before,setBefore],['Target',after,setAfter]] as const).map(([label,value,set])=><Field key={label}><FieldLabel htmlFor={'compare-'+label}>{label}</FieldLabel><NativeSelect id={'compare-'+label} className="w-full" value={value} onChange={e=>set(e.target.value)}><NativeSelectOption value="">Choose version</NativeSelectOption>{compareVersions.map(d=><NativeSelectOption key={d.id} value={d.id}>#{d.version_no} · {d.label}</NativeSelectOption>)}</NativeSelect></Field>)}</div>
         {before&&after?<ApiCompare key={before+after} beforeId={before} afterId={after}/>:<Empty title="Choose two versions" description="The comparison shows additions, removals and field changes."/>}
       </>}
     </Panel>

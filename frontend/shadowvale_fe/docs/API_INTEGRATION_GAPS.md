@@ -97,6 +97,8 @@ Admin/Analyst được CRUD solver và xuất CSV. Admin không mở trang autho
 
 Báo cáo và ảnh ghi **Local draft — chưa đồng bộ server**, lưu browser theo
 account/version. Cho save/export review package, khóa gửi report lên server.
+Báo cáo nằm trong tab **Change report** của **Content authoring** theo từng version;
+không còn mục sidebar riêng. URL `change-reports` cũ chuyển về tab này, giữ dữ liệu local.
 Gửi gameplay content cho review vẫn độc lập. Admin không nhận local report như
 dữ liệu server. Game changes/Game bundle hiển thị lý do thiếu API; không báo
 upload/publish giả. Ảnh dẫn chứng không phải asset bundle cập nhật Unity.

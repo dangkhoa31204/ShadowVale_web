@@ -1,0 +1,21 @@
+url: http://127.0.0.1:15174/login?redirect=%2Fadmin%2Freleases
+name: Designer Versions hides archived releases
+---
+- launchApp:
+    clearState: true
+- tapOn:
+    id: login-username
+- inputText: designer
+- tapOn:
+    id: login-password
+- inputText: UiTest123!
+- tapOn:
+    id: login-submit
+- assertVisible: Published versions
+- assertVisible: 1 versions
+- assertNotVisible: Maestro archived content
+- assertNotVisible: Archived
+- tapOn: All published versions
+- assertVisible: Live
+- assertNotVisible: Archived
+- takeScreenshot: designer-versions-no-archived

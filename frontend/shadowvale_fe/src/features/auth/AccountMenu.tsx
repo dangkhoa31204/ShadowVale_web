@@ -6,7 +6,7 @@ import { Icon } from '../shared/ui';
 export function AccountMenu() {
   const { user, logout } = useAuth();
   return <DropdownMenu>
-    <DropdownMenuTrigger asChild><Button variant="outline" size="sm" aria-label="Account"><Icon name="account_circle" /><span className="sv-account-name">{user?.callsign}</span><Icon name="expand_more" /></Button></DropdownMenuTrigger>
+    <DropdownMenuTrigger asChild><Button id="account-menu-trigger" variant="outline" size="sm" aria-label="Account"><Icon name="account_circle" /><span className="sv-account-name">{user?.callsign}</span><Icon name="expand_more" /></Button></DropdownMenuTrigger>
     <DropdownMenuContent align="end" className="w-64">
       <DropdownMenuLabel className="grid"><strong className="font-medium text-foreground">{user?.callsign}</strong><small className="text-xs font-normal [overflow-wrap:anywhere]">{user?.email}</small></DropdownMenuLabel>
       <DropdownMenuSeparator />

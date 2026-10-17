@@ -7,7 +7,7 @@ name: Admin Full content scrolling and change password navigation
     id: login-username
 - inputText: admin
 - tapOn:
-    id: Password
+    id: login-password
 - inputText: UiTest123!
 - tapOn:
     id: login-submit
@@ -50,10 +50,10 @@ name: Admin Full content scrolling and change password navigation
 - assertNotVisible: VERSION DETAILS
 - scrollUntilVisible:
     element:
-      id: Account
+      id: account-menu-trigger
     direction: UP
 - tapOn:
-    id: Account
+    id: account-menu-trigger
 - tapOn: Change password
 - assertVisible: Current password
 - assertVisible: Confirm new password

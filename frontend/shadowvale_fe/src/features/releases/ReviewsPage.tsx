@@ -22,7 +22,7 @@ function DemoReviewsPage() {
   const [note, setNote] = useState('');
   const [status, setStatus] = useState('all');
 
-  const submissions = state.drafts.filter(d => d.status !== 'draft');
+  const submissions = state.drafts.filter(d => d.status !== 'draft' && d.status !== 'archived');
   const visible = submissions.filter(d => status === 'all' || d.status === status);
   const draft = visible.find(d => d.id === selectedId) || visible.find(d => d.status === 'in_review') || visible[0];
   const baseline = state.releases.find(r => r.sourceDraftId === draft?.parent_version_id);
@@ -35,7 +35,7 @@ function DemoReviewsPage() {
   return <div className="sv-page"><PageHeading title="Review content" action={<Button variant="outline" disabled={busy} onClick={() => void reload()}><Icon name="sync" />Refresh submissions</Button>} />
     <div className="grid items-start gap-6 lg:grid-cols-[minmax(260px,340px)_minmax(0,1fr)]">
       <Panel title="Submissions">
-        <Field className="border-b p-5"><FieldLabel htmlFor="review-status">Status</FieldLabel><NativeSelect id="review-status" className="w-full" value={status} onChange={e => { setStatus(e.target.value); setSelectedId(''); setNote(''); }}>{[['all', 'All submissions'], ['in_review', 'In review'], ['approved', 'Approved'], ['rejected', 'Rejected'], ['published', 'Published'], ['archived', 'Archived']].map(([value, label]) => <NativeSelectOption key={value} value={value}>{label}</NativeSelectOption>)}</NativeSelect></Field>
+        <Field className="border-b p-5"><FieldLabel htmlFor="review-status">Status</FieldLabel><NativeSelect id="review-status" className="w-full" value={status} onChange={e => { setStatus(e.target.value); setSelectedId(''); setNote(''); }}>{[['all', 'All submissions'], ['in_review', 'In review'], ['approved', 'Approved'], ['rejected', 'Rejected'], ['published', 'Published']].map(([value, label]) => <NativeSelectOption key={value} value={value}>{label}</NativeSelectOption>)}</NativeSelect></Field>
         {visible.map(d => <button key={d.id} aria-current={draft?.id === d.id || undefined} className={cn('grid w-full gap-1 border-b border-l-2 border-l-transparent px-5 py-4 text-left transition-colors last:border-b-0 hover:bg-muted/50', draft?.id === d.id && 'border-l-primary bg-primary/5')} onClick={() => { setSelectedId(d.id); setNote(''); }}><strong className="text-sm font-medium">{d.label}</strong><small className="text-xs text-muted-foreground">#{d.version_no} · {d.authorName}</small><Status value={d.status} /></button>)}
         {!visible.length && <Empty title="No submissions" />}
       </Panel>

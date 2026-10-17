@@ -19,6 +19,7 @@ import { validateBundle } from './workspaceService';
 import { Empty, Icon, PageHeading, Status } from '../shared/ui';
 import { useConfirm } from '../shared/confirmContext';
 import { NumericControl } from '../shared/NumericControl';
+import { contentGroups, designerFields, designerRecord, restoreDesignerFields } from './designerPresentation';
 import { isDemoMode } from '../../config/environment';
 import { apiFields, validateEditor } from './apiModel';
 import { contentApi } from './contentApi';
@@ -109,6 +110,7 @@ function DraftEditor({ draft, enums }: { draft: Draft; enums?: EnumsDto }) {
   const editable = (draft.status === 'draft' || (!isDemoMode && draft.status === 'rejected')) && owner;
   const record = bundle[category][selected];
   const categoryInfo = collections.find(collection => collection.key === category)!;
+  const categoryGroup = contentGroups.find(group => group.includes(category))!;
   useEffect(() => {
     if (!dirty && !parseError) return;
     const warn = (event: BeforeUnloadEvent) => { event.preventDefault(); };
@@ -171,9 +173,18 @@ function DraftEditor({ draft, enums }: { draft: Draft; enums?: EnumsDto }) {
       <div className="sv-version-number"><small>Version number</small><strong>#{draft.version_no}</strong></div><div><small>Schema version</small><strong>{bundle.schema_version}</strong></div>
       <label className="sv-changelog">Changelog<Textarea rows={2} maxLength={4000} aria-invalid={!!serverFields['meta:changelog']} value={changelog} disabled={!editable} placeholder="What changed in this version?" onChange={event => { setChangelog(event.target.value); setBundle({ ...bundle, changelog: event.target.value }); setDirty(true); }} /><small role="alert">{serverFields['meta:changelog']}</small></label>
     </div>
-    <Tabs value={category} onValueChange={value => chooseCategory(value as CollectionKey)} className="overflow-x-auto border-b px-3 [scrollbar-width:thin]">
-      <TabsList variant="line" aria-label="Content table" className="h-12">{collections.map(collection => <TabsTrigger key={collection.key} value={collection.key} className="flex-none px-2.5"><Icon name={collection.icon} />{collection.label}<span className="text-xs text-muted-foreground">{bundle[collection.key].length}</span></TabsTrigger>)}</TabsList>
+    <Tabs value={categoryGroup[0]} onValueChange={value => chooseCategory(value as CollectionKey)} className="overflow-x-auto border-b px-3 [scrollbar-width:thin]">
+      <TabsList variant="line" aria-label="Content groups" className="h-12">{contentGroups.map(group => {
+        const collection = collections.find(collection => collection.key === group[0])!;
+        return <TabsTrigger key={collection.key} id={'content-group-'+collection.key} data-testid={'content-group-'+collection.key} value={collection.key} onClick={() => { if (categoryGroup[0] === collection.key) chooseCategory(collection.key); }} className="flex-none px-2.5"><Icon name={collection.icon} />{collection.label}<span className="text-xs text-muted-foreground">{bundle[collection.key].length}</span></TabsTrigger>;
+      })}</TabsList>
     </Tabs>
+    {categoryGroup.length > 1 && <Tabs value={category} onValueChange={value => chooseCategory(value as CollectionKey)} className="overflow-x-auto border-b bg-muted/20 px-3 [scrollbar-width:thin]">
+      <TabsList variant="line" aria-label="Content table" className="h-10">{categoryGroup.map(key => {
+        const collection = collections.find(collection => collection.key === key)!;
+        return <TabsTrigger key={key} id={'content-table-'+key} data-testid={'content-table-'+key} value={key} className="flex-none px-2.5"><Icon name={collection.icon} />{collection.label}<span className="text-xs text-muted-foreground">{bundle[key].length}</span></TabsTrigger>;
+      })}</TabsList>
+    </Tabs>}
     <div className="sv-content-columns"><aside className="sv-records"><div className="sv-records-heading"><strong>{categoryInfo.label}</strong>{editable && <Button variant="outline" size="icon-sm" title="New record" aria-label="New record" onClick={() => addRecord()} disabled={!!parseError}><Icon name="add" /></Button>}</div>
       <div className="relative mb-4"><Icon name="search" className="absolute top-1/2 left-2.5 -translate-y-1/2 text-muted-foreground" /><Input aria-label="Search content" className="pl-8" placeholder="Search records…" value={search} onChange={event => setSearch(event.target.value)} /></div>
       <div>{bundle[category].map((row, i) => ({ row, i })).filter(({ row }) => `${recordLabel(category, row, bundle)} ${recordIdentity(category, row)}`.toLowerCase().includes(search.toLowerCase())).map(({ row, i }) => <button key={i} className={'sv-record ' + (i === selected ? 'is-active' : '')} onClick={() => { if (!parseError) setSelected(i); }}><span><strong>{recordLabel(category, row, bundle)}</strong><small>{recordIdentity(category, row)}</small></span><Icon name="chevron_right" /></button>)}</div>
@@ -198,7 +209,7 @@ function StringArrayField({ field, value, disabled, onChange }: { field: FieldDe
 }
 
 function RecordEditor({ collection, bundle, record, existing, editable, enums, serverErrors, onChange, onError }: { collection: CollectionKey; bundle: ContentBundle; record: ContentRecord; existing: boolean; editable: boolean; enums?: EnumsDto; serverErrors: Record<string, string>; onChange: (row: ContentRecord) => void; onError: (message: string) => void }) {
-  const [raw, setRaw] = useState(() => JSON.stringify(record, null, 2));
+  const [raw, setRaw] = useState(() => JSON.stringify(designerRecord(collection, record), null, 2));
   const [formRevision, setFormRevision] = useState(0);
   const fieldErrors = useRef<Record<string, string>>({});
   function report(key: string, message: string) {
@@ -207,12 +218,13 @@ function RecordEditor({ collection, bundle, record, existing, editable, enums, s
   }
   function field(key: string, value: JsonValue) {
     if (!editable || definitions.find(field => field.key === key)?.readOnly) return;
-    const next = { ...record, [key]: value }; setRaw(JSON.stringify(next, null, 2)); report('JSON', ''); report(key, ''); onChange(next);
+    const next = { ...record, [key]: value }; setRaw(JSON.stringify(designerRecord(collection, next), null, 2)); report('JSON', ''); report(key, ''); onChange(next);
   }
   const definitions = recordEditorFields(collection, isDemoMode ? schemaFields[collection] : apiFields(collection, enums), existing);
+  const visibleDefinitions = designerFields(collection, definitions);
   return <><div className="sv-record-title"><div><span className="sv-eyebrow">{(collections.find(item => item.key === collection)?.label || '')}</span><h2>{recordLabel(collection, record, bundle)}</h2></div><span className="sv-mono">{recordIdentity(collection, record)}</span></div>
     {editable && existing && <p className="sv-key-lock-note sv-field-help"><Icon name="lock" />Key fields are locked for existing records.</p>}
-    <div className="sv-field-grid sv-form">{definitions.filter(definition => definition.type !== 'json' && !['content_version_id', 'created_at', 'updated_at'].includes(definition.key)).map(definition => {
+    <div className="sv-field-grid sv-form">{visibleDefinitions.filter(definition => definition.type !== 'json' && !['content_version_id', 'created_at', 'updated_at'].includes(definition.key)).map(definition => {
       const value = Object.hasOwn(record, definition.key) ? record[definition.key] : definition.defaultValue ?? null;
       const disabled = !editable || definition.readOnly;
       if (definition.type === 'number') return <NumericControl key={definition.key + ':' + formRevision} label={definition.label} serverError={serverErrors[definition.key]} value={typeof value === 'number' ? value : null} disabled={disabled} nullable={definition.nullable}
@@ -220,7 +232,7 @@ function RecordEditor({ collection, bundle, record, existing, editable, enums, s
         onChange={value => field(definition.key, value)} onError={message => report(definition.label, message)} />;
       if (definition.type === 'string-array') return <StringArrayField key={definition.key + ':' + formRevision} field={definition} value={value} disabled={!!disabled} onChange={value => field(definition.key, value)} />;
       if (definition.type === 'enum' || definition.type === 'boolean' || definition.type === 'reference') {
-        const options = definition.type === 'reference' ? referenceOptions(definition, bundle) : definition.type === 'boolean' ? [{ value: 'true', label: 'Yes' }, { value: 'false', label: 'No' }] : (definition.options ?? []).map(value => ({ value, label: value.replaceAll('_', ' ').replace(/^./, char => char.toUpperCase()) }));
+        const options = definition.type === 'reference' ? referenceOptions(definition, bundle) : definition.type === 'boolean' ? [{ value: 'true', label: 'Yes' }, { value: 'false', label: 'No' }] : (definition.options ?? []).filter(option => collection !== 'items' || definition.key !== 'item_type' || option !== 'armor' || record.item_type === 'armor').map(value => ({ value, label: value.replaceAll('_', ' ').replace(/^./, char => char.toUpperCase()) }));
         const selected = value === null ? '' : String(value);
         return <label key={definition.key}>{definition.label}<NativeSelect className="w-full" data-testid={'field-'+collection+'-'+definition.key} aria-invalid={!!serverErrors[definition.key]} disabled={disabled} value={selected} onChange={event => field(definition.key, definition.type === 'boolean' ? event.target.value === 'true' : event.target.value || null)}>
           {definition.type !== 'boolean' && <NativeSelectOption value="">{definition.nullable ? 'None' : 'Choose ' + definition.label}</NativeSelectOption>}
@@ -230,13 +242,14 @@ function RecordEditor({ collection, bundle, record, existing, editable, enums, s
       }
       return <label key={definition.key}>{definition.label}<Input aria-invalid={!!serverErrors[definition.key]} type="text" value={String(value ?? '')} disabled={disabled} required={definition.required} pattern={definition.pattern} maxLength={definition.maxLength} onChange={event => field(definition.key, definition.nullable && !event.target.value ? null : event.target.value)} /><small role="alert">{serverErrors[definition.key]}</small></label>;
     })}</div>
-    <details className="sv-json-editor"><summary>Advanced JSON {definitions.some(field => field.type === 'json') ? ' · ' + definitions.filter(field => field.type === 'json').map(field => field.label).join(', ') : ''}</summary><Textarea className="min-h-72 rounded-none border-0 border-t font-mono text-xs" aria-label="Record JSON" spellCheck={false} disabled={!editable} value={raw} onChange={event => {
+    <details className="sv-json-editor"><summary>Advanced JSON {visibleDefinitions.some(field => field.type === 'json') ? ' · ' + visibleDefinitions.filter(field => field.type === 'json').map(field => field.label).join(', ') : ''}</summary><Textarea className="min-h-72 rounded-none border-0 border-t font-mono text-xs" aria-label="Record JSON" spellCheck={false} disabled={!editable} value={raw} onChange={event => {
       const value = event.target.value; setRaw(value);
       try {
         const parsed: unknown = JSON.parse(value);
         if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) throw new Error('Record must be a JSON object.');
-        assertReadOnlyFields(definitions, record, parsed as ContentRecord);
-        fieldErrors.current = {}; setFormRevision(revision => revision + 1); onError(''); onChange(parsed as ContentRecord);
+        const next = restoreDesignerFields(collection, record, parsed as ContentRecord);
+        assertReadOnlyFields(definitions, record, next);
+        fieldErrors.current = {}; setFormRevision(revision => revision + 1); onError(''); onChange(next);
       } catch (error) { report('JSON', error instanceof Error ? error.message : 'Invalid JSON.'); }
     }} /></details></>;
 }
