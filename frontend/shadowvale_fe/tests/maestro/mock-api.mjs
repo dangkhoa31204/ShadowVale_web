@@ -1,5 +1,6 @@
 import seed from '../../src/features/content/contracts/demo-bundle.json' with { type: 'json' };
 import { editorToEntities, entitiesToEditor, resources } from '../../src/features/content/apiModel.ts';
+import { compareBundles } from '../../src/features/content/validation.ts';
 
 const publishedId = '00000000-0000-4000-8000-000000000001';
 const draftId = '00000000-0000-4000-8000-000000000002';
@@ -7,7 +8,23 @@ const createdAt = '2026-10-13T00:00:00Z';
 const page = items => ({ items, page: 1, pageSize: 100, totalCount: items.length, totalPages: 1 });
 const user = role => ({ id: role, username: role, fullName: `UI Test ${role}`, email: `${role}@example.test`, role: role[0].toUpperCase() + role.slice(1), isActive: true, createdAt });
 const auth = role => ({ user: user(role), accessToken: `ui-test-${role}`, refreshToken: `ui-refresh-${role}`, accessTokenExpiresAt: '2099-01-01T00:00:00Z', refreshTokenExpiresAt: '2099-02-01T00:00:00Z' });
-const enums = { solverAlgorithms: [], solverFamilies: [], sessionOutcomes: [], encounterOutcomes: [], sessionSources: ['Human', 'Replay'], itemTypes: ['Weapon','Ammo','Consumable','Material','Quest'], itemRarities: ['Common','Uncommon','Rare','Epic','Legendary'], weaponClasses: ['Pistol','Rifle','Smg','Shotgun','Sniper','Melee'], skillTypes: ['Active','Passive'], contentStatuses: ['Draft','InReview','Approved','Published','Rejected','Archived'] };
+const enums = { solverAlgorithms: ['Greedy','Genetic','ClassicalSa','Sqa','Qiea','Qaoa','QpuDwave'], solverFamilies: ['classical','quantum_inspired','quantum_hardware'], sessionOutcomes: [], encounterOutcomes: [], sessionSources: ['Human', 'Replay'], itemTypes: ['Weapon','Ammo','Consumable','Material','Quest'], itemRarities: ['Common','Uncommon','Rare','Epic','Legendary'], weaponClasses: ['Pistol','Rifle','Smg','Shotgun','Sniper','Melee'], skillTypes: ['Active','Passive'], contentStatuses: ['Draft','InReview','Approved','Published','Rejected','Archived'] };
+
+// Aggregate analytics fixtures in the BE DTO shapes (numbers only; no player identities).
+const solverConfigs = [['greedy_default','Greedy','classical'],['sa_default','ClassicalSa','classical'],['sqa_default','Sqa','quantum_inspired'],['qaoa_default','Qaoa','quantum_inspired']]
+  .map(([code, algorithm, family], i) => ({ id: `solver-${i + 1}`, code, name: code.replace('_default', '').toUpperCase() + ' default', algorithm, family, variant: 'default', library: null, params: {}, quboWeights: {},
+    timeBudgetMs: 250, isActive: i < 3, isAbArm: family !== 'quantum_hardware', sessionCount: i < 2 ? 12 : 0, resultCount: i < 2 ? 40 : 0, createdAt, updatedAt: createdAt }));
+const analytics = {
+  '/analytics/funnel': { sessionsStarted: 52, objectives: [{ objectiveIndex: 1, sessions: 44, shareOfStarted: 44 / 52 }, { objectiveIndex: 2, sessions: 33, shareOfStarted: 33 / 52 }], missionsCompleted: 31, completionRate: 31 / 52 },
+  '/analytics/weapons': { finishedSessions: 55, weapons: [['rifle_standard', 410, 61, 30], ['smg_compact', 288, 37, 22], ['pistol_silenced', 96, 19, 17], ['sniper_bolt', 41, 14, 9]]
+    .map(([weapon, shots, kills, sessionsUsed]) => ({ weapon, shots, kills, killsPerShot: kills / shots, sessionsUsed, sessionShare: sessionsUsed / 55 })) },
+  '/analytics/playstyle': { finishedSessions: 55, sessionsWithoutKills: 6, avgStealthRatio: 0.46, medianStealthRatio: 0.5, avgTimesDetected: 2.3, medianTimesDetected: 2,
+    stealthRatioHistogram: [[0, 0.25, 14], [0.25, 0.5, 12], [0.5, 0.75, 13], [0.75, 1, 10]].map(([from, to, sessions]) => ({ from, to, sessions })) },
+  '/analytics/heatmap': { mapCode: 'map01_docks', cellSize: 5, eventTypes: ['player_death'], cells: Array.from({ length: 24 }, (_, i) => ({ x: (i % 6) * 5, y: Math.floor(i / 6) * 5, count: (i * 7) % 9 + 1 })) },
+  '/analytics/ai/comparison': solverConfigs.slice(0, 3).map((c, i) => ({ contentVersionId: publishedId, contentVersionLabel: 'Maestro published content', groupKey: c.id, groupLabel: c.code, family: c.family,
+    sessions: 18 - i * 3, encounters: 40 - i * 6, captures: 22 - i * 5, escapes: 18 - i, captureRate: (22 - i * 5) / (40 - i * 6), avgEscapeSeconds: 95 + i * 12, medianEscapeSeconds: 90, replans: 60, avgCoordinationScore: 0.71 - i * 0.04,
+    latencyP50Ms: 18 + i * 30, latencyP95Ms: 42 + i * 55, latencyP99Ms: 60 + i * 70, withinBudgetRate: 0.98 - i * 0.06, fallbackRate: 0.01 + i * 0.03 }))
+};
 
 export function mockApi() {
   const versions = [
@@ -39,12 +56,24 @@ export function mockApi() {
     if (route === '/meta/enums') return send(enums);
     if (route === '/users') return send(page(['admin','designer','analyst'].map(user)));
     if (route === '/content-publications') return send(page([]));
+    if (route === '/analytics/content-versions') return send(versions.filter(v => v.publishedAt).map(v => ({ id: v.id, versionNo: v.versionNo, label: v.label, publishedAt: v.publishedAt, isLive: v.status === 'Published' })));
+    if (Object.hasOwn(analytics, route)) return send(analytics[route]);
+    if (route === '/solver-configurations') return send(solverConfigs);
+    const solverMatch = route.match(/^\/solver-configurations\/([^/]+)$/);
+    if (solverMatch && req.method === 'GET') return send(solverConfigs.find(c => c.id === solverMatch[1]) ?? {});
     if (route === '/content-versions') return send(page(versions.filter(v => url.searchParams.get('status') === 'Archived' ? v.status === 'Archived' : v.status !== 'Archived')));
     const match = route.match(/^\/content-versions\/([^/]+)(?:\/([^/]+)(?:\/([^/]+))?)?$/);
     if (match) {
       const [, id, resourceRoute, recordId] = match, version = versions.find(v => v.id === id);
       if (!version) return send({status:404,message:'Fixture version not found.'},404);
       if (!resourceRoute) return send({version,bundle:entitiesToEditor(version,entities[id])});
+      if (resourceRoute === 'compare' && req.method === 'GET') {
+        const target = versions.find(v => v.id === url.searchParams.get('targetId'));
+        if (!target) return send({status:404,message:'Fixture target version not found.'},404);
+        const differences = compareBundles(entitiesToEditor(version,entities[id]),entitiesToEditor(target,entities[target.id]))
+          .map(d => ({...d,before:d.before ?? null,after:d.after ?? null}));
+        return send({sourceId:id,sourceRevision:version.revision,targetId:target.id,targetRevision:target.revision,differences});
+      }
       const resource = resources.find(r => r[1] === resourceRoute);
       if (resource) {
         const rows = entities[id][resource[0]], row = rows.find(r => r.id === recordId);

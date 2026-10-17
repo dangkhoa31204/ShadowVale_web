@@ -23,10 +23,8 @@ export const contentApi={
   },
   details:async(id:string)=> (await axiosClient.get<ContentVersionDetailsDto>(root+'/'+id)).data,
   async version(id:string){return (await this.details(id)).version;},
-  async deleteVersion(id:string,revision:number){await axiosClient.delete(root+'/'+id,{data:{revision}});snapshots.delete(id);},
   history:async()=>allPages<ContentPublicationDto>(async page=>(await axiosClient.get<Page<ContentPublicationDto>>('/content-publications',{params:{page,pageSize:100}})).data),
   compare:async(a:string,b:string)=> (await axiosClient.get<ContentComparisonDto>(root+'/'+a+'/compare',{params:{targetId:b}})).data,
-  rawBundle:async(id:string)=> (await axiosClient.get<string>(root+'/'+id+'/bundle',{responseType:'text',transformResponse:[data=>data]})).data,
   async validate(id:string,revision:number):Promise<ContentValidationResultDto>{
     const result=(await axiosClient.post<ContentValidationResultDto>(root+'/'+id+'/validate',{revision})).data;
     const snapshot=snapshots.get(id);
@@ -75,7 +73,6 @@ export const contentApi={
       const published=(await this.versions()).find(v=>v.status==='Published');
       createdId=(await axiosClient.post<ContentVersionDto>(root,{label:command.label||command.title,changelog:command.changelog||'',parentVersionId:command.sourceReleaseId||published?.id||null,schemaVersion:'1.0'})).data.id;
     }else if(command.type==='saveDraft'){
-      if(command.changeReport)throw new Error('Reports are local only; save them in Change reports.');
       await this.save(command.id,command.bundle,command.label||command.title,command.changelog||'');
     }else if(['submitDraft','reviewDraft','publishDraft','restoreRelease'].includes(command.type)){
       if(!('id'in command))throw new Error('Missing version.');
@@ -92,7 +89,7 @@ export const contentApi={
       }else if(command.type==='reviewDraft'){
         if(current.status!=='InReview')throw new Error('This version is no longer in review.');
         await axiosClient.post(root+'/'+command.id+(command.approve?'/approve':'/reject'),{revision:Number(current.revision),reviewNote:command.note});
-      }else if(command.type==='publishDraft')await axiosClient.post(root+'/'+command.id+'/publish',{revision:Number(current.revision),reason:command.reason});
+      }else if(command.type==='publishDraft')await axiosClient.post(root+'/'+command.id+'/publish',{revision:Number(current.revision),...(command.reason?{reason:command.reason}:{})});
       else if(command.type==='restoreRelease')await axiosClient.post(root+'/'+command.id+'/rollback',{revision:Number(current.revision),reason:command.reason});
     }else throw new Error('This action has no supported backend endpoint.');
     const workspace=await this.workspace();
@@ -108,7 +105,4 @@ export const contentApi={
     return {storageVersion:2,drafts,releases,activeReleaseId:releases.find(r=>r.status==='published')?.id||'',publications:history.map((h,i)=>({id:i,content_version_id:h.contentVersionId,previous_version_id:h.previousVersionId,action:h.action.toLowerCase() as 'publish'|'rollback',actor_id:h.actorUsername||h.actorId||'—',reason:h.reason,occurred_at:h.createdAt})),users:user?[{...user,active:true}]:[],audit:history.map(h=>({id:h.id,at:h.createdAt,actor:h.actorUsername||h.actorId||'—',action:h.action,target:h.versionLabel||h.contentVersionId})),config:{reviewRequired:true,telemetryEnabled:false}};
   },
 };
-export function downloadRaw(text:string,filename:string,type='application/json'){
-  const url=URL.createObjectURL(new Blob([text],{type}));const a=document.createElement('a');a.href=url;a.download=filename;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
-}
 export { payload };

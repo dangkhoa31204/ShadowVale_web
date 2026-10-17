@@ -209,8 +209,8 @@ approve/reject/publish và publication history chỉ cho JWT role `Admin` (Desig
   Chỉ `InReview` -> `Approved`; ghi reviewer/time/note và tăng revision.
 - `POST /api/content-versions/{id}/reject` (ADMIN): `{ "revision": 4, "reviewNote": "Damage too high" }`.
   Chỉ `InReview` -> `Rejected`; note bắt buộc, không quá 2000 ký tự. Designer xử lý reopen/resubmit ở phần riêng.
-- `POST /api/content-versions/{id}/publish` (ADMIN): `{ "revision": 5, "reason": "Weapon balance release" }`.
-  Chỉ `Approved` -> `Published`, cần thông tin Admin đã duyệt; reason bắt buộc, tối đa 500 ký tự.
+- `POST /api/content-versions/{id}/publish` (ADMIN): `{ "revision": 5 }` — publish một lần bấm theo proposal;
+  `reason` là ghi chú tuỳ chọn, tối đa 500 ký tự. Chỉ `Approved` -> `Published`, cần thông tin Admin đã duyệt.
 - `GET /api/content-publications?contentVersionId={id}&page=1&pageSize=20` (ADMIN): lịch sử phân trang;
   bỏ `contentVersionId` để xem tất cả. Mỗi row gồm version, previousVersion, action, actor, reason và createdAt,
   kèm `versionNo`, `versionLabel`, `previousVersionNo`, `actorUsername` để hiển thị. `action` là `Publish` hoặc `Rollback`.
@@ -327,6 +327,7 @@ Bộ lọc chung (query string): `source`, `contentVersionId`, `mapCode`, `from`
 
 | Endpoint | Nội dung |
 |---|---|
+| `GET content-versions` | Các content version đã từng publish (mới nhất trước): `id`, `versionNo`, `label`, `publishedAt`, `isLive` — cho bộ lọc version của cả 3 role (Analyst không đọc được `/api/content-versions`) |
 | `GET overview` | Số phiên, số player, số phiên chưa kết thúc, thời lượng trung bình / trung vị, tỉ lệ outcome, số phiên theo ngày |
 | `GET heatmap` | `mapCode` bắt buộc, `eventTypes` (mặc định `player_death`, `player_spotted`), `cellSize` 1–50 m → `{ x, y, count }` |
 | `GET funnel` | Phiên bắt đầu → `objective_completed` theo `index` → `mission_result` có `result = "completed"` |
@@ -482,3 +483,12 @@ API đã bật `ForwardedHeaders` để rate limit thấy IP thật của ngư�
 
 Gói Free của Render tắt service khi không có request, request đầu tiên sau đó mất vài chục giây: game cần
 timeout hợp lý và dùng bundle đã lưu khi không kết nối được.
+
+## Thay đổi để khớp proposal (nhánh `feat/fe-align-proposal`, cần review trước khi merge)
+
+| Thay đổi | Lý do (proposal) | File |
+|---|---|---|
+| `POST content-versions/{id}/publish`: `reason` không còn bắt buộc (vẫn tối đa 500 ký tự; bỏ trống thì lưu chuỗi rỗng, không đổi schema). Rollback vẫn bắt buộc lý do. | "one-click publish to a validated JSON bundle" — Admin đã duyệt ở bước Review, publish chỉ cần một lần bấm | `PublishContentVersionRequest`, `ContentVersionService.PublishAsync`, `AdminContentVersionTests` |
+| Thêm `GET /api/analytics/content-versions` (cả 3 role): các version đã từng publish, chỉ `id`, `versionNo`, `label`, `publishedAt`, `isLive`. | "AI-variant comparison … per content version" cho Analyst; Analyst không đọc được `/api/content-versions` nên trước đó phải nhập GUID | `AnalyticsController`, `AnalyticsService`, `IGameContentRepository` / `GameContentRepository`, `AnalyticsContentVersionTests` |
+
+`docs/openapi.json` và `docs/api-errors.md` đã cập nhật theo. Unit test BLL pass; integration test cần database test nên chưa chạy.

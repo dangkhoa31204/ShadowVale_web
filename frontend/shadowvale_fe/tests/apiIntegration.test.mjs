@@ -74,9 +74,10 @@ function server(){
 }
 test('login sends usernameOrEmail and stores complete tokens and role mapping atomically',async()=>{
  handler=c=>{assert.equal(c.url,'/auth/login');assert.deepEqual(body(c),{usernameOrEmail:'alex',password:'test-password'});return ok(c,tokens);};
- const r=await api.authService.login({callsign:'alex',password:'test-password',rememberMe:true});
+ const r=await api.authService.login({callsign:'alex',password:'test-password'});
  assert.equal(r.user.callsign,'Alex Designer');assert.equal(r.user.role,'designer');
- assert.equal(api.storageService.getSession().refreshToken,'refresh-1');assert.equal(sessionStorage.getItem('shadowvale_session_v2'),null);
+ assert.equal(api.storageService.getSession().refreshToken,'refresh-1');// Sign-in is always tab-scoped: no 'keep me signed in' in the proposal.
+ assert.equal(localStorage.getItem('shadowvale_session_v2'),null);assert.ok(sessionStorage.getItem('shadowvale_session_v2'));
 });
 test('concurrent 401s perform one refresh and replay once with the rotated token',async()=>{
  let rotations=0;
@@ -176,26 +177,21 @@ test('submit/reject/approve/publish/rollback use backend workflow endpoints',asy
  await api.contentApi.execute({type:'reviewDraft',id:version.id,revision:s.v.revision,approve:false,note:'Tune damage'});assert.equal(s.v.status,'Rejected');
  s.v.status='Draft';s.v.bundleChecksum=null;await api.contentApi.execute({type:'submitDraft',id:version.id,revision:s.v.revision});
  await api.contentApi.execute({type:'reviewDraft',id:version.id,revision:s.v.revision,approve:true,note:''});
- await api.contentApi.execute({type:'publishDraft',id:version.id,revision:s.v.revision,reason:'Release'});assert.equal(s.v.status,'Published');
+ await api.contentApi.execute({type:'publishDraft',id:version.id,revision:s.v.revision});assert.equal(s.v.status,'Published');
+ assert.equal('reason' in body(calls.find(c=>c.url.endsWith('/publish'))),false);
  await api.contentApi.execute({type:'restoreRelease',id:version.id,reason:'Restore'});
  assert.ok(calls.some(c=>c.url.endsWith('/validate')));assert.ok(calls.some(c=>c.url.endsWith('/rollback')));
 });
-test('runtime JSON is kept byte-for-byte rather than serializing editor model',async()=>{
- const raw='{\n  "version_no": 1, "schema_version": "1.0", "items": [], "weapons": []\n}';handler=c=>ok(c,raw);
- assert.equal(await api.contentApi.rawBundle(version.id),raw);
-});
-test('analytics renders aggregate responses and sends exact CSV dataset/filter queries',async()=>{
+test('analytics renders aggregate responses and sends the exact filter query',async()=>{
  const q={source:'replay',from:'2026-10-01T00:00:00Z',to:'2026-10-02T00:00:00Z',mapCode:'map_01'};
- handler=c=>ok(c,c.url.endsWith('/comparison')?[{captureRate:0.25,encounters:4}]:new Blob(['header\nvalue']));
+ handler=c=>ok(c,[{captureRate:0.25,encounters:4}]);
  const data=await api.analyticsApi.comparison(q,'family');assert.equal(data[0].captureRate,0.25);
- await api.analyticsApi.csv('coordination-results',q);
  assert.equal(calls[0].params.source,'replay');assert.equal(calls[0].params.groupBy,'family');
- assert.equal(calls[1].url,'/analytics/export/coordination-results');
 });
-test('reports remain scoped local drafts and do not perform API requests',()=>{
- api.localReports.save('v1',{summary:'Designer local report'});assert.equal(api.localReports.load('v1').summary,'Designer local report');
- api.storageService.setAuth('admin',{...api.storageService.getUser(),id:'admin',role:'admin'},false);
- assert.equal(api.localReports.load('v1'),undefined);assert.equal(calls.length,0);
+test('analytics version filter reads published versions from the analytics API every role can call',async()=>{
+ handler=c=>ok(c,[{id:'v3',versionNo:3,label:'Balance pass',publishedAt:'2026-10-12T00:00:00Z',isLive:true}]);
+ const versions=await api.analyticsApi.contentVersions();
+ assert.equal(calls[0].url,'/analytics/content-versions');assert.deepEqual(versions.map(v=>[v.versionNo,v.isLive]),[[3,true]]);
 });
 test('solver CRUD, clone and activation use dedicated endpoints and retain payloads',async()=>{
  handler=c=>ok(c,{id:'solver1',...body(c)});
@@ -214,25 +210,18 @@ test('quest prerequisite arrays accept empty and valid codes but reject missing 
  b.quests[1].prerequisites=['unknown'];
  assert.ok(api.validateEditor(b).some(e=>e.includes('missing reference unknown')));
 });
-test('editor JSON import rebinds GUIDs to the current version and removes foreign IDs for new codes',()=>{
- const current=api.entitiesToEditor(version,entities()),foreign=structuredClone(current);
- foreign.items[0].api_id='other-version';foreign.items.push({...foreign.items[0],code:'new_ammo',api_id:'foreign-new'});
- const rebound=api.rebindEditorImport(foreign,current);
- assert.equal(rebound.items[0].api_id,'ammo-id');assert.equal(rebound.items.at(-1).api_id,undefined);
- assert.equal(foreign.items[0].api_id,'other-version');
-});
 test('partial failures retain saved/remaining context and map nested API validation to the exact field',async()=>{
  const b=api.entitiesToEditor(version,entities()),op={resource:'items',route:'items',method:'put',code:'rifle',id:'rifle-id',data:{}};
  const c={url:'/test'},httpError=new AxiosError('Validation','ERR_BAD_RESPONSE',c,undefined,{config:c,data:{message:'Invalid item',errors:{'Weapon.Damage':['Must be positive']}},status:400,statusText:'Bad Request',headers:{}});
  try {await api.runSavePlan([op],async()=>{throw httpError;});assert.fail('Must reject');}
  catch(error){assert.match(api.errorMessage(error),/Save stopped.*Remaining: items\/rifle/);assert.deepEqual(api.editorFieldErrors(error,b),{'weapons:0:damage':'Must be positive'});}
 });
-test('role access includes Admin dashboard and restricts solver mutations and CSV',()=>{
+test('role access starts each role on its screen and restricts solver mutations',()=>{
  for(const role of ['designer','analyst','admin'])assert.equal(api.can(role,'analytics'),true);
- assert.deepEqual(api.navigationForRole('admin').map(n=>n.path),['/admin/dashboard','/admin/reviews','/admin/releases','/admin/users']);
+ assert.deepEqual(api.navigationForRole('admin').map(n=>n.path),['/admin/reviews','/admin/releases','/admin/users']);
  assert.equal(api.safeRedirect('/admin/analytics','admin'),'/admin/analytics');
- assert.equal(api.can('designer','solverEdit'),false);assert.equal(api.can('designer','analyticsExport'),false);
- assert.equal(api.can('analyst','solverEdit'),true);assert.equal(api.can('admin','analyticsExport'),true);
+ assert.equal(api.can('designer','solverEdit'),false);
+ assert.equal(api.can('analyst','solverEdit'),true);
 });
 
 test('all nested child collections round-trip into their parent request without flat foreign columns',()=>{
@@ -284,10 +273,6 @@ test('Analyst workspace does not call restricted content metadata or publication
  api.storageService.setAuth('valid',{...api.storageService.getUser(),id:'designer',role:'designer'},false);
  server();await api.contentApi.workspace();assert.ok(!calls.some(c=>c.url==='/content-publications'));
 });
-test('delete version sends the current revision in the DELETE body',async()=>{
- handler=c=>{assert.equal(c.url,'/content-versions/version-delete');assert.equal(c.method,'delete');assert.deepEqual(body(c),{revision:7});return ok(c,null,204);};
- await api.contentApi.deleteVersion('version-delete',7);
-});
 
 test('user directory forwards search/role/active/page to the paginated Admin API',async()=>{
  const account={...user,id:'00000000-0000-4000-8000-000000000123'};
@@ -307,12 +292,6 @@ test('user mutations preserve BE validation/conflict errors and never fake succe
  handler=c=>fail(c,409,{message:'Email already registered',errors:{Email:['Choose another email.']}});
  await assert.rejects(api.usersApi.create({username:'team',email:'used@example.test',role:'Designer',password:'test-only'}),/Email already registered/);
  handler=c=>fail(c,403,{message:'Admin only'});await assert.rejects(api.usersApi.list(),/Admin only/);assert.ok(api.storageService.getToken());
-});
-test('display preferences recover from invalid storage and interpolate Vietnamese values',()=>{
- assert.deepEqual(api.readPreferences('broken'),{locale:'en',theme:'dark'});
- assert.deepEqual(api.readPreferences('{"locale":"vi","theme":"light"}'),{locale:'vi',theme:'light'});
- assert.deepEqual(api.readPreferences('{"locale":"unknown","theme":1}'),{locale:'en',theme:'dark'});
- assert.equal(api.formatTranslation('Trang {page} / {pages}',{page:2,pages:4}),'Trang 2 / 4');
 });
 
 test('existing weapon keys are locked even when the child has no API GUID; stats remain editable',()=>{

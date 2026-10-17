@@ -1,17 +1,19 @@
-import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useAuth } from '../../hooks/useAuth';
 import { Icon } from '../shared/ui';
-import { useTranslation } from '../preferences/preferencesContext';
 export function AccountMenu() {
-  const { user, logout } = useAuth(), t = useTranslation();
-  const [open, setOpen] = useState(false), ref = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    const close = (e: MouseEvent) => { if (!ref.current?.contains(e.target as Node)) setOpen(false); };
-    document.addEventListener('click', close); return () => document.removeEventListener('click', close);
-  }, []);
-  return <div className="sv-account-menu" ref={ref} onKeyDown={e => { if (e.key === 'Escape') setOpen(false); }}>
-    <button className="sv-button sv-button-small" aria-label={t('Account')} aria-expanded={open} onClick={() => setOpen(!open)}><Icon name="account_circle" /><span className="sv-account-name">{user?.callsign}</span><Icon name="expand_more" /></button>
-    {open && <div className="sv-account-dropdown"><strong>{user?.callsign}</strong><small>{user?.email}</small><Link to="/admin/profile" onClick={() => setOpen(false)}><Icon name="person" />{t('Profile')}</Link><Link to="/admin/change-password" onClick={() => setOpen(false)}><Icon name="lock_reset" />{t('Change password')}</Link><Link to="/admin/analytics" onClick={() => setOpen(false)}><Icon name="monitoring" />{t('Analytics')}</Link><button onClick={() => void logout().catch(() => setOpen(false))}><Icon name="logout" />{t('Sign out')}</button></div>}
-  </div>;
+  const { user, logout } = useAuth();
+  return <DropdownMenu>
+    <DropdownMenuTrigger asChild><Button id="account-menu-trigger" variant="outline" size="sm" aria-label="Account"><Icon name="account_circle" /><span className="sv-account-name">{user?.callsign}</span><Icon name="expand_more" /></Button></DropdownMenuTrigger>
+    <DropdownMenuContent align="end" className="w-64">
+      <DropdownMenuLabel className="grid"><strong className="font-medium text-foreground">{user?.callsign}</strong><small className="text-xs font-normal [overflow-wrap:anywhere]">{user?.email}</small></DropdownMenuLabel>
+      <DropdownMenuSeparator />
+      <DropdownMenuItem asChild><Link to="/admin/change-password"><Icon name="lock_reset" />Change password</Link></DropdownMenuItem>
+      {user?.role === 'admin' && <DropdownMenuItem asChild><Link to="/admin/analytics"><Icon name="monitoring" />Analytics</Link></DropdownMenuItem>}
+      <DropdownMenuSeparator />
+      <DropdownMenuItem onSelect={() => { void logout().catch(() => {}); }}><Icon name="logout" />Sign out</DropdownMenuItem>
+    </DropdownMenuContent>
+  </DropdownMenu>;
 }

@@ -7,7 +7,7 @@ name: Designer Versions hides archived releases
     id: login-username
 - inputText: designer
 - tapOn:
-    id: Password
+    id: login-password
 - inputText: UiTest123!
 - tapOn:
     id: login-submit

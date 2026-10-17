@@ -4,15 +4,13 @@ import { readFileSync } from 'node:fs';
 import { applyCommand } from '../src/features/content/workflow.ts';
 import { createBundleValidator, compareBundles, canonicalJson, sealBundle } from '../src/features/content/validation.ts';
 import { createContentRecord, schemaFields } from '../src/features/content/schemaFields.ts';
-import { newChangeReport } from '../src/features/changeReports/types.ts';
-import { validateChangeReport, validateEvidenceFile } from '../src/features/changeReports/reportValidation.ts';
 import { can, homeForRole, navigationForRole, safeRedirect } from '../src/features/auth/access.ts';
 import type { ContentBundle, Workspace } from '../src/features/content/types.ts';
 import type { User } from '../src/types/user.ts';
 const schema = JSON.parse(readFileSync(new URL('../src/features/content/contracts/content.schema.json', import.meta.url), 'utf8'));
 const seed = JSON.parse(readFileSync(new URL('../src/features/content/contracts/demo-bundle.json', import.meta.url), 'utf8')) as ContentBundle;
 const validate = createBundleValidator(schema);
-const designer: User = { id: 'designer', callsign: 'Designer', email: 'd@sv.dev', role: 'designer', tier: 'internal', clearanceLevel: 'designer', createdAt: '' };
+const designer: User = { id: 'designer', callsign: 'Designer', email: 'd@sv.dev', role: 'designer', createdAt: '' };
 const admin: User = { ...designer, id: 'admin', callsign: 'Admin', role: 'admin' };
 const analyst: User = { ...designer, id: 'analyst', role: 'analyst' };
 function state(): Workspace {
@@ -66,13 +64,14 @@ test('empty collection forms create DB-shaped default records with filtered FK c
 test('role policy and internal redirects deny unauthorized access', async () => {
   assert.equal(can('designer', 'publish'), false); assert.equal(can('analyst', 'author'), false);
   assert.equal(can('admin', 'publish'), true);
-  assert.equal(safeRedirect('//evil.test', 'designer'), '/admin/dashboard');
+  assert.equal(safeRedirect('//evil.test', 'designer'), '/admin/content');
   assert.equal(safeRedirect('/admin\\evil', 'analyst'), '/admin/analytics');
+  // Analyst works only in the analytics dashboard; version history is Designer/Admin.
+  assert.equal(can('analyst', 'versions'), false);
+  assert.equal(safeRedirect('/admin/releases', 'analyst'), '/admin/analytics');
   assert.equal(safeRedirect('/admin/content', 'designer'), '/admin/content');
   assert.equal(safeRedirect('/admin/content?section=report', 'designer'), '/admin/content?section=report');
-  assert.equal(safeRedirect('/admin/change-reports/d1', 'designer'), '/admin/change-reports/d1');
-  assert.equal(safeRedirect('/admin/change-reports/d1', 'admin'), '/admin/dashboard');
-  assert.equal(navigationForRole('designer').some(n => n.path === '/admin/change-reports'), false);
+  assert.equal(safeRedirect('/admin/change-reports/d1', 'designer'), '/admin/content');
   await assert.rejects(applyCommand(state(), { type: 'submitDraft', id: 'd1', revision: 1 }, analyst, validate), /role/);
 });
 test('author submits, admin approves and publish seals an immutable snapshot with one published version', async () => {
@@ -92,20 +91,19 @@ test('author submits, admin approves and publish seals an immutable snapshot wit
   published.drafts[0].bundle.weapons[0].damage = 999;
   assert.equal(original.drafts[0].bundle.weapons[0].damage, 24);
 });
-test('admin has dashboard, review and publishing navigation with analytics in the account menu', async () => {
-  assert.deepEqual(navigationForRole('admin').map(n => n.path), ['/admin/dashboard', '/admin/reviews', '/admin/releases', '/admin/users']);
-  assert.equal(homeForRole('admin'), '/admin/dashboard');
-  assert.equal(can('admin', 'overview'), true);
-  assert.equal(safeRedirect('/admin/dashboard', 'admin'), '/admin/dashboard');
+test('admin has review, publishing and users navigation with analytics in the account menu', async () => {
+  assert.deepEqual(navigationForRole('admin').map(n => n.path), ['/admin/reviews', '/admin/releases', '/admin/users']);
+  assert.equal(homeForRole('admin'), '/admin/reviews'); assert.equal(homeForRole('designer'), '/admin/content');
+  assert.equal(safeRedirect('/admin/dashboard', 'admin'), '/admin/reviews');
   for (const permission of ['author'] as const) assert.equal(can('admin', permission), false);
   assert.equal(can('admin', 'analytics'), true); assert.equal(safeRedirect('/admin/analytics', 'admin'), '/admin/analytics');
-  assert.equal(can('designer', 'solverEdit'), false); assert.equal(can('designer', 'analyticsExport'), false);
-  for (const path of ['/admin/content', '/admin/content/d1']) assert.equal(safeRedirect(path, 'admin'), '/admin/dashboard');
+  assert.equal(can('designer', 'solverEdit'), false);
+  for (const path of ['/admin/content', '/admin/content/d1']) assert.equal(safeRedirect(path, 'admin'), '/admin/reviews');
   assert.equal(safeRedirect('/admin/releases', 'admin'), '/admin/releases');
   assert.equal(safeRedirect('/admin/users', 'admin'), '/admin/users');
-  assert.equal(safeRedirect('/admin/users', 'designer'), '/admin/dashboard');
+  assert.equal(safeRedirect('/admin/users', 'designer'), '/admin/content');
   for (const role of ['admin', 'designer', 'analyst'] as const) {
-    assert.equal(safeRedirect('/admin/profile', role), '/admin/profile');
+    assert.equal(safeRedirect('/admin/profile', role), homeForRole(role));
     assert.equal(safeRedirect('/admin/change-password', role), '/admin/change-password');
   }
   await assert.rejects(applyCommand(state(), { type: 'createDraft', title: 'Admin draft' }, admin, validate), /role/);
@@ -129,9 +127,10 @@ test('rejected content explicitly returns to draft before editing; only content 
   assert.equal(saved.drafts[0].status, 'draft'); assert.equal(saved.drafts[0].revision, 2);
   assert.equal(saved.drafts[0].reviewedBy, undefined); assert.equal(saved.drafts[0].bundle.label, 'Updated');
 });
-test('publish and rollback require a reason; rollback selects archived content without rewriting its bundle', async () => {
+test('publish is one click, rollback requires a reason and selects archived content without rewriting its bundle', async () => {
   const s = state(); s.drafts[0].status = 'approved';
-  await assert.rejects(applyCommand(s, { type: 'publishDraft', id: 'd1', revision: 1, reason: ' ' }, admin, validate), /reason/);
+  const oneClick = await applyCommand(structuredClone(s), { type: 'publishDraft', id: 'd1', revision: 1 }, admin, validate);
+  assert.equal(oneClick.drafts[0].status, 'published'); assert.equal(oneClick.publications[0].reason, '');
   const published = await publish(s);
   await assert.rejects(applyCommand(published, { type: 'restoreRelease', id: 'r1', reason: '' }, admin, validate), /reason/);
   const restored = await applyCommand(published, { type: 'restoreRelease', id: 'r1', reason: ' Regression found ' }, admin, validate);
@@ -148,9 +147,7 @@ test('cloning versions keeps placement identities but allocates the next managed
   const edited = structuredClone(next.drafts[0].bundle); edited.version_no = 99;
   await assert.rejects(applyCommand(next, { type: 'saveDraft', id: next.drafts[0].id, revision: 0, title: 'Next', bundle: edited }, designer, validate), /managed/);
 });
-test('account safeguards and canonical checksum remain stable', async () => {
-  await assert.rejects(applyCommand(state(), { type: 'deleteUser', id: 'admin' }, admin, validate), /own access/);
-  await assert.rejects(applyCommand(state(), { type: 'deleteUser', id: 'admin' }, { ...admin, id: 'admin2' }, validate), /active admin/);
+test('canonical checksum remains stable', async () => {
   assert.equal(canonicalJson({ b: 2, a: 1 }), canonicalJson({ a: 1, b: 2 }));
   assert.equal((await sealBundle(seed, '2026-10-08T00:00:00Z')).checksum, (await sealBundle(seed, '2026-10-08T00:00:00Z')).checksum);
 });
@@ -164,46 +161,3 @@ test('review diffs match item_code and composite keys independently of order', (
   assert.ok(changes.some(d => d.path === '/quest_rewards/' + removed.quest_code + ':cloth' && d.before === undefined));
 });
 
-function validReport() {
-  const report = newChangeReport();
-  report.summary = 'Rescue mission and interface update';
-  report.source = { kind: 'git', branch: 'feature/rescue-route', commit: 'a'.repeat(40) };
-  report.changes[0] = { ...report.changes[0], title: 'Mission tracker', description: 'Show the next checkpoint after rescuing the survivor.', image: { id: 'evidence-1', file_name: 'mission.png', media_type: 'image/png', size_bytes: 5000 } };
-  return report;
-}
-test('change reports validate source references, descriptions and evidence metadata', () => {
-  const report = validReport(); assert.deepEqual(validateChangeReport(report), []);
-  report.changes[0].description = ' '; assert.ok(validateChangeReport(report).some(error => error.includes('describe')));
-  report.changes[0].description = 'Updated'; report.source.commit = 'invalid';
-  assert.ok(validateChangeReport(report).some(error => error.includes('commit')));
-  assert.ok(validateEvidenceFile({ type: 'image/svg+xml', size: 5000 }));
-  assert.ok(validateEvidenceFile({ type: 'image/png', size: 3 * 1024 * 1024 }));
-});
-test('a report shares the content revision and locks its evidence and descriptions when submitted', async () => {
-  const report = validReport(), initial = state();
-  const saved = await applyCommand(initial, { type: 'saveDraft', id: 'd1', revision: 1, title: 'Mission update', bundle: initial.drafts[0].bundle, changeReport: report }, designer, validate);
-  assert.equal(saved.drafts[0].revision, 2); assert.equal(initial.drafts[0].changeReport, undefined);
-  report.changes[0].description = 'Changed after saving';
-  assert.notEqual(saved.drafts[0].changeReport!.changes[0].description, report.changes[0].description);
-  // A stats-only save must retain the attached report.
-  const stats = structuredClone(saved.drafts[0].bundle); stats.weapons[0].damage = 26;
-  const resaved = await applyCommand(saved, { type: 'saveDraft', id: 'd1', revision: 2, title: 'Mission update', bundle: stats }, designer, validate);
-  assert.equal(resaved.drafts[0].changeReport!.changes[0].image!.id, 'evidence-1');
-  const submitted = await applyCommand(resaved, { type: 'submitDraft', id: 'd1', revision: 3 }, designer, validate);
-  await assert.rejects(applyCommand(submitted, { type: 'saveDraft', id: 'd1', revision: 3, title: 'Overwrite report', bundle: stats, changeReport: report }, designer, validate), /Only draft/);
-  await assert.rejects(applyCommand(resaved, { type: 'saveDraft', id: 'd1', revision: 2, title: 'Stale report', bundle: stats, changeReport: report }, designer, validate), /changed/);
-});
-test('incomplete reports block submission and approval; publication retains evidence outside runtime JSON', async () => {
-  const initial = state(); initial.drafts[0].changeReport = newChangeReport();
-  await assert.rejects(applyCommand(initial, { type: 'submitDraft', id: 'd1', revision: 1 }, designer, validate), /Change report/);
-  initial.drafts[0].status = 'in_review';
-  await assert.rejects(applyCommand(initial, { type: 'reviewDraft', id: 'd1', revision: 1, approve: true, note: '' }, admin, validate), /Change report/);
-  initial.drafts[0].changeReport = validReport();
-  const approved = await applyCommand(initial, { type: 'reviewDraft', id: 'd1', revision: 1, approve: true, note: 'Checked screenshot and logic' }, admin, validate);
-  const published = await publish(approved);
-  assert.deepEqual(published.releases[0].changeReport, approved.drafts[0].changeReport);
-  assert.equal('changeReport' in published.releases[0].bundle, false);
-  published.drafts[0].changeReport!.changes[0].description = 'Edited afterwards';
-  assert.notEqual(published.releases[0].changeReport!.changes[0].description, published.drafts[0].changeReport!.changes[0].description);
-  assert.deepEqual(validate(published.releases[0].bundle), []);
-});

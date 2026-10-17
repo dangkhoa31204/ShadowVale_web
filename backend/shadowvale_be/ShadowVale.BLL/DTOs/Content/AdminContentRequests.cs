@@ -11,7 +11,8 @@ public sealed record ReviewContentVersionRequest
 public sealed record PublishContentVersionRequest
 {
     [Required, Range(0, long.MaxValue)] public long? Revision { get; init; }
-    [Required, MaxLength(500)] public string Reason { get; init; } = "";
+    /// <summary>Optional release note: the proposal asks for one-click publish of an approved version.</summary>
+    [MaxLength(500)] public string? Reason { get; init; }
 }
 
 public sealed record RollbackContentVersionRequest

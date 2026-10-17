@@ -7,7 +7,7 @@ name: Designer immutable keys and numeric controls
     id: login-username
 - inputText: designer
 - tapOn:
-    id: Password
+    id: login-password
 - inputText: UiTest123!
 - tapOn:
     id: login-submit

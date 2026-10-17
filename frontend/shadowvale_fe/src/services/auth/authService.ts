@@ -1,4 +1,4 @@
-import type { LoginCredentials, RegisterPayload, AuthResponse, PasswordResetPayload } from '../../types/auth';
+import type { LoginCredentials, AuthResponse } from '../../types/auth';
 import type { Role, User } from '../../types/user';
 import { storageService } from '../storage/storageService';
 import { axiosClient, authClient, withSessionLock } from '../api/axiosClient';
@@ -14,7 +14,7 @@ export const demoAccounts: { callsign: string; role: Role; name: string }[] = [
 ];
 export const demoUser = (account: typeof demoAccounts[number]): User => ({
   id: account.role, username: account.role, fullName: account.name, callsign: account.name, email: account.callsign, role: account.role,
-  tier: 'Internal team', clearanceLevel: account.role, createdAt: '2026-09-18T00:00:00Z',
+  createdAt: '2026-09-18T00:00:00Z',
 });
 function currentDemoUser(account: typeof demoAccounts[number]): User | null {
   const stored = localStorage.getItem(DEMO_WORKSPACE_KEY);
@@ -36,19 +36,11 @@ export const authService = {
     } else {
       const data = (await authClient.post<ApiAuthResponse>('/auth/login', { usernameOrEmail: credentials.callsign, password: credentials.password })).data;
       response = { token: data.accessToken, user: userFromApi(data.user) };
-      storageService.setSession({ token: data.accessToken, refreshToken: data.refreshToken, accessTokenExpiresAt: data.accessTokenExpiresAt, refreshTokenExpiresAt: data.refreshTokenExpiresAt, user: response.user, remember: credentials.rememberMe ?? false });
+      storageService.setSession({ token: data.accessToken, refreshToken: data.refreshToken, accessTokenExpiresAt: data.accessTokenExpiresAt, refreshTokenExpiresAt: data.refreshTokenExpiresAt, user: response.user, remember: false });
       return response;
     }
-    storageService.setAuth(response.token, response.user, credentials.rememberMe ?? false);
+    storageService.setAuth(response.token, response.user, false);
     return response;
-  },
-  register: async (payload: RegisterPayload): Promise<AuthResponse> => {
-    void payload;
-    throw new Error('Internal accounts are provisioned by an administrator.');
-  },
-  resetPassword: async (payload: PasswordResetPayload): Promise<{ success: boolean; message: string }> => {
-    void payload;
-    throw new Error('Password recovery has no backend API. Contact your administrator.');
   },
   logout: async (): Promise<void> => {
     try { await withSessionLock(async () => {

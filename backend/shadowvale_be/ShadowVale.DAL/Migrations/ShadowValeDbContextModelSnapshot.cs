@@ -272,7 +272,7 @@ namespace ShadowVale.DAL.Migrations
 
                     b.ToTable("content_versions", "shadowvale", t =>
                         {
-                            t.HasCheckConstraint("ck_content_versions_published_has_bundle", "status NOT IN ('Published', 'Archived') OR (bundle IS NOT NULL AND bundle_checksum IS NOT NULL)");
+                            t.HasCheckConstraint("ck_content_versions_published_has_bundle", "(status <> 'Published' AND (status <> 'Archived' OR published_at IS NULL)) OR (bundle IS NOT NULL AND bundle_checksum IS NOT NULL)");
                         });
                 });
 

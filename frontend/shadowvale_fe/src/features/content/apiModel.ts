@@ -130,12 +130,3 @@ export function draftFromApi(v: ContentVersionDto, bundle = emptyBundle(v)): Dra
 }
 
 /** Imported editor identities belong to the current version, never another version. */
-export function rebindEditorImport(imported: ContentBundle, current: ContentBundle): ContentBundle {
-  const next = structuredClone(imported);
-  for (const [key] of resources) for (const row of next[key]) {
-    delete row.api_id;
-    const existing = current[key].find(r => r.code === row.code);
-    if (existing?.api_id) row.api_id = existing.api_id;
-  }
-  return next;
-}

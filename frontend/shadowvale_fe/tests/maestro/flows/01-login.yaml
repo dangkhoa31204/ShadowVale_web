@@ -8,7 +8,7 @@ name: Login validation and password visibility
     id: login-username
 - inputText: invalid
 - tapOn:
-    id: Password
+    id: login-password
 - inputText: invalid-password
 - tapOn:
     id: login-submit

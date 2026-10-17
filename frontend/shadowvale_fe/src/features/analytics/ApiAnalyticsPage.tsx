@@ -1,105 +1,102 @@
-import { useTranslation } from '../preferences/preferencesContext';
-import { useEffect, useState } from 'react';
-import { useAuth } from '../../hooks/useAuth';
-import { can } from '../auth/access';
-import { LatencyChart } from './LatencyChart';
-import './analytics.css';
+import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
+import { Field, FieldLabel } from '@/components/ui/field';
+import { Input } from '@/components/ui/input';
+import { NativeSelect, NativeSelectOption } from '@/components/ui/native-select';
+import { Spinner } from '@/components/ui/spinner';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { cn } from '@/lib/utils';
+import { HorizontalBars } from './charts';
 import { analyticsApi, type AnalyticsFilters } from './analyticsApi';
 import { SolverConfigurations } from './SolverConfigurations';
-import { useWorkspace } from '../content/workspaceContext';
 import { contentApi } from '../content/contentApi';
 import { errorMessage } from '../../services/api/errors';
-import type { EnumsDto, HeatmapDto, AiComparisonRowDto, ScalabilityRowDto, VersionComparisonDto, SolverConfigurationDto } from '../../services/api/contracts';
-import { Empty, Icon, PageHeading } from '../shared/ui';
+import type { HeatmapDto, AiComparisonRowDto } from '../../services/api/contracts';
+import { Empty, PageHeading, Panel, panelTable } from '../shared/ui';
 import { NumericControl } from '../shared/NumericControl';
-type Overview=Awaited<ReturnType<typeof analyticsApi.overview>>;
-type Data={overview?:Overview;heatmap?:HeatmapDto;comparison?:AiComparisonRowDto[];scalability?:ScalabilityRowDto[];versions?:VersionComparisonDto};
+type Gameplay=Awaited<ReturnType<typeof analyticsApi.gameplay>>;
+type Data={gameplay?:Gameplay;heatmap?:HeatmapDto;comparison?:AiComparisonRowDto[]};
 const num=(v:unknown)=>v===null||v===undefined?'—':Number(v).toLocaleString('en-GB',{maximumFractionDigits:2});
 const pct=(v:unknown)=>v===null||v===undefined?'—':(Number(v)*100).toFixed(1)+'%';
-function Panel({title,children}:{title:string;children:React.ReactNode}){ const t = useTranslation(); return <section className="sv-panel"><div className="sv-panel-heading"><h2>{t(title)}</h2></div>{children}</section>;}
-function Bars({rows}:{rows:{name:string;value:string;share:number}[]}){
-  const t = useTranslation();return rows.length?<div className="sv-bars">{rows.map(r=><div key={r.name}><div><strong>{t(r.name)}</strong><span>{r.value}</span></div><div className="sv-bar-track"><span style={{width:Math.max(0,Math.min(100,r.share*100))+'%'}}/></div></div>)}</div>:<Empty title={t("No data")}/>;}
 function MetricsTable({headers,rows}:{headers:string[];rows:React.ReactNode[][]}){
-  const t = useTranslation();return rows.length?<div className="sv-table-wrap"><table className="sv-table"><thead><tr>{headers.map(h=><th key={h}>{t(h)}</th>)}</tr></thead><tbody>{rows.map((row,i)=><tr key={i}>{row.map((v,j)=><td key={j}>{v}</td>)}</tr>)}</tbody></table></div>:<Empty title={t("No data for these filters")}/>;}
-function OverviewPanels({data}:{data:Omit<Overview,'playstyle'> & {playstyle?:Overview['playstyle']}}){
-  const t = useTranslation();
+ return rows.length?<Table className={cn(panelTable,'tabular-nums')}><TableHeader><TableRow>{headers.map(h=><TableHead key={h}>{h}</TableHead>)}</TableRow></TableHeader><TableBody>{rows.map((row,i)=><TableRow key={i}>{row.map((v,j)=><TableCell key={j}>{v}</TableCell>)}</TableRow>)}</TableBody></Table>:<Empty title="No data for these filters"/>;}
+// Proposal distributions: mission completion funnel, weapon usage and stealth vs combat.
+function GameplayPanels({data}:{data:Gameplay}){
   const playstyle=data.playstyle;
-  return <><div className="sv-stats-grid">{[
-    ['Sessions',num(data.overview.sessions)],['Players',num(data.overview.players)],['Mission completion',pct(data.funnel.completionRate)],['Average duration',num(data.overview.avgDurationSeconds)+' s'],
-  ].map(([label,value])=><article className="sv-stat" key={t(String(label))}><span>{t(String(label))}</span><strong>{value}</strong></article>)}</div>
-    <div className="sv-dashboard-columns"><Panel title={t("Session outcomes")}><Bars rows={data.overview.outcomes.map(r=>({name:r.outcome,value:num(r.sessions)+' · '+pct(r.share),share:Number(r.share)}))}/><p className="sv-table-note">{t("Unfinished:")} {num(data.overview.unfinishedSessions)} {t("· Median duration:")} {num(data.overview.medianDurationSeconds)} {t("s")}</p></Panel>
-      <Panel title={t("Mission funnel")}><Bars rows={[{name:'Started',value:num(data.funnel.sessionsStarted),share:1},...data.funnel.objectives.map(r=>({name:t('Objective')+' '+r.objectiveIndex,value:num(r.sessions)+' · '+pct(r.shareOfStarted),share:Number(r.shareOfStarted||0)})),{name:'Completed',value:num(data.funnel.missionsCompleted)+' · '+pct(data.funnel.completionRate),share:Number(data.funnel.completionRate||0)}]}/></Panel></div>
-    <Panel title={t("Weapon usage")}><MetricsTable headers={['Weapon','Shots','Kills','Kills / shot','Sessions used','Session share']} rows={data.weapons.weapons.map(r=>[r.weapon,num(r.shots),num(r.kills),num(r.killsPerShot),num(r.sessionsUsed),pct(r.sessionShare)])}/><p className="sv-table-note">{t("Exact finished-session statistics ·")} {num(data.weapons.finishedSessions)} {t("sessions")}</p></Panel>
-    <div className="sv-dashboard-columns">{playstyle && <Panel title={t("Stealth and combat")}><Bars rows={playstyle.stealthRatioHistogram.map(r=>({name:pct(r.from)+'–'+pct(r.to),value:num(r.sessions)+' '+t('sessions'),share:Number(r.sessions)/Math.max(1,Number(playstyle.finishedSessions))}))}/><p className="sv-table-note">{t("Average stealth:")} {pct(playstyle.avgStealthRatio)} {t("· Average detections:")} {num(playstyle.avgTimesDetected)} {t("· Sessions without kills:")} {num(playstyle.sessionsWithoutKills)}</p></Panel>}<Panel title={t("Daily sessions")}><MetricsTable headers={['Day','Sessions']} rows={data.overview.sessionsPerDay.map(r=>[r.day,num(r.sessions)])}/></Panel></div>
+  return <>
+    <Panel title="Mission funnel" description="Sessions per step and share of started sessions"><HorizontalBars unit="Sessions" rows={[{label:'Started',value:Number(data.funnel.sessionsStarted),detail:num(data.funnel.sessionsStarted)},...data.funnel.objectives.map(r=>({label:'Objective '+r.objectiveIndex,value:Number(r.sessions),detail:num(r.sessions)+' · '+pct(r.shareOfStarted)})),{label:'Completed',value:Number(data.funnel.missionsCompleted),detail:num(data.funnel.missionsCompleted)+' · '+pct(data.funnel.completionRate)}]}/></Panel>
+    <Panel title="Weapon usage" description="Shots per weapon"><HorizontalBars unit="Shots" rows={data.weapons.weapons.map(r=>({label:r.weapon,value:Number(r.shots),detail:num(r.shots)+' shots'}))}/></Panel>
+    <Panel title="Stealth and combat" description="Finished sessions by stealth ratio"><HorizontalBars unit="Sessions" rows={playstyle.stealthRatioHistogram.map(r=>({label:pct(r.from)+'–'+pct(r.to),value:Number(r.sessions),detail:num(r.sessions)+' · '+pct(Number(r.sessions)/Math.max(1,Number(playstyle.finishedSessions)))}))}/></Panel>
   </>;
 }
 function Heatmap({data}:{data:HeatmapDto}){
-  const t = useTranslation();
-  if(!data.cells.length)return <Empty title={t("No spatial events")}/>;
+  if(!data.cells.length)return <Empty title="No spatial events"/>;
   const size=Number(data.cellSize),minX=Math.min(...data.cells.map(c=>Number(c.x))),minY=Math.min(...data.cells.map(c=>Number(c.y)));
   const width=Math.max(size,Math.max(...data.cells.map(c=>Number(c.x)))-minX+size),height=Math.max(size,Math.max(...data.cells.map(c=>Number(c.y)))-minY+size);
   const max=Math.max(1,...data.cells.map(c=>Number(c.count)));
-  return <div style={{padding:24}}><svg role="img" aria-label={t("Difficulty heatmap for ")+data.mapCode} viewBox={`${minX} ${minY} ${width} ${height}`} style={{width:'100%',height:360,background:'#182233'}}>{data.cells.map(c=><rect key={c.x+':'+c.y} x={Number(c.x)} y={Number(c.y)} width={size} height={size} fill={`rgba(249,149,90,${0.15+0.85*Number(c.count)/max})`}><title>{t("X")} {c.x} {t(", Z")} {c.y}: {c.count} {t("events")}</title></rect>)}</svg><p className="sv-table-note">{t("World X / Z ·")} {size} {t("m cells ·")} {data.eventTypes.join(', ')} {t("· peak")} {max}</p></div>;
+  // Sequential: one hue, opacity grows with the event count.
+  return <div className="grid gap-3 px-6 pb-6"><svg role="img" aria-label={"Difficulty heatmap for "+data.mapCode} viewBox={`${minX} ${minY} ${width} ${height}`} className="h-90 w-full rounded-lg bg-muted">{data.cells.map(c=><rect key={c.x+':'+c.y} x={Number(c.x)} y={Number(c.y)} width={size} height={size} fill="var(--chart-3)" fillOpacity={0.15+0.85*Number(c.count)/max} stroke="var(--muted)" strokeWidth={size*0.06}><title>X {c.x}, Z {c.y}: {c.count} events</title></rect>)}</svg>
+    <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground"><span>1 event</span><span className="h-2 w-32 rounded-sm bg-linear-to-r from-chart-3/15 to-chart-3"/><span>{max} events</span><span>· World X / Z · {size} m cells · {data.eventTypes.join(', ')}</span></div></div>;
 }
+const tabs=[['gameplay','Gameplay'],['heatmap','Heatmap'],['comparison','AI comparison'],['solvers','Solver configurations']] as const;
+type Tab=typeof tabs[number][0];
 export function ApiAnalyticsPage(){
-  const t = useTranslation();
-  const {state}=useWorkspace(),{user}=useAuth();
-  const canExport=!!user&&can(user.role,'analyticsExport');
-
-  const [tab,setTab]=useState('overview'),[from,setFrom]=useState(()=>new Date(Date.now()-7*86400000).toISOString().slice(0,10)),[to,setTo]=useState(()=>new Date().toISOString().slice(0,10)),[source,setSource]=useState<'human'|'replay'>('human');
+  const [tab,setTab]=useState<Tab>('gameplay'),[from,setFrom]=useState(()=>new Date(Date.now()-7*86400000).toISOString().slice(0,10)),[to,setTo]=useState(()=>new Date().toISOString().slice(0,10)),[source,setSource]=useState<'human'|'replay'>('human');
   const [version,setVersion]=useState(''),[map,setMap]=useState(''),[family,setFamily]=useState(''),[solver,setSolver]=useState(''),[group,setGroup]=useState('configuration');
-  const [a,setA]=useState(''),[b,setB]=useState(''),[cell,setCell]=useState(5),[cellError,setCellError]=useState(''),[event,setEvent]=useState('player_death');
-  const [data,setData]=useState<Data>({}),[enums,setEnums]=useState<EnumsDto>(),[solvers,setSolvers]=useState<SolverConfigurationDto[]>([]);
-  const [loading,setLoading]=useState(true),[error,setError]=useState(''),[retry,setRetry]=useState(0),[exporting,setExporting]=useState(false),[dataset,setDataset]=useState('sessions'),[exportOpen,setExportOpen]=useState(false);
-  useEffect(()=>{let active=true;Promise.all([contentApi.enums(),analyticsApi.solvers()]).then(([e,s])=>{if(active){setEnums(e);setSolvers(s);}}).catch(e=>{if(active)setError(errorMessage(e));});return()=>{active=false;};},[]);
+  const [cell,setCell]=useState(5),[cellError,setCellError]=useState(''),[event,setEvent]=useState('player_death');
+  const enums=useQuery({queryKey:['enums'],queryFn:contentApi.enums,staleTime:Infinity});
+  // Published versions only: telemetry can only come from a version the game downloaded. Same list for every role.
+  const versions=useQuery({queryKey:['analytics-content-versions'],queryFn:({signal})=>analyticsApi.contentVersions(signal)});
+  const solvers=useQuery({queryKey:['solver-configurations'],queryFn:({signal})=>analyticsApi.solvers(signal)});
   const start=new Date(from+'T00:00:00'),end=new Date(to+'T23:59:59.999');
-  const validVersionIds=[version,a,b].every(id=>!id||/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id));
   const validDates=Number.isFinite(start.getTime())&&Number.isFinite(end.getTime())&&end>=start&&(end.getTime()-start.getTime())<=366*86400000;
   const query:AnalyticsFilters={source,from:validDates?start.toISOString():'',to:validDates?end.toISOString():'',...(version?{contentVersionId:version}:{}),...(map.trim()?{mapCode:map.trim()}:{}),...(family?{family}:{}),...(solver?{solverConfigurationId:solver}:{})};
-  const queryKey=JSON.stringify(query);
-  useEffect(()=>{
-    const controller=new AbortController();
-    if(tab==='solvers')return;
-    if(!validDates||!validVersionIds)return;
-    if((tab==='heatmap'&&(!map.trim()||cellError))||(tab==='versions'&&(!a||!b)))return;
-    const q=JSON.parse(queryKey) as AnalyticsFilters;
-    const load=async():Promise<Data>=>{
-      if(tab==='overview')return {overview:await analyticsApi.overview(q,controller.signal)};
-      if(tab==='heatmap')return {heatmap:await analyticsApi.heatmap(q,cell,[event],controller.signal)};
-      if(tab==='comparison'){const [comparison,scalability]=await Promise.all([analyticsApi.comparison(q,group,controller.signal),analyticsApi.scalability(q,controller.signal)]);return {comparison,scalability};}
-      if(tab==='scalability')return {scalability:await analyticsApi.scalability(q,controller.signal)};
-      return {versions:await analyticsApi.versions(q,a,b,controller.signal)};
-    };
-    load().then(d=>{if(!controller.signal.aborted){setData(d);setError('');setLoading(false);}}).catch(e=>{if(!controller.signal.aborted){setError(errorMessage(e));setLoading(false);}});
-    return ()=>controller.abort();
-  },[tab,queryKey,validDates,validVersionIds,map,cellError,cell,event,group,a,b,retry]);
-  function change(job:()=>void){setLoading(true);setData({});setError('');job();}
-  async function csv(){setExporting(true);setError('');try{if(!validVersionIds)throw new Error('Enter a valid version GUID.');if(!canExport)throw new Error('CSV export is available to Admin and Analyst.');const blob=await analyticsApi.csv(dataset,query);const url=URL.createObjectURL(blob);const link=document.createElement('a');link.href=url;link.download='shadowvale-'+dataset+'.csv';link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);setExportOpen(false);}catch(e){if(e&&typeof e==='object'&&'response' in e){const response=(e as {response?:{data?:unknown}}).response;if(response?.data instanceof Blob){try{const p=JSON.parse(await response.data.text());setError(p.message||p.detail||'CSV export failed.');}catch{setError(errorMessage(e));}}else setError(errorMessage(e));}else setError(errorMessage(e));}finally{setExporting(false);}}
-  const tabs=[['overview','Overview'],['heatmap','Heatmap'],['comparison','AI comparison'],['scalability','Scalability'],['versions','Version comparison'],['solvers','Solver configurations']];
-  const needsInput=tab==='heatmap'&&!map.trim()||tab==='versions'&&(!a||!b);
-  return <div className="sv-page"><PageHeading title={t("Analytics")} action={canExport&&<button className="sv-button" disabled={exporting} onClick={()=>setExportOpen(true)}><Icon name="download"/>{t("Export CSV")}</button>}/>
-    <div className="sv-content-tabs" role="tablist">{tabs.map(([id,label])=><button key={id} role="tab" aria-selected={tab===id} className={tab===id?'is-active':''} onClick={()=>change(()=>setTab(id))}>{t(String(label))}</button>)}</div>
-    {tab==='solvers'?<SolverConfigurations enums={enums}/>:<>
-      <div className="sv-analytics-filters sv-form">
-        <label>{t("Source")}<select value={source} onChange={e=>change(()=>setSource(e.target.value as 'human'|'replay'))}><option value="human">{t("Human")}</option><option value="replay">{t("Replay")}</option></select></label>
-        <label>{t("From")}<input type="date" value={from} onChange={e=>change(()=>setFrom(e.target.value))}/></label><label>{t("To")}<input type="date" value={to} onChange={e=>change(()=>setTo(e.target.value))}/></label>
-        <label>{t("Content version")} {user?.role==='analyst'?<input value={version} onChange={e=>change(()=>setVersion(e.target.value))} placeholder={t("Version GUID · empty = all")}/>:<select value={version} onChange={e=>change(()=>setVersion(e.target.value))}><option value="">{t("All versions")}</option>{state.drafts.map(d=><option key={d.id} value={d.id}>#{d.version_no} · {d.label}</option>)}</select>}</label>
-        <label>{t("Map code")}<input value={map} onChange={e=>change(()=>setMap(e.target.value))} placeholder={t("e.g. map_01")}/></label>
-        <label>{t("Solver family")}<select value={family} onChange={e=>change(()=>setFamily(e.target.value))}><option value="">{t("All families")}</option>{enums?.solverFamilies.map(v=><option key={v}>{v}</option>)}</select></label>
-        <label>{t("Solver configuration")}<select value={solver} onChange={e=>change(()=>setSolver(e.target.value))}><option value="">{t("All configurations")}</option>{solvers.map(s=><option value={s.id} key={s.id}>{s.name}</option>)}</select></label>
+  const needsInput=tab==='heatmap'&&!map.trim();
+  const extra=tab==='heatmap'?{cell,event}:tab==='comparison'?{group}:{};
+  const analytics=useQuery({
+    queryKey:['analytics',tab,query,extra],
+    enabled:tab!=='solvers'&&validDates&&!needsInput&&!(tab==='heatmap'&&cellError),
+    queryFn:async({signal}):Promise<Data>=>{
+      if(tab==='gameplay')return {gameplay:await analyticsApi.gameplay(query,signal)};
+      if(tab==='heatmap')return {heatmap:await analyticsApi.heatmap(query,cell,[event],signal)};
+      return {comparison:await analyticsApi.comparison(query,group,signal)};
+    },
+    // A filter change keeps the same tab's numbers on screen (dimmed) until the new slice arrives.
+    placeholderData:(previous,previousQuery)=>previousQuery?.queryKey[1]===tab?previous:undefined,
+  });
+  const data=analytics.data;
+  return <div className="sv-page"><PageHeading title="Analytics" />
+    <Tabs value={tab} onValueChange={value=>setTab(value as Tab)} className="overflow-x-auto">
+      <TabsList variant="line">{tabs.map(([id,label])=><TabsTrigger key={id} value={id} className="flex-none">{label}</TabsTrigger>)}</TabsList>
+    </Tabs>
+    {tab==='solvers'?<SolverConfigurations enums={enums.data}/>:<>
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-7">
+        <Field><FieldLabel htmlFor="an-source">Source</FieldLabel><NativeSelect id="an-source" className="w-full" value={source} onChange={e=>setSource(e.target.value as 'human'|'replay')}><NativeSelectOption value="human">Human</NativeSelectOption><NativeSelectOption value="replay">Replay</NativeSelectOption></NativeSelect></Field>
+        <Field><FieldLabel htmlFor="an-from">From</FieldLabel><Input id="an-from" type="date" value={from} onChange={e=>setFrom(e.target.value)}/></Field>
+        <Field><FieldLabel htmlFor="an-to">To</FieldLabel><Input id="an-to" type="date" value={to} onChange={e=>setTo(e.target.value)}/></Field>
+        <Field><FieldLabel htmlFor="an-version">Content version</FieldLabel><NativeSelect id="an-version" className="w-full" value={version} onChange={e=>setVersion(e.target.value)}><NativeSelectOption value="">All versions</NativeSelectOption>{versions.data?.map(v=><NativeSelectOption key={v.id} value={v.id}>#{v.versionNo} · {v.label}{v.isLive?' (live)':''}</NativeSelectOption>)}</NativeSelect></Field>
+        <Field><FieldLabel htmlFor="an-map">Map code</FieldLabel><Input id="an-map" value={map} onChange={e=>setMap(e.target.value)} placeholder="e.g. map_01"/></Field>
+        <Field><FieldLabel htmlFor="an-family">Solver family</FieldLabel><NativeSelect id="an-family" className="w-full" value={family} onChange={e=>setFamily(e.target.value)}><NativeSelectOption value="">All families</NativeSelectOption>{enums.data?.solverFamilies.map(v=><NativeSelectOption key={v} value={v}>{v}</NativeSelectOption>)}</NativeSelect></Field>
+        <Field><FieldLabel htmlFor="an-solver">Solver configuration</FieldLabel><NativeSelect id="an-solver" className="w-full" value={solver} onChange={e=>setSolver(e.target.value)}><NativeSelectOption value="">All configurations</NativeSelectOption>{solvers.data?.map(s=><NativeSelectOption value={s.id} key={s.id}>{s.name}</NativeSelectOption>)}</NativeSelect></Field>
       </div>
-      {tab==='heatmap'&&<div className="sv-analytics-filters sv-form"><label>{t("Event type")}<select value={event} onChange={e=>change(()=>setEvent(e.target.value))}><option value="player_death">{t("Player death")}</option><option value="player_spotted">{t("Player spotted")}</option></select></label><NumericControl label={t("Cell size")} value={cell} min={1} max={50} step={1} sliderMin={1} sliderMax={50} unit="m" onChange={v=>change(()=>setCell(v!))} onError={setCellError}/></div>}
-      {tab==='comparison'&&<div className="sv-form"><label>{t("Group by")}<select value={group} onChange={e=>change(()=>setGroup(e.target.value))}><option value="configuration">{t("Configuration")}</option><option value="family">{t("Family")}</option></select></label></div>}
-      {tab==='versions'&&<div className="sv-compare-controls sv-form">{[['From version',a,setA],['To version',b,setB]].map(([label,value,set])=><label key={t(String(label))}>{t(String(label))}{user?.role==='analyst'?<input value={String(value)} placeholder={t("Version GUID")} onChange={e=>change(()=>(set as (v:string)=>void)(e.target.value))}/>:<select value={String(value)} onChange={e=>change(()=>(set as (v:string)=>void)(e.target.value))}><option value="">{t("Choose version")}</option>{state.drafts.map(d=><option key={d.id} value={d.id}>#{d.version_no} · {d.label}</option>)}</select>}</label>)}</div>}
-      {!validVersionIds?<div className="sv-alert sv-alert-error">{t("Enter a valid version GUID. The current BE does not expose a version catalog to Analyst.")}</div>:!validDates?<div className="sv-alert sv-alert-error">{t("Choose a valid date range of at most 366 days.")}</div>:cellError&&tab==='heatmap'?<div className="sv-alert sv-alert-error">{cellError}</div>:needsInput?<Empty title={tab==='heatmap'?t("Enter a map code"):t("Select two versions")}/>:error?<div className="sv-alert sv-alert-error" role="alert">{error}<button className="sv-button" onClick={()=>change(()=>setRetry(retry+1))}>{t("Retry")}</button></div>:loading?<div className="sv-empty" role="status">{t("Loading analytics…")}</div>:<>
-        {data.overview&&<OverviewPanels data={data.overview}/>}
-        {data.heatmap&&<Panel title={t("Difficulty heatmap")}><Heatmap data={data.heatmap}/></Panel>}
-        {data.comparison&&<Panel title={t("AI comparison")}><MetricsTable headers={['Version','Solver group','Family','Sessions','Encounters','Capture rate','Escape avg (s)','Score','p95 (ms)','Within budget','Fallback']} rows={data.comparison.map(r=>[r.contentVersionLabel||r.contentVersionId||'—',r.groupLabel,r.family,num(r.sessions),num(r.encounters),pct(r.captureRate),num(r.avgEscapeSeconds),num(r.avgCoordinationScore),num(r.latencyP95Ms),pct(r.withinBudgetRate),pct(r.fallbackRate)])}/></Panel>}
-        {data.scalability&&<Panel title={t("AI scalability")}><LatencyChart rows={data.scalability}/><MetricsTable headers={['Configuration','Family','Agents','Nodes','Replans','p50 (ms)','p95 (ms)','Objective','Within budget']} rows={data.scalability.map(r=>[r.code,r.family,num(r.numAgents),r.nodesFrom+'–'+r.nodesTo,num(r.replans),num(r.latencyP50Ms),num(r.latencyP95Ms),num(r.avgObjective),pct(r.withinBudgetRate)])}/></Panel>}
-        {data.versions&&<div className="sv-version-comparison">{[data.versions.a,data.versions.b].map((v,index)=><div key={v.contentVersionId}><h2>{state.drafts.find(d=>d.id===v.contentVersionId)?.version_no ? t("Version #")+state.drafts.find(d=>d.id===v.contentVersionId)!.version_no : t("Version ")+(index===0?"A":"B")}</h2><p className="sv-version-guid">{v.contentVersionId}</p><OverviewPanels data={{overview:v.overview,funnel:v.funnel,weapons:v.weapons,}}/></div>)}</div>}
-      </>}
-      <p className="sv-table-note">{t("Skill progress has no analytics API; player progression remains in local saves. CSV events export supports at most 92 days.")}</p>
+      {tab==='heatmap'&&<div className="grid items-start gap-4 sm:grid-cols-2 lg:max-w-3xl"><Field><FieldLabel htmlFor="an-event">Event type</FieldLabel><NativeSelect id="an-event" className="w-full" value={event} onChange={e=>setEvent(e.target.value)}><NativeSelectOption value="player_death">Player death</NativeSelectOption><NativeSelectOption value="player_spotted">Player spotted</NativeSelectOption></NativeSelect></Field><div className="sv-form"><NumericControl label="Cell size" value={cell} min={1} max={50} step={1} sliderMin={1} sliderMax={50} unit="m" onChange={v=>setCell(v!)} onError={setCellError}/></div></div>}
+      {tab==='comparison'&&<Field className="max-w-xs"><FieldLabel htmlFor="an-group">Group by</FieldLabel><NativeSelect id="an-group" className="w-full" value={group} onChange={e=>setGroup(e.target.value)}><NativeSelectOption value="configuration">Configuration</NativeSelectOption><NativeSelectOption value="family">Family</NativeSelectOption></NativeSelect></Field>}
+      {!validDates?<Alert variant="destructive"><AlertDescription>Choose a valid date range of at most 366 days.</AlertDescription></Alert>
+      :cellError&&tab==='heatmap'?<Alert variant="destructive"><AlertDescription>{cellError}</AlertDescription></Alert>
+      :needsInput?<Empty title="Enter a map code"/>
+      :analytics.error?<Alert variant="destructive"><AlertDescription className="flex items-center justify-between gap-4">{errorMessage(analytics.error)}<Button variant="outline" size="sm" onClick={()=>void analytics.refetch()}>Retry</Button></AlertDescription></Alert>
+      :!data?<div className="flex items-center justify-center gap-2 p-10 text-sm text-muted-foreground" role="status"><Spinner/>Loading analytics…</div>
+      :<div className={cn('sv-page transition-opacity',analytics.isPlaceholderData&&'opacity-60')} aria-busy={analytics.isFetching}>
+        {data.gameplay&&<GameplayPanels data={data.gameplay}/>}
+        {data.heatmap&&<Panel title="Difficulty heatmap"><Heatmap data={data.heatmap}/></Panel>}
+        {data.comparison&&<Panel title="AI comparison" description="Capture rate per solver group">
+          {data.comparison.length>0&&<HorizontalBars unit="Capture rate (%)" rows={data.comparison.map(r=>({label:(new Set(data.comparison!.map(x=>x.contentVersionId)).size>1?(r.contentVersionLabel||'—')+' · ':'')+r.groupLabel,value:Number(r.captureRate||0)*100,detail:pct(r.captureRate)}))}/>}
+          <MetricsTable headers={['Version','Solver group','Family','Capture rate','Escape time (s)','Coordination score']} rows={data.comparison.map(r=>[r.contentVersionLabel||r.contentVersionId||'—',r.groupLabel,r.family,pct(r.captureRate),num(r.avgEscapeSeconds),num(r.avgCoordinationScore)])}/>
+        </Panel>}
+      </div>}
     </>}
-    {exportOpen&&<div className="sv-modal-backdrop"><section className="sv-modal" role="dialog" aria-modal="true" aria-label={t("Export analytics CSV")} onKeyDown={e=>{if(e.key==='Escape'&&!exporting)setExportOpen(false);}}><h2>{t("Export CSV")}</h2><div className="sv-form"><label>{t("Dataset")}<select aria-label={t("CSV dataset")} value={dataset} onChange={e=>setDataset(e.target.value)}>{['sessions','events','encounters','coordination-results'].map(d=><option key={d}>{d}</option>)}</select></label><label>{t("From")}<input type="date" value={from} onChange={e=>change(()=>setFrom(e.target.value))}/></label><label>{t("To")}<input type="date" value={to} onChange={e=>change(()=>setTo(e.target.value))}/></label></div><p>{t("Uses the current source, version, map and solver filters.")}</p>{(!validDates||dataset==='events'&&end.getTime()-start.getTime()>92*86400000)&&<div className="sv-alert sv-alert-error">{t("Choose a valid range: events up to 92 days; other datasets up to 366 days.")}</div>}{error&&<p role="alert">{error}</p>}<div className="sv-row-actions"><button className="sv-button" disabled={exporting} onClick={()=>setExportOpen(false)}>{t("Cancel")}</button><button className="sv-button sv-button-primary" disabled={exporting||!validDates||!validVersionIds||dataset==='events'&&end.getTime()-start.getTime()>92*86400000} onClick={()=>void csv()}>{exporting?t("Exporting…"):t("Download CSV")}</button></div></section></div>}
   </div>;
 }

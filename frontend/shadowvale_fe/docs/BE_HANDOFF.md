@@ -1,5 +1,10 @@
 # Ghi chú bàn giao cho BE — phạm vi đã chốt
 
+> **Cập nhật 2026-10-14 (nhánh `feat/fe-align-proposal`):** FE đã bỏ các phần ngoài proposal —
+> change reports/ảnh local, game delivery (Git/CI, game assets), Profile, song ngữ EN/VI, theme sáng
+> và nút/hộp thoại xuất CSV. Các đoạn dưới đây nhắc tới chúng là lịch sử, không còn đúng với FE.
+> Danh sách màn hiện tại và phần đã bỏ: `README.md` → "Đối chiếu proposal".
+
 Đối chiếu ngày 2026-10-10 với BE dev **f2c8b8c**, proposal, yêu cầu trực tiếp
 của người dùng và Unity local. Đây là ghi chú; không sửa BE, DB hay Unity.
 

@@ -6,7 +6,6 @@ export const commonRoutes: RouteObject = {
     { path: '/', element: <Navigate to="/admin" replace /> },
     { path: '/login', element: <InternalLoginPage /> },
     { path: '/forbidden', element: <AccessPage forbidden /> },
-    { path: '/authorization', element: <Navigate to="/forbidden" replace /> },
     { path: '*', element: <AccessPage /> },
   ],
 };

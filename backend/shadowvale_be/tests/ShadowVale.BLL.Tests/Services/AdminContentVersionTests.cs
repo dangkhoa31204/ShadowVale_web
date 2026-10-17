@@ -239,6 +239,16 @@ public class AdminContentVersionTests
     }
 
     [Fact]
+    public async Task Publish_is_one_click_and_the_note_is_optional()
+    {
+        var v = Version();
+        v.Status = ContentStatus.Approved; v.ReviewedById = _actor; v.ReviewedAt = TestHelpers.Now;
+        (await _service.PublishAsync(v.Id, new() { Revision = 4, Reason = new string('x', 501) }, _actor)).Error!.Kind.ShouldBe(ServiceErrorKind.Validation);
+        (await _service.PublishAsync(v.Id, new() { Revision = 4 }, _actor)).Error.ShouldBeNull();
+        await _repo.Received(1).PublishAsync(v, _actor, "", TestHelpers.Now, Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
     public async Task Concurrent_review_or_publication_returns_conflict()
     {
         var v = Version();

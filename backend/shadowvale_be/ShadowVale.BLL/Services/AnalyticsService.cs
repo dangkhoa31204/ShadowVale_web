@@ -17,6 +17,12 @@ public class AnalyticsService(IAnalyticsRepository analytics, IGameContentReposi
     private static readonly TimeSpan MaxEventExportRange = TimeSpan.FromDays(92);
     private static readonly string[] DefaultHeatmapEvents = [TelemetryEventTypes.PlayerDeath, TelemetryEventTypes.PlayerSpotted];
 
+    // Lets Analysts filter by content version without access to authoring metadata (drafts, bundles, reviews)
+    public async Task<IReadOnlyList<AnalyticsContentVersionDto>> GetContentVersionsAsync(CancellationToken ct = default) =>
+        (await content.GetEverPublishedVersionsAsync(ct))
+            .Select(v => new AnalyticsContentVersionDto(v.Id, v.VersionNo, v.Label, v.PublishedAt, v.IsLive))
+            .ToList();
+
     public async Task<OverviewDto> GetOverviewAsync(AnalyticsQuery query, CancellationToken ct = default) =>
         await OverviewAsync(ToFilter(query), ct);
 

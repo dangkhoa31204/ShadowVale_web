@@ -1,50 +1,33 @@
-import { useTranslation } from '../preferences/preferencesContext';
-import { useCallback, useEffect, useState, type ReactNode } from 'react';
+import { useEffect, type ReactNode } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
+import { Button } from '@/components/ui/button';
+import { Spinner } from '@/components/ui/spinner';
 import { useAuth } from '../../hooks/useAuth';
-import { useToast } from '../../components/ui/Toast';
 import { workspaceService } from './workspaceService';
-import { WorkspaceContext } from './workspaceContext';
-import type { Command, Workspace } from './types';
+import { WorkspaceContext, workspaceKey } from './workspaceContext';
+import type { Command } from './types';
 import { isDemoMode } from '../../config/environment';
 import { DEMO_WORKSPACE_KEY } from '../../config/demo';
 export function WorkspaceProvider({ children }: { children: ReactNode }) {
-  const t = useTranslation();
-  const { user } = useAuth(), toast = useToast();
-  const [state, setState] = useState<Workspace | null>(null);
-  const [error, setError] = useState('');
-  const [busy, setBusy] = useState(false);
-  const reload = useCallback(async () => {
-    setError('');
-    try { setState(await workspaceService.load()); }
-    catch (e) { setError(e instanceof Error ? e.message : 'Could not load workspace.'); }
-  }, []);
+  const { user } = useAuth(), queryClient = useQueryClient();
+  // Admin reviews other people's work, so the queue refreshes when the window regains focus.
+  const query = useQuery({ queryKey: workspaceKey, queryFn: workspaceService.load, refetchOnWindowFocus: user?.role === 'admin' });
+  const mutation = useMutation({
+    mutationFn: (command: Command) => { if (!user) throw new Error('Sign in to continue.'); return workspaceService.execute(command, user); },
+    onSuccess: next => { queryClient.setQueryData(workspaceKey, next); toast.success('Workspace updated.'); },
+    onError: e => { toast.error(e instanceof Error ? e.message : 'Could not save changes.'); },
+  });
   useEffect(() => {
-    if (user?.role !== 'admin') return;
-    const onStorage = (event: StorageEvent) => {
-      if (!busy && isDemoMode && (event.key === DEMO_WORKSPACE_KEY || event.key === null)) void reload();
-    };
-    const onFocus = () => { if (!busy) void reload(); };
+    if (!isDemoMode || user?.role !== 'admin') return;
+    // Another tab changed the demo workspace stored in this browser.
+    const onStorage = (event: StorageEvent) => { if (event.key === DEMO_WORKSPACE_KEY || event.key === null) void queryClient.invalidateQueries({ queryKey: workspaceKey }); };
     window.addEventListener('storage', onStorage);
-    window.addEventListener('focus', onFocus);
-    return () => { window.removeEventListener('storage', onStorage); window.removeEventListener('focus', onFocus); };
-  }, [user?.role, busy, reload]);
-  useEffect(() => {
-    let active = true;
-    workspaceService.load().then(value => { if (active) setState(value); })
-      .catch(e => { if (active) setError(e instanceof Error ? e.message : 'Could not load workspace.'); });
-    return () => { active = false; };
-  }, []);
-  async function execute(command: Command) {
-    if (!user) throw new Error('Sign in to continue.');
-    setBusy(true);
-    try {
-      const next = await workspaceService.execute(command, user); setState(next);
-      toast.success(t('Workspace updated.')); return next;
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : 'Could not save changes.'); throw e;
-    } finally { setBusy(false); }
-  }
-  if (error && !state) return <div className="portal-state"><h2>{t("Workspace unavailable")}</h2><p>{error}</p><button className="sv-button" onClick={reload}>{t("Try again")}</button></div>;
-  if (!state) return <div className="portal-state" role="status">{t("Loading your workspace…")}</div>;
-  return <WorkspaceContext.Provider value={{ state, busy, execute, reload }}>{error && <div className="sv-alert sv-alert-error" role="alert">{error}<button className="sv-button" onClick={reload}>{t("Retry refresh")}</button></div>}{children}</WorkspaceContext.Provider>;
+    return () => window.removeEventListener('storage', onStorage);
+  }, [user?.role, queryClient]);
+  const reload = async () => { await query.refetch(); };
+  const error = query.error ? query.error.message || 'Could not load workspace.' : '';
+  if (error && !query.data) return <div className="portal-state"><h2>Workspace unavailable</h2><p>{error}</p><Button variant="outline" onClick={() => void reload()}>Try again</Button></div>;
+  if (!query.data) return <div className="portal-state flex items-center gap-2" role="status"><Spinner />Loading your workspace…</div>;
+  return <WorkspaceContext.Provider value={{ state: query.data, busy: mutation.isPending, execute: mutation.mutateAsync, reload }}>{error && <div className="sv-alert sv-alert-error" role="alert">{error}<Button variant="outline" size="sm" onClick={() => void reload()}>Retry refresh</Button></div>}{children}</WorkspaceContext.Provider>;
 }

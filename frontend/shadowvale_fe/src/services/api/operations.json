@@ -1,6 +1,10 @@
 [
   {
     "method": "GET",
+    "url": "/api/analytics/content-versions"
+  },
+  {
+    "method": "GET",
     "url": "/api/analytics/overview"
   },
   {

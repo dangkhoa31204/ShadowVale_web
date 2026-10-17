@@ -9,6 +9,7 @@ export default mergeConfig(base, defineConfig({
   plugins: [{
     name: 'maestro-local-api',
     configureServer(server) { server.middlewares.use(mockApi()); },
+    configurePreviewServer(server) { server.middlewares.use(mockApi()); },
     // Avoid screenshot-based idle detection waiting on blinking input carets.
     transformIndexHtml() { return [{ tag: 'style', children: '*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important;caret-color:transparent!important}', injectTo: 'head' }]; },
   }],

@@ -1,24 +1,21 @@
-import { PreferencesProvider } from './features/preferences/PreferencesProvider';
+import { QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from './contexts/AuthContext';
-import { ToastProvider, ToastContainer } from './components/ui/Toast';
+import { Toaster } from './components/ui/sonner';
+import { ConfirmProvider } from './features/shared/confirm';
+import { queryClient } from './lib/queryClient';
 import { AppRoutes } from './routes';
-import './internal.css';
-import './original-theme.css';
-import './features/gameDelivery/gameDelivery.css';
-import './template/tailadmin/tailadmin-theme.css';
-import './features/content/editor.css';
 
-import './military-theme.css';
 export function App() {
   return (
-    <PreferencesProvider><AuthProvider>
-      <ToastProvider>
-        <AppRoutes />
-        <ToastContainer />
-      </ToastProvider>
-    </AuthProvider></PreferencesProvider>
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <ConfirmProvider>
+          <AppRoutes />
+          <Toaster position="top-right" richColors closeButton />
+        </ConfirmProvider>
+      </AuthProvider>
+    </QueryClientProvider>
   );
 }
 
 export default App;
-

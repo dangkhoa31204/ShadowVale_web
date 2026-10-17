@@ -1,7 +1,12 @@
 # Maestro local UI checks
 
-Latest verified run: **4/4 flows passed**. See the
-[13 October 2026 report](../../docs/MAESTRO_UI_TEST_REPORT.md).
+Verification 17 October 2026: all six current scenarios passed across the full run
+and focused reruns after fixture/selector fixes. Build, lint and 53 FE tests passed.
+Production fixture checks also verified Designer/Admin reload and account switching.
+
+Historical results before the dev UI migration are in the
+[UI test report](../../docs/MAESTRO_UI_TEST_REPORT.md). Current flows target the
+shadcn UI and the Designer presentation rules; use the latest JUnit results.
 
 These flows exercise the real React UI in API mode against an isolated in-memory
 API fixture. They do **not** verify BE/database integration or modify hosted data.
@@ -44,13 +49,15 @@ Sources: [Web browsers](https://docs.maestro.dev/get-started/supported-platform/
 
 - Invalid login feedback and show/hide password.
 - Login redirect into Admin releases, Full content scrolling to the final
-  expanded record, fixed dialog header/close button, profile and password page.
+  expanded record, fixed dialog header/close button and change password navigation.
 - Designer weapon/ammo relations cannot open their option lists, manual numeric input synchronized
   with the slider, and confirmation when discarding unsaved edits.
-- English/Vietnamese and light/dark preferences.
-- Embedded change report: legacy links open Content authoring, switching tabs retains
-  pending stats/report edits, saving a local report preserves unsaved stats, and saved
-  reports survive leaving and reopening the version (flow `05-authoring-report.yaml`).
+- Archived submissions are hidden from Admin Review, including an archived deep link.
+- Archived releases and their filter option are hidden from Designer Versions.
+- Seven content groups retain access to child tables while unsupported settings stay hidden.
+
+The dev branch removed preferences, Profile and change reports; the corresponding
+old flows are intentionally absent.
 
 Use IDs/accessibility identifiers where possible. In Maestro 2.11 on Windows,
 CSS selectors can be slow or fail; these flows use IDs and user-visible text.
@@ -69,3 +76,14 @@ The exact previous user PATH cannot be reliably reconstructed from a truncated
 value alone; retain a terminal opened before the command and back up its process
 PATH before any repair. Java for this run is portable and sets `JAVA_HOME` only in
 the current process.
+
+## Production reload regression
+
+The development server uses React StrictMode effect replay and can hide the
+workspace cache race. Check a production build as well: sign in with a fixture
+account, reload `/admin/content` (Designer) or `/admin/reviews` (Admin), and verify
+the workspace renders. Repeat after signing out and switching accounts.
+
+Use `vite preview --config vite.maestro.config.mjs --host 127.0.0.1 --port 15175`
+after building with `VITE_API_BASE_URL=/api` and `VITE_DEMO_MODE=false`. The preview
+middleware uses the same isolated fixture API and never forwards to the real BE.

@@ -13,6 +13,8 @@ public sealed record PublishedManifest(
     [property: Column("checksum")] string Checksum,
     [property: Column("published_at")] DateTime PublishedAt);
 
+public sealed record PublishedVersionRow(Guid Id, long VersionNo, string Label, DateTime PublishedAt, bool IsLive);
+
 public sealed record BundleContent(
     [property: Column("checksum")] string Checksum,
     [property: Column("bundle")] string Bundle);
@@ -28,4 +30,7 @@ public interface IGameContentRepository
     Task<BundleContent?> GetEverPublishedBundleAsync(Guid versionId, CancellationToken ct = default);
 
     Task<bool> VersionExistsAsync(Guid versionId, CancellationToken ct = default);
+
+    // Every version that was published at some point, newest first: the content versions telemetry can refer to
+    Task<IReadOnlyList<PublishedVersionRow>> GetEverPublishedVersionsAsync(CancellationToken ct = default);
 }

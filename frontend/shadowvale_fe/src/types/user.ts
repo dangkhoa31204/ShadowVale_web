@@ -7,15 +7,5 @@ export interface User {
   callsign: string;
   email: string;
   role: Role;
-  tier: string;
-  clearanceLevel: string;
-  avatarUrl?: string;
   createdAt: string;
-}
-
-export interface AuthState {
-  user: User | null;
-  token: string | null;
-  isAuthenticated: boolean;
-  isLoading: boolean;
 }

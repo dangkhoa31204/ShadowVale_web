@@ -1,5 +1,8 @@
 namespace ShadowVale.BLL.DTOs.Analytics;
 
+// Content versions the analytics filters can select (published at some point), for every role
+public sealed record AnalyticsContentVersionDto(Guid Id, long VersionNo, string Label, DateTime PublishedAt, bool IsLive);
+
 // A-01
 public sealed record OverviewDto(
     long Sessions,

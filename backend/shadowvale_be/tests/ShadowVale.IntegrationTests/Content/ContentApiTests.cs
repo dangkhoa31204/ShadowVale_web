@@ -385,6 +385,20 @@ public class ContentApiTests(ApiFixture api) : IntegrationTest(api)
         (await Act(admin, draft.Id, "rollback", new { reason = "Mistake" })).StatusCode.ShouldBe(HttpStatusCode.Conflict);
     }
 
+    [DbFact]
+    public async Task Delete_unvalidated_draft_archives_without_requiring_a_bundle()
+    {
+        var admin = await Api.CreateUserClientAsync(UserRole.Admin);
+        var draft = await CreateVersion(admin, "unvalidated scratch");
+        draft.Revision.ShouldBe(0);
+        (await Delete(admin, draft.Id)).StatusCode.ShouldBe(HttpStatusCode.NoContent);
+        var archived = await GetVersion(admin, draft.Id);
+        archived.Status.ShouldBe("Archived");
+        archived.Revision.ShouldBe(1);
+        archived.BundleChecksum.ShouldBeNull();
+        (await Act(admin, draft.Id, "rollback", new { reason = "Mistake" })).StatusCode.ShouldBe(HttpStatusCode.Conflict);
+    }
+
     private static async Task<HttpResponseMessage> Delete(HttpClient client, Guid id) =>
         await client.SendAsync(new HttpRequestMessage(HttpMethod.Delete, $"{Versions}/{id}")
         {

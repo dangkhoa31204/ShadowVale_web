@@ -7,7 +7,7 @@ name: Designer content groups hide unsupported settings
     id: login-username
 - inputText: designer
 - tapOn:
-    id: Password
+    id: login-password
 - inputText: UiTest123!
 - tapOn:
     id: login-submit
@@ -17,6 +17,18 @@ name: Designer content groups hide unsupported settings
     direction: DOWN
 - assertVisible:
     id: content-table-weapons
+- tapOn:
+    id: content-group-items
+- scrollUntilVisible:
+    element:
+      id: field-items-item_type
+    direction: DOWN
+- assertVisible:
+    id: field-items-item_type
+- scrollUntilVisible:
+    element:
+      id: content-table-consumables
+    direction: UP
 - tapOn:
     id: content-table-consumables
 - scrollUntilVisible:

@@ -60,7 +60,7 @@ Các endpoint đọc/chỉnh Draft dùng Admin hoặc Designer; approve/reject/p
 - `POST /api/content-versions/{id}/submit`: 400 thiếu bundle/checksum đã validate hoặc `CONTENT_BUNDLE_INVALID`; 404 không tồn tại; 409 `CONTENT_VERSION_INVALID_STATUS` (cần Draft) hoặc `CONTENT_VERSION_CHANGED`.
 - `POST /api/content-versions/{id}/approve`: 400 reviewNote quá dài/request sai hoặc bundle không hợp lệ; 404 không tồn tại; 409 cần InReview hoặc revision đã thay đổi. reviewNote có thể bỏ trống khi approve.
 - `POST /api/content-versions/{id}/reject`: 400 reviewNote thiếu/trống/quá dài; 404 không tồn tại; 409 cần InReview hoặc revision cũ.
-- `POST /api/content-versions/{id}/publish`: 400 reason thiếu/quá dài hoặc bundle không hợp lệ; 404 không tồn tại; 409 cần Approved, revision cũ hoặc `CONTENT_VERSION_NOT_REVIEWED`.
+- `POST /api/content-versions/{id}/publish`: 400 reason quá 500 ký tự hoặc bundle không hợp lệ; 404 không tồn tại; 409 cần Approved, revision cũ hoặc `CONTENT_VERSION_NOT_REVIEWED`.
 - `POST /api/content-versions/{id}/rollback`: 400 reason/revision/request sai hoặc bundle không hợp lệ; 404 không tồn tại; 409 cần Archived, revision cũ hoặc `CONTENT_VERSION_NEVER_PUBLISHED`.
 - `GET /api/content-versions/{id}/bundle`: 404 không tồn tại; 409 `CONTENT_VERSION_NOT_VALIDATED` (validate lại sau chỉnh sửa).
 - `GET /api/content-publications`: 400 contentVersionId/query/phân trang sai. Không có lịch sử khớp bộ lọc trả danh sách rỗng.
@@ -106,6 +106,7 @@ Các giới hạn cụ thể từng field được thể hiện trong schema req
 
 Đọc: Admin/Analyst/Designer; export: Admin/Analyst. Query source phải human/replay, family hợp lệ, from không sau to và khoảng ngày trong giới hạn service.
 
+- `GET /api/analytics/content-versions`: 401/403 theo quyền chung của analytics; không có lỗi nghiệp vụ.
 - `GET /api/analytics/overview`: 400 bộ lọc sai.
 - `GET /api/analytics/heatmap`: 400 bộ lọc/cellSize/eventTypes sai.
 - `GET /api/analytics/funnel`: 400 bộ lọc sai.
