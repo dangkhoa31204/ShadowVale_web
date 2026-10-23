@@ -32,7 +32,10 @@ name: Designer immutable keys and numeric controls
     id: field-weapons-ammo_item_code
 - assertNotVisible: None
 - takeScreenshot: designer-keys-and-stats
-- tapOn: Versions
+- scrollUntilVisible:
+    element: Published content
+    direction: UP
+- tapOn: Published content
 - assertVisible: Leave unsaved changes\?
 - tapOn: Discard & leave
 - assertNotVisible: Leave unsaved changes\?

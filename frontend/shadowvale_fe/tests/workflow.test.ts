@@ -161,3 +161,12 @@ test('review diffs match item_code and composite keys independently of order', (
   assert.ok(changes.some(d => d.path === '/quest_rewards/' + removed.quest_code + ':cloth' && d.before === undefined));
 });
 
+
+test('designer manages published content inside content management while legacy links remain valid', () => {
+  const designerNavigation = navigationForRole('designer');
+  assert.equal(designerNavigation.find(n => n.path === '/admin/content')?.label, 'Content management');
+  assert.equal(designerNavigation.some(n => n.path === '/admin/releases'), false);
+  assert.equal(navigationForRole('admin').find(n => n.path === '/admin/releases')?.label, 'Publish content');
+  assert.equal(safeRedirect('/admin/releases', 'designer'), '/admin/releases');
+  assert.equal(safeRedirect('/admin/content?view=published', 'designer'), '/admin/content?view=published');
+});

@@ -24,16 +24,16 @@ Functional Requirements (Content & Balancing Platform, Telemetry & Analytics Das
 | Màn (route) | Vai trò | Yêu cầu trong proposal |
 | --- | --- | --- |
 | Login `/login` | Tất cả | Authenticated (JWT) access; role-based access |
-| Content authoring `/admin/content` (trang đầu của Designer) | Designer | Authoring maps, enemy archetypes & parameters, loot tables, recipes, quests, weapon stats, with schema validation |
+| Content management → Author content `/admin/content` (trang đầu của Designer) | Designer | Authoring maps, enemy archetypes & parameters, loot tables, recipes, quests, weapon stats, with schema validation |
 | Review content `/admin/reviews` (trang đầu của Admin) | Admin | Review/approval workflow |
-| Versions / Publish versions `/admin/releases` | Designer / Admin | Version history with compare/rollback and one-click publish to a validated JSON bundle |
+| Content management → Published content `/admin/content?view=published` / Publish content `/admin/releases` | Designer / Admin | Version history with compare/rollback and one-click publish to a validated JSON bundle |
 | Users `/admin/users` | Admin | User/role management (Designer, Analyst, Admin) — role gán trên từng tài khoản |
 | Analytics `/admin/analytics` (trang đầu của Analyst) | Tất cả | Tab Gameplay: mission completion funnels, weapon-usage, stealth-vs-combat distributions · Heatmap: difficulty heat maps · AI comparison: capture rate, escape time, coordination score per content version |
 | Analytics → Solver configurations | Xem: tất cả · Sửa: Analyst, Admin | Admin "configuration": cấu hình duy nhất BE hỗ trợ là cấu hình solver (classical vs quantum-inspired) |
 | Change password `/admin/change-password` | Tất cả | Giữ theo quyết định của nhóm (xem dưới) |
 
-Số màn: Designer 5 (Login, Content authoring, Versions, Analytics, Change password),
-Analyst 3 (Login, Analytics, Change password), Admin 6 (Login, Review content, Publish versions,
+Số màn: Designer 4 (Login, Content management, Analytics, Change password),
+Analyst 3 (Login, Analytics, Change password), Admin 6 (Login, Review content, Publish content,
 Users, Analytics, Change password). Admin mở Analytics và Change password từ menu **Account**.
 
 ### Đã bỏ vì nằm ngoài proposal (đừng thêm lại)
@@ -208,3 +208,7 @@ Never run the BE against the shared Supabase database for UI testing.
 
 The login background is the Unity menu artwork (`Assets/_Project/Map01/Resources/Menu/Background.png`)
 with the soldier removed: `public/images/shadowvale-menu-landscape.png`.
+
+### Điều chỉnh điều hướng content (23/10/2026)
+
+Theo yêu cầu của nhóm: gộp lịch sử và so sánh content của Designer vào Content management, tab Published content. Route cũ `/admin/releases` của Designer chuyển về tab này. Admin dùng Publish content để xuất bản JSON content bundle; không phải phiên bản executable, scene/model hoặc source code Unity. Chỉ đổi FE, không đổi API hay DB.

@@ -11,11 +11,11 @@ name: Designer Versions hides archived releases
 - inputText: UiTest123!
 - tapOn:
     id: login-submit
-- assertVisible: Published versions
+- assertVisible: Published content bundles
 - assertVisible: 1 versions
 - assertNotVisible: Maestro archived content
 - assertNotVisible: Archived
-- tapOn: All published versions
+- tapOn: All published content bundles
 - assertVisible: Live
 - assertNotVisible: Archived
 - takeScreenshot: designer-versions-no-archived
