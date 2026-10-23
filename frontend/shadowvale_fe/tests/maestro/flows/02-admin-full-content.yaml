@@ -16,7 +16,7 @@ name: Admin Full content scrolling and change password navigation
     element: View changes
     direction: DOWN
 - tapOn: View changes
-- assertVisible: VERSION DETAILS
+- assertVisible: CONTENT BUNDLE DETAILS
 - tapOn:
     text: Full content
     index: 0
@@ -32,7 +32,7 @@ name: Admin Full content scrolling and change password navigation
           duration: 300
 - assertVisible:
     id: section-quest_rewards
-- assertVisible: VERSION DETAILS
+- assertVisible: CONTENT BUNDLE DETAILS
 - tapOn:
     id: section-quest_rewards
 - repeat:
@@ -47,7 +47,7 @@ name: Admin Full content scrolling and change password navigation
 - takeScreenshot: admin-full-content-bottom
 - tapOn:
     id: Close
-- assertNotVisible: VERSION DETAILS
+- assertNotVisible: CONTENT BUNDLE DETAILS
 - scrollUntilVisible:
     element:
       id: account-menu-trigger

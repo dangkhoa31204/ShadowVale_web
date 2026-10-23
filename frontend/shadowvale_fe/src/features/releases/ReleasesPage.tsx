@@ -1,5 +1,5 @@
 import { Fragment, useEffect, useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, Navigate } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Field, FieldLabel } from '@/components/ui/field';
@@ -18,8 +18,12 @@ import { isDemoMode } from '../../config/environment';
 import { ApiReleasesPage } from './ApiVersions';
 
 
-export function ReleasesPage() { return isDemoMode ? <DemoReleasesPage /> : <ApiReleasesPage />; }
-function DemoReleasesPage() {
+export function ReleasesPage() {
+  const { user } = useAuth();
+  return user?.role === 'designer' ? <Navigate to="/admin/content?view=published" replace /> : <ContentVersions />;
+}
+export function ContentVersions({ embedded = false }: { embedded?: boolean }) { return isDemoMode ? <DemoReleasesPage embedded={embedded} /> : <ApiReleasesPage embedded={embedded} />; }
+function DemoReleasesPage({ embedded = false }: { embedded?: boolean }) {
   const { state, execute, busy } = useWorkspace(), { user } = useAuth();
   const visibleReleases = state.releases.filter(r => user?.role !== 'designer' || r.status !== 'archived');
   const active = state.releases.find(r => r.id === state.activeReleaseId);
@@ -61,7 +65,8 @@ function DemoReleasesPage() {
   const versionOptions = visibleReleases.map(r => <NativeSelectOption key={r.id} value={r.id}>#{r.version_no} · {r.label}</NativeSelectOption>);
 
   return <div className="sv-page">
-    <PageHeading title={canPublish ? "Publish versions" : "Versions"} />
+    {!embedded && <PageHeading title={canPublish ? "Publish content" : "Content versions"} description="Publish and track game content bundles." />}
+    {embedded && <p className="text-sm text-muted-foreground">Content bundles reviewed and published by Admin.</p>}
     {active && <Panel><div className="flex flex-wrap items-center justify-between gap-4 p-6">
       <div className="flex items-center gap-4"><span className="grid size-11 shrink-0 place-items-center rounded-lg bg-primary/10 text-primary"><Icon name="deployed_code" className="size-5" /></span><div><span className="sv-eyebrow">Published content</span><h2 className="text-lg font-semibold">#{active.version_no} · {active.label}</h2><p className="text-sm text-muted-foreground">{dateLabel(active.publishedAt)} · {active.publishedBy}</p></div></div>
     </div></Panel>}
@@ -69,13 +74,13 @@ function DemoReleasesPage() {
     {canPublish && <Panel title="Approved content" action={<Badge variant="secondary">{approved.length}</Badge>}>
       {approved.length ? approved.map(d => <div className="flex flex-wrap items-center gap-4 border-b px-6 py-4 last:border-b-0" key={d.id}>
         <div className="min-w-0 flex-1"><strong className="block text-sm font-medium">{d.label}</strong><small className="text-xs text-muted-foreground">#{d.version_no} · Reviewed by {d.reviewedBy || '—'}</small></div>
-        <div className="flex gap-2"><Button asChild variant="outline"><Link to={'/admin/reviews?draft=' + encodeURIComponent(d.id)}>View changes</Link></Button><Button disabled={busy} onClick={() => void publish(d.id, d.revision)}>Publish version</Button></div>
+        <div className="flex gap-2"><Button asChild variant="outline"><Link to={'/admin/reviews?draft=' + encodeURIComponent(d.id)}>View changes</Link></Button><Button disabled={busy} onClick={() => void publish(d.id, d.revision)}>Publish content bundle</Button></div>
       </div>) : <Empty title="No approved content" />}
     </Panel>}
 
     <Panel title="Content versions">
       <Table className={panelTable}>
-        <TableHeader><TableRow>{['Version', 'Label', 'Published', 'Published by', 'Status', 'Actions'].map(h => <TableHead key={h}>{h}</TableHead>)}</TableRow></TableHeader>
+        <TableHeader><TableRow>{['Content version', 'Label', 'Published', 'Published by', 'Status', 'Actions'].map(h => <TableHead key={h}>{h}</TableHead>)}</TableRow></TableHeader>
         <TableBody>{visibleReleases.map(r => {
           const parentId = state.drafts.find(d => d.id === r.sourceDraftId)?.parent_version_id;
           const baseline = state.releases.find(entry => entry.sourceDraftId === parentId);
@@ -84,7 +89,7 @@ function DemoReleasesPage() {
               <TableCell className="font-mono font-medium">#{r.version_no}</TableCell><TableCell>{r.label}</TableCell>
               <TableCell>{dateLabel(r.publishedAt)}</TableCell><TableCell>{r.publishedBy}</TableCell><TableCell><Status value={r.status} /></TableCell>
               <TableCell><div className="flex gap-2">
-                {canPublish && <Button variant="outline" size="sm" id={'release-toggle-' + r.id} aria-expanded={detailId === r.id} aria-controls={'release-detail-' + r.id} onClick={() => setDetailId(detailId === r.id ? '' : r.id)}>{detailId === r.id ? "Hide changes" : "View changes"}</Button>}
+                <Button variant="outline" size="sm" id={'release-toggle-' + r.id} aria-expanded={detailId === r.id} aria-controls={'release-detail-' + r.id} onClick={() => setDetailId(detailId === r.id ? '' : r.id)}>{detailId === r.id ? "Hide changes" : "View changes"}</Button>
                 {canPublish && r.status === 'archived' && <Button variant="outline" size="sm" disabled={busy} onClick={() => { setReason(''); setConfirm({ id: r.id }); }}>Rollback</Button>}
               </div></TableCell>
             </TableRow>
@@ -109,13 +114,13 @@ function DemoReleasesPage() {
       </Table> : <Empty title="No publication history" />}
     </Panel>}
 
-    <Panel title="Compare versions">
+    <Panel title="Compare content versions">
       <div className="grid items-end gap-4 border-b p-6 sm:grid-cols-[1fr_auto_1fr]">
         <Field><FieldLabel htmlFor="compare-from">From</FieldLabel><NativeSelect id="compare-from" className="w-full" value={beforeId} onChange={e => setBeforeId(e.target.value)}>{versionOptions}</NativeSelect></Field>
         <Icon name="arrow_forward" className="mb-2 hidden text-muted-foreground sm:block" />
         <Field><FieldLabel htmlFor="compare-to">To</FieldLabel><NativeSelect id="compare-to" className="w-full" value={afterId} onChange={e => setAfterId(e.target.value)}>{versionOptions}</NativeSelect></Field>
       </div>
-      {after ? <BundleDetails key={beforeId + afterId} before={before?.bundle} after={after.bundle} /> : <Empty title="No versions" />}
+      {after ? <BundleDetails key={beforeId + afterId} before={before?.bundle} after={after.bundle} /> : <Empty title="No content versions" />}
     </Panel>
 
     {confirm && <Modal title={'Rollback to version #' + target?.version_no + '?'} description={target?.label} busy={busy} onClose={() => setConfirm(null)}>
