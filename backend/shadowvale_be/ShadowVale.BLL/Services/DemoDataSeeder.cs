@@ -23,7 +23,7 @@ public class DemoDataSeeder(
     public const string Marker = "demo-seed";
     private const int SessionCount = 300;
     private const int PlayerCount = 40;
-    private const string MapCode = "map01_docks";
+    private const string MapCode = "map01";
 
     private static readonly string[] Weapons = ["rifle_standard", "smg_compact", "shotgun_pump", "pistol_silenced", "sniper_bolt", "carbine_scout"];
 
@@ -77,7 +77,7 @@ public class DemoDataSeeder(
         if (await demo.AnyVersionEverPublishedAsync(ct))
             return await demo.GetPublishedVersionIdAsync(ct);
 
-        // The game's built-in fallback bundle, so the game API also has something to serve
+        // A valid schema 1.0 bundle (the validator test fixture, map code "map01" like the game), so the game API also has something to serve
         await using var stream = typeof(DemoDataSeeder).Assembly.GetManifestResourceStream("ShadowVale.BLL.Seeding.demo_bundle.json")
             ?? throw new InvalidOperationException("Embedded demo bundle is missing.");
         var bundle = await new StreamReader(stream).ReadToEndAsync(ct);

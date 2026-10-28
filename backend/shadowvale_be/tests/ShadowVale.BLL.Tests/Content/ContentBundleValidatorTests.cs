@@ -14,6 +14,14 @@ public class ContentBundleValidatorTests
     [Fact]
     public void Frontend_demo_matches_backend_contract() => _validator.Validate(Demo()).ShouldBeEmpty();
 
+    // Seed:DemoData=true publishes it, so the game API must serve a bundle that passes the contract
+    [Fact]
+    public void Seeded_demo_bundle_matches_backend_contract()
+    {
+        using var stream = typeof(ContentBundleValidator).Assembly.GetManifestResourceStream("ShadowVale.BLL.Seeding.demo_bundle.json")!;
+        _validator.Validate(JsonNode.Parse(stream)!.AsObject()).ShouldBeEmpty();
+    }
+
     [Fact]
     public void Invalid_schema_returns_field_paths_without_crashing()
     {

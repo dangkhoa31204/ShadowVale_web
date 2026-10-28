@@ -36,7 +36,7 @@ public class DemoAndMetaTests(ApiFixture api) : IntegrationTest(api)
 
         (await analyst.GetFromJsonAsync<OverviewDto>("/api/analytics/overview"))!.Sessions.ShouldBeGreaterThan(0);
         (await analyst.GetFromJsonAsync<List<AiComparisonRowDto>>("/api/analytics/ai/comparison?source=replay"))!.ShouldNotBeEmpty();
-        (await analyst.GetFromJsonAsync<HeatmapDto>("/api/analytics/heatmap?mapCode=map01_docks"))!.Cells.ShouldNotBeEmpty();
+        (await analyst.GetFromJsonAsync<HeatmapDto>("/api/analytics/heatmap?mapCode=map01"))!.Cells.ShouldNotBeEmpty();
         // The demo version is published, so the game API serves its bundle
         (await Api.CreateGameClient().GetAsync("/api/game/content/bundle")).StatusCode.ShouldBe(HttpStatusCode.OK);
     }
