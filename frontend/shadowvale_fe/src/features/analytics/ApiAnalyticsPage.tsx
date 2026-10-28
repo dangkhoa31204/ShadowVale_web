@@ -41,10 +41,12 @@ function Heatmap({data}:{data:HeatmapDto}){
   return <div className="grid gap-3 px-6 pb-6"><svg role="img" aria-label={"Difficulty heatmap for "+data.mapCode} viewBox={`${minX} ${minY} ${width} ${height}`} className="h-90 w-full rounded-lg bg-muted">{data.cells.map(c=><rect key={c.x+':'+c.y} x={Number(c.x)} y={Number(c.y)} width={size} height={size} fill="var(--chart-3)" fillOpacity={0.15+0.85*Number(c.count)/max} stroke="var(--muted)" strokeWidth={size*0.06}><title>X {c.x}, Z {c.y}: {c.count} events</title></rect>)}</svg>
     <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground"><span>1 event</span><span className="h-2 w-32 rounded-sm bg-linear-to-r from-chart-3/15 to-chart-3"/><span>{max} events</span><span>· World X / Z · {size} m cells · {data.eventTypes.join(', ')}</span></div></div>;
 }
+// The date inputs are local days; toISOString() would give the UTC day, a day behind before 07:00 in Vietnam
+const localDay=(d:Date)=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 const tabs=[['gameplay','Gameplay'],['heatmap','Heatmap'],['comparison','AI comparison'],['solvers','Solver configurations']] as const;
 type Tab=typeof tabs[number][0];
 export function ApiAnalyticsPage(){
-  const [tab,setTab]=useState<Tab>('gameplay'),[from,setFrom]=useState(()=>new Date(Date.now()-7*86400000).toISOString().slice(0,10)),[to,setTo]=useState(()=>new Date().toISOString().slice(0,10)),[source,setSource]=useState<'human'|'replay'>('human');
+  const [tab,setTab]=useState<Tab>('gameplay'),[from,setFrom]=useState(()=>localDay(new Date(Date.now()-7*86400000))),[to,setTo]=useState(()=>localDay(new Date())),[source,setSource]=useState<'human'|'replay'>('human');
   const [version,setVersion]=useState(''),[map,setMap]=useState(''),[family,setFamily]=useState(''),[solver,setSolver]=useState(''),[group,setGroup]=useState('configuration');
   const [cell,setCell]=useState(5),[cellError,setCellError]=useState(''),[event,setEvent]=useState('player_death');
   const enums=useQuery({queryKey:['enums'],queryFn:contentApi.enums,staleTime:Infinity});
