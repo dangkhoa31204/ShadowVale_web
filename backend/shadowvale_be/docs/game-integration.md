@@ -136,3 +136,18 @@ Event type hợp lệ (loại khác bị từ chối): `player_spotted`, `enemy_
 Gọi `POST /api/game/sessions` với `source: "replay"` và `requestedVariant` = `code` của solver configuration (không
 cần đang bật). Dữ liệu replay không bao giờ trộn với người chơi thật. Xem bằng `ai/comparison?source=replay` và
 `ai/scalability`.
+
+## 6. Nạp content hiện có của game (một lần)
+
+`tools/ImportGameContent` chuyển dữ liệu game đang dùng (`Map01Content.json`, `Map01Loot.json`, `Map01Balance.json`,
+`SkillBalance.json`, các `nav_graph.json` và stage của `Map01Quest`) thành bundle schema 1.0, kiểm bằng chính
+`ContentBundleValidator`, và in ra mọi giá trị game không có mà tool phải tự điền. Bản đã sinh:
+`tools/ImportGameContent/game-content-v1.json`.
+
+```
+dotnet run --project tools/ImportGameContent -- convert --unity "<repo game>/Assets" --out tools/ImportGameContent/game-content-v1.json
+SVL_TOKEN=<access token của Designer/Admin> dotnet run --project tools/ImportGameContent -- push --bundle tools/ImportGameContent/game-content-v1.json --api http://localhost:5079
+```
+
+`push` tạo một Draft qua các endpoint soạn content rồi validate. Submit, approve và publish vẫn làm trên web, để bản này
+đi qua quy trình review như mọi version khác.
