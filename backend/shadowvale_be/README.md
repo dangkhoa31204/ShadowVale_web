@@ -288,6 +288,9 @@ Game không đăng nhập. Mỗi bản build gửi header `X-Game-Key`; key nằ
 cho phép nhiều key để đổi key mà không gián đoạn). Thiếu key thì API **không khởi động**. Key này chỉ để chặn spam
 (key nằm trong bản build nên có thể bị lấy ra), vì vậy endpoint game còn bị giới hạn 120 request/phút/IP (`RateLimits:Game`).
 
+Luồng phía game (cache, offline, khoá bundle theo phiên) và quy ước cho các object tự do trong bundle: xem
+[docs/game-integration.md](docs/game-integration.md).
+
 DTO nằm trong `ShadowVale.Contracts` (`Game/*`, `Telemetry/*`) để Unity dùng lại; JSON dạng camelCase, thời gian là ISO 8601
 có offset (server lưu UTC). Game hiểu mã trả về như sau: **2xx và 409 = xong**; **400 và 413 = bỏ lô**; mã khác = gửi lại sau.
 
