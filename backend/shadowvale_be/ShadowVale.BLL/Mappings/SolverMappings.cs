@@ -13,6 +13,7 @@ public static class SolverMappings
         SolverAlgorithm.Greedy => "greedy",
         SolverAlgorithm.Genetic => "ga",
         SolverAlgorithm.ClassicalSa => "sa",
+        SolverAlgorithm.Tabu => "tabu",
         SolverAlgorithm.Sqa => "sqa",
         SolverAlgorithm.Qiea => "qiea",
         SolverAlgorithm.Qaoa => "qaoa",
@@ -24,7 +25,8 @@ public static class SolverMappings
     // (the database has the same rule as a check constraint)
     public static SolverFamily Family(this SolverAlgorithm algorithm) => algorithm switch
     {
-        SolverAlgorithm.Greedy or SolverAlgorithm.Genetic or SolverAlgorithm.ClassicalSa => SolverFamily.Classical,
+        SolverAlgorithm.Greedy or SolverAlgorithm.Genetic or SolverAlgorithm.ClassicalSa or SolverAlgorithm.Tabu
+            => SolverFamily.Classical,
         SolverAlgorithm.QpuDwave => SolverFamily.QuantumHardware,
         _ => SolverFamily.QuantumInspired
     };

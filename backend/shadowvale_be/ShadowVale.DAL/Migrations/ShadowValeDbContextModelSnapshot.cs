@@ -1411,7 +1411,7 @@ namespace ShadowVale.DAL.Migrations
 
                     b.ToTable("solver_configurations", "shadowvale", t =>
                         {
-                            t.HasCheckConstraint("ck_solver_configurations_family", "(family = 'Classical') = (algorithm IN ('Greedy', 'Genetic', 'ClassicalSa')) AND (family = 'QuantumHardware') = (algorithm = 'QpuDwave')");
+                            t.HasCheckConstraint("ck_solver_configurations_family", "(family = 'Classical') = (algorithm IN ('Greedy', 'Genetic', 'ClassicalSa', 'Tabu')) AND (family = 'QuantumHardware') = (algorithm = 'QpuDwave')");
 
                             t.HasCheckConstraint("ck_solver_configurations_time_budget", "time_budget_ms > 0");
                         });

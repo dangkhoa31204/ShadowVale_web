@@ -11,6 +11,7 @@ public class EnumParsingTests
     [InlineData("Sqa", SolverAlgorithm.Sqa)]
     [InlineData(" qaoa ", SolverAlgorithm.Qaoa)]
     [InlineData("CLASSICALSA", SolverAlgorithm.ClassicalSa)]
+    [InlineData("tabu", SolverAlgorithm.Tabu)]
     public void Parse_WithMemberName_IgnoresCaseAndSpaces(string value, SolverAlgorithm expected)
     {
         EnumParsing.Parse<SolverAlgorithm>(value, "Algorithm").ShouldBe(expected);

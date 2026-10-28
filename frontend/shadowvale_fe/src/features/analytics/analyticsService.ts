@@ -2,7 +2,7 @@ import { isDemoMode } from '../../config/environment';
 
 export type SessionOutcome = 'in_progress' | 'completed' | 'died' | 'quit' | 'crashed';
 export type SolverFamily = 'classical' | 'quantum_inspired' | 'quantum_hardware';
-export type SolverAlgorithm = 'greedy' | 'genetic' | 'classical_sa' | 'qaoa_aer' | 'sqa_neal' | 'qiea' | 'qpu_dwave';
+export type SolverAlgorithm = 'greedy' | 'genetic' | 'classical_sa' | 'tabu' | 'qaoa_aer' | 'sqa_neal' | 'qiea' | 'qpu_dwave';
 export type CoordinationTask = 'route_coverage' | 'cover_assignment' | 'flanking';
 export type EncounterOutcome = 'player_captured' | 'player_escaped' | 'squad_eliminated' | 'aborted';
 export interface TelemetrySession {
@@ -30,8 +30,8 @@ export interface AnalyticsData {
   solver_configurations: SolverConfiguration[]; coordination_results: CoordinationResult[];
 }
 export const emptyAnalytics: AnalyticsData = { game_sessions: [], telemetry_events: [], solver_configurations: [], coordination_results: [] };
-const algorithms: SolverAlgorithm[] = ['greedy', 'genetic', 'classical_sa', 'qaoa_aer', 'sqa_neal', 'qiea', 'qpu_dwave'];
-const families: SolverFamily[] = ['classical', 'classical', 'classical', 'quantum_inspired', 'quantum_inspired', 'quantum_inspired', 'quantum_hardware'];
+const algorithms: SolverAlgorithm[] = ['greedy', 'genetic', 'classical_sa', 'tabu', 'qaoa_aer', 'sqa_neal', 'qiea', 'qpu_dwave'];
+const families: SolverFamily[] = ['classical', 'classical', 'classical', 'classical', 'quantum_inspired', 'quantum_inspired', 'quantum_inspired', 'quantum_hardware'];
 const outcomes: SessionOutcome[] = ['completed', 'completed', 'completed', 'died', 'quit', 'crashed', 'in_progress'];
 const encounters: EncounterOutcome[] = ['player_captured', 'player_escaped', 'squad_eliminated', 'aborted'];
 const uuid = (n: number) => `00000000-0000-4000-8000-${String(n).padStart(12, '0')}`;

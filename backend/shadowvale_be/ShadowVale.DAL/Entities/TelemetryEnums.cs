@@ -24,6 +24,8 @@ public enum SolverAlgorithm
     Greedy,
     Genetic,
     ClassicalSa,
+    // Tabu search over the assignment space (own implementation, classical baseline)
+    Tabu,
     // QAOA simulated with numpy, not on quantum hardware
     Qaoa,
     // Simulated quantum annealing (own path-integral Monte Carlo implementation)

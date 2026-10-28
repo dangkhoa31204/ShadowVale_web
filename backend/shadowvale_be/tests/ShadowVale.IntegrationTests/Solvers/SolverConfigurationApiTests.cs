@@ -83,7 +83,7 @@ public class SolverConfigurationApiTests(ApiFixture api) : IntegrationTest(api)
 
         var all = (await admin.GetFromJsonAsync<List<SolverConfigurationDto>>(Url))!;
 
-        all.Select(c => c.Code).ShouldBe(["ga", "greedy", "qaoa", "qiea", "sa", "sqa"]);
+        all.Select(c => c.Code).ShouldBe(["ga", "greedy", "qaoa", "qiea", "sa", "sqa", "tabu"]);
         all.Where(c => c.IsActive).Select(c => c.Code).ShouldBe(["greedy", "sqa"]);
         all.ShouldAllBe(c => c.TimeBudgetMs == 120 && c.Code == c.Variant);
     }

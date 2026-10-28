@@ -47,6 +47,7 @@ public class SolverConfigurationServiceTests
     [Theory]
     [InlineData("Greedy", "Classical")]
     [InlineData("ClassicalSa", "Classical")]
+    [InlineData("Tabu", "Classical")]
     [InlineData("Sqa", "QuantumInspired")]
     [InlineData("Qaoa", "QuantumInspired")]
     [InlineData("QpuDwave", "QuantumHardware")]

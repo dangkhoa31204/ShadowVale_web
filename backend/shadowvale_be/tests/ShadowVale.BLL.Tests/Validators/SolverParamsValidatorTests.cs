@@ -32,6 +32,8 @@ public class SolverParamsValidatorTests
     [InlineData(SolverAlgorithm.Genetic, """{"mutation": 1.5}""", "Params.mutation")]
     [InlineData(SolverAlgorithm.Qaoa, """{"time_fraction": 0}""", "Params.time_fraction")]
     [InlineData(SolverAlgorithm.Sqa, """{"normalise": "none"}""", "Params.normalise")]
+    [InlineData(SolverAlgorithm.Tabu, """{"restart_after": 5}""", "Params.restart_after")]
+    [InlineData(SolverAlgorithm.Tabu, """{"trotter": 16}""", "Params.trotter")]
     public void Validate_WithWrongParam_ReportsThatField(SolverAlgorithm algorithm, string json, string field)
     {
         var ex = Should.Throw<ValidationException>(() => SolverParamsValidator.Validate(algorithm, Json(json), null));

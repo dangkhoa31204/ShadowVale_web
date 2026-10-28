@@ -23,6 +23,8 @@ public class SolverConfigurationSeeder(
         ("ga", "Genetic algorithm (tuned)", SolverAlgorithm.Genetic, "custom",
             """{"elite": 6, "mutation": 0.10512953207506336, "population": 76, "tournament": 5}""", false),
         ("sa", "Simulated annealing (neal)", SolverAlgorithm.ClassicalSa, "dwave-neal", "{}", false),
+        // Its solver defaults are already the exp-v2 tuned values
+        ("tabu", "Tabu search (tuned)", SolverAlgorithm.Tabu, "custom", "{}", false),
         ("sqa", "Simulated quantum annealing (tuned)", SolverAlgorithm.Sqa, "custom",
             """{"gamma_end": 0.020434980033166756, "gamma_start": 5.364582871902586, "temperature": 0.012739864531486577, "trotter": 16}""", true),
         ("qiea", "Quantum-inspired evolutionary (tuned)", SolverAlgorithm.Qiea, "custom",

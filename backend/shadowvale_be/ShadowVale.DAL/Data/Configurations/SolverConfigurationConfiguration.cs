@@ -22,7 +22,7 @@ public class SolverConfigurationConfiguration : IEntityTypeConfiguration<SolverC
             t.HasCheckConstraint("ck_solver_configurations_time_budget", "time_budget_ms > 0");
             // Family must match the algorithm, so the classical vs quantum-inspired comparison cannot be mislabelled
             t.HasCheckConstraint("ck_solver_configurations_family",
-                "(family = 'Classical') = (algorithm IN ('Greedy', 'Genetic', 'ClassicalSa')) " +
+                "(family = 'Classical') = (algorithm IN ('Greedy', 'Genetic', 'ClassicalSa', 'Tabu')) " +
                 "AND (family = 'QuantumHardware') = (algorithm = 'QpuDwave')");
         });
     }

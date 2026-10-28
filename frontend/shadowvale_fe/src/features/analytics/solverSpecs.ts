@@ -6,6 +6,7 @@ export const solverSpecs:Record<string,Record<string,ParamSpec>>={
  Greedy:{},QpuDwave:{},
  Genetic:{population:int(4,10000),generations:int(1,100000),mutation:real(0,1),elite:int(1,10000),tournament:int(2,1000),time_fraction:fraction},
  ClassicalSa:{num_sweeps:int(1,1000000),num_reads:int(1,10000),batch:int(1,10000),beta_hot:real(0.000001,1000000),beta_cold:real(0.000001,1000000),time_fraction:fraction},
+ Tabu:{tenure_min:real(0.01,100),tenure_max:real(0.01,100),restart_after:int(10,1000000),kick:int(1,1000),iterations:int(1,1000000),time_fraction:fraction},
  Sqa:{trotter:int(2,1024),sweeps:int(1,1000000),temperature:real(0.000001,1000),gamma_start:real(0,1000),gamma_end:real(0,1000),time_fraction:fraction,normalise:{min:0,max:0,step:1,options:['lambda','max']}},
  Qiea:{population:int(2,10000),generations:int(1,1000000),delta:real(0.000001,Math.PI/2),margin:real(0,Math.PI/4-0.000001),time_fraction:fraction},
  Qaoa:{layers:int(1,20),shots:int(1,1000000),grid:int(2,1000),max_qubits:int(1,30),refine_iterations:int(0,100000),time_fraction:fraction},

@@ -38,6 +38,16 @@ public static class SolverParamsValidator
             ["beta_cold"] = new(Kind.Number, 1e-6, 1e6),
             ["time_fraction"] = TimeFraction
         },
+        [SolverAlgorithm.Tabu] = new()
+        {
+            // Tenure range is a multiple of the agent count
+            ["tenure_min"] = new(Kind.Number, 0.01, 100),
+            ["tenure_max"] = new(Kind.Number, 0.01, 100),
+            ["restart_after"] = new(Kind.Integer, 10, 1_000_000),
+            ["kick"] = new(Kind.Integer, 1, 1_000),
+            ["iterations"] = new(Kind.Integer, 1, 1_000_000),
+            ["time_fraction"] = TimeFraction
+        },
         [SolverAlgorithm.Sqa] = new()
         {
             ["trotter"] = new(Kind.Integer, 2, 1_024),
