@@ -1,7 +1,7 @@
 import type { Role } from '../../types/user';
 export const permissions = {
   author: ['designer'], review: ['admin'], publish: ['admin'],
-  analytics: ['designer', 'analyst', 'admin'], solverEdit: ['analyst', 'admin'], users: ['admin'],
+  analytics: ['designer', 'analyst', 'admin'], solverEdit: ['designer'], users: ['admin'],
   versions: ['designer', 'admin'],
 } as const satisfies Record<string, readonly Role[]>;
 export type Permission = keyof typeof permissions;

@@ -1,5 +1,5 @@
 {
-  "observedAt": "2026-11-22T10:22:36.209Z",
+  "observedAt": "2026-11-22T14:03:12.253Z",
   "schemas": [
     "shadowvale",
     "public"
@@ -12,9 +12,10 @@
     "id": "a1c53061-65ce-4896-a940-e7526109d2c2",
     "version_no": "15",
     "status": "Draft",
-    "revision": "1",
+    "revision": "2",
     "validated_at": null,
-    "bundle_not_published": true
+    "bundle_not_published": true,
+    "authorUsername": "designer"
   },
   "importedCounts": {
     "items": 34,
@@ -39,5 +40,10 @@
       "status": "Published",
       "items": 4
     }
-  ]
+  ],
+  "weaponRuntimeSync": {
+    "matched": 7,
+    "differences": 0,
+    "sourceHash": "6531c1b76ca6c2807f02da03cecfdd97acedc1176ce4e061bb68bc56b8ebe8b4"
+  }
 }

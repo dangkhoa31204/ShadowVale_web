@@ -19,6 +19,8 @@ Functional Requirements (Content & Balancing Platform, Telemetry & Analytics Das
 - **BE quy định khác proposal:** FE làm theo BE và ghi rõ chỗ lệch vào README (hiện không còn chỗ nào).
 - Ngoại lệ do nhóm quyết định: ghi ở "Giữ theo quyết định của nhóm".
 
+> Cập nhật phân quyền theo yêu cầu người dùng 22/11/2026: mọi chỉnh sửa nội dung và cấu hình gameplay/AI thuộc Designer. Admin quản lý user, review/approval, publish/rollback; Analyst phân tích và đọc cấu hình. Unity catalog chỉ nằm trong Content authoring của Designer.
+
 ### Màn hình ↔ yêu cầu proposal
 
 | Màn (route) | Vai trò | Yêu cầu trong proposal |
@@ -29,7 +31,7 @@ Functional Requirements (Content & Balancing Platform, Telemetry & Analytics Das
 | Content management → Published content `/admin/content?view=published` / Publish content `/admin/releases` | Designer / Admin | Version history with compare/rollback and one-click publish to a validated JSON bundle |
 | Users `/admin/users` | Admin | User/role management (Designer, Analyst, Admin) — role gán trên từng tài khoản |
 | Analytics `/admin/analytics` (trang đầu của Analyst) | Tất cả | Tab Gameplay: mission completion funnels, weapon-usage, stealth-vs-combat distributions · Heatmap: difficulty heat maps · AI comparison: capture rate, escape time, coordination score per content version |
-| Analytics → Solver configurations | Xem: tất cả · Sửa: Analyst, Admin | Admin "configuration": cấu hình duy nhất BE hỗ trợ là cấu hình solver (classical vs quantum-inspired) |
+| Analytics → Solver configurations | Xem: tất cả · Sửa: Designer | Cấu hình AI/solver ảnh hưởng gameplay; quyền sửa thuộc Designer theo yêu cầu 22/11/2026 |
 | Change password `/admin/change-password` | Tất cả | Giữ theo quyết định của nhóm (xem dưới) |
 
 Số màn: Designer 4 (Login, Content management, Analytics, Change password),
@@ -156,7 +158,7 @@ synthetic, stored in the browser, and separate from API mode.
 | Publication history | — (BE restriction) | — | Yes |
 | Analytics | Yes | Yes | Yes |
 | Solver configurations: view | Yes | Yes | Yes |
-| Solver configurations: create / edit / clone / activate / delete | — | Yes | Yes |
+| Solver configurations: create / edit / clone / activate / delete | Yes | — | — |
 | Users and roles | — | — | Yes |
 
 ## Content and workflow

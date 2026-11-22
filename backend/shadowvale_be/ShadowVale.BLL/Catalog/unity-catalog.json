@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-11-22T10:20:58.042Z",
+  "generatedAt": "2026-11-22T13:59:51.660Z",
   "unityCommit": "e09caff9b2eba70d6f3e93a4b5e2750437b5b473",
-  "sourceHash": "1852039f9d3e70b223b8d46d5924cfa862e07adb287c5694168c0477fc8f029e",
+  "sourceHash": "6531c1b76ca6c2807f02da03cecfdd97acedc1176ce4e061bb68bc56b8ebe8b4",
   "sources": [
     {
       "path": "_Project/Map01/Generated/Map01Content.json",
@@ -63,6 +63,14 @@
     {
       "path": "_Project/Map02/Runtime/Map02Mission.Telemetry.cs",
       "sha256": "51d115faaf7223bb03c724460044cc1ac0bada9c1ee57e6dbbbd57bd03e9d4a1"
+    },
+    {
+      "path": "_Project/Prefabs/Items/W_AK47.prefab",
+      "sha256": "96668357915ff30053047de49ce60098fd81dce1be29118f00032daa21d283cb"
+    },
+    {
+      "path": "_Project/Prefabs/Player/Player.prefab",
+      "sha256": "2eb1bfd9a2a250474f56c0d8fbd1407c3bcc4cc7ef1a6013c80aa0cb7d6ac1e9"
     },
     {
       "path": "_Project/Resources/TacticalGraphs/Map 1.nav_graph.json",
@@ -578,9 +586,9 @@
         "item_code": "rifle_standard",
         "item_type": "weapon",
         "weapon_class": "rifle",
-        "damage": 24,
-        "fire_rate": 6.5,
-        "effective_range": 40,
+        "damage": 30,
+        "fire_rate": 10,
+        "effective_range": 120,
         "magazine_size": 30,
         "reload_time_s": 2.4,
         "ammo_item_code": "ammo_rifle",
@@ -20695,7 +20703,28 @@
     "Missing local stack/weight/value uses schema defaults; inspect item metadata before publish. Consumable use times and generic effects are not inferred.",
     "Map game_rules contains trade stock, tier/adaptive/repair/logistics and field crafting in existing maps.layout JSON. No new tables.",
     "Enemy perception uses the corresponding grunt/commander archetype where only loot enemy metadata exists; review before publish.",
-    "Quest rows track Unity objectives; publishing quest metadata does not replace the mission state machine."
+    "Quest rows track Unity objectives; publishing quest metadata does not replace the mission state machine.",
+    "Rifle damage/range/fire rate resolve Unity prefab and M16 runtime constants; magazine/reload resolve Player prefab. Generated JSON alone is not the effective rifle configuration. Skills, lethal-hit rules and enemy difficulty modifiers remain runtime behavior."
+  ],
+  "weaponRuntimeOverrides": [
+    {
+      "code": "rifle_standard",
+      "field": "damage",
+      "generated": 24,
+      "runtime": 30
+    },
+    {
+      "code": "rifle_standard",
+      "field": "range",
+      "generated": 40,
+      "runtime": 120
+    },
+    {
+      "code": "rifle_standard",
+      "field": "fire_rate",
+      "generated": 6.5,
+      "runtime": 10
+    }
   ],
   "items": [
     {
@@ -21303,9 +21332,9 @@
       "id": "rifle_standard",
       "display_name": "Service Rifle",
       "class": "rifle",
-      "damage": 24,
-      "fire_rate": 6.5,
-      "range": 40,
+      "damage": 30,
+      "fire_rate": 10,
+      "range": 120,
       "ammo_type": "ammo_rifle",
       "magazine_size": 30,
       "reload_seconds": 2.4,
@@ -24476,9 +24505,9 @@
     "weapons": [
       {
         "item_code": "rifle_standard",
-        "damage": 24,
-        "fire_rate": 6.5,
-        "effective_range": 40,
+        "damage": 30,
+        "fire_rate": 10,
+        "effective_range": 120,
         "magazine_size": 30,
         "reload_time_s": 2.4,
         "ammo_item_code": "ammo_rifle",

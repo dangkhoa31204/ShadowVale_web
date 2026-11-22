@@ -6,13 +6,13 @@ using ShadowVale.BLL.Interfaces;
 
 namespace ShadowVale.API.Controllers;
 
-// Every role can read; Admins and Analysts (who run the experiments) can change
+// Every role can read; gameplay/AI configuration changes belong to Designers.
 [ApiController]
 [Route("api/solver-configurations")]
 [Authorize(Roles = $"{AppRoles.Admin},{AppRoles.Analyst},{AppRoles.Designer}")]
 public class SolverConfigurationsController(ISolverConfigurationService solverConfigurations) : ControllerBase
 {
-    private const string Editors = $"{AppRoles.Admin},{AppRoles.Analyst}";
+    private const string Editors = AppRoles.Designer;
 
     [HttpGet]
     public async Task<ActionResult<IReadOnlyList<SolverConfigurationDto>>> GetAll([FromQuery] SolverConfigurationQuery query, CancellationToken ct) =>

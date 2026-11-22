@@ -48,7 +48,7 @@ Các mã riêng trong Auth/ContentVersions được giữ nguyên. Lỗi framewo
 
 ## Content versions
 
-Các endpoint đọc/chỉnh Draft dùng Admin hoặc Designer; approve/reject/publish/rollback và lịch sử publication chỉ Admin. Revision phải lấy từ response mới nhất sau mỗi thao tác.
+Đọc Draft: Admin hoặc Designer. Tạo/sửa/xóa Draft, validate và submit: chỉ Designer; approve/reject/publish/rollback và lịch sử publication chỉ Admin. Revision phải lấy từ response mới nhất sau mỗi thao tác.
 
 - `GET /api/content-versions`: 400 search quá dài, status sai, phân trang sai.
 - `GET /api/content-versions/{id}`: 404 `CONTENT_VERSION_NOT_FOUND`.
@@ -65,7 +65,7 @@ Các endpoint đọc/chỉnh Draft dùng Admin hoặc Designer; approve/reject/p
 - `GET /api/content-versions/{id}/bundle`: 404 không tồn tại; 409 `CONTENT_VERSION_NOT_VALIDATED` (validate lại sau chỉnh sửa).
 - `GET /api/content-publications`: 400 contentVersionId/query/phân trang sai. Không có lịch sử khớp bộ lọc trả danh sách rỗng.
 
-## Chỉnh nội dung trong version (ADMIN, DESIGNER)
+## Chỉnh nội dung trong version (DESIGNER; ADMIN chỉ đọc)
 
 Mỗi resource dưới đây có đủ năm endpoint. Áp dụng riêng cho từng resource `items`, `skills`, `loot-tables`, `enemy-types`, `maps`, `recipes`, `quests`:
 
@@ -92,7 +92,7 @@ Các giới hạn cụ thể từng field được thể hiện trong schema req
 
 ## Solver configurations
 
-Đọc: Admin/Analyst/Designer. Ghi: Admin/Analyst.
+Đọc: Admin/Analyst/Designer. Ghi: chỉ Designer (cấu hình ảnh hưởng gameplay).
 
 - `GET /api/solver-configurations`: 400 filter enum/kiểu dữ liệu sai.
 - `GET /api/solver-configurations/{id}`: 404 không tồn tại.

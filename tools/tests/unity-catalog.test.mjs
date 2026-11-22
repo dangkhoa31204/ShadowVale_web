@@ -2,6 +2,19 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { baselineProbabilities } from '../sync-unity-catalog.mjs';
+import { resolveWeaponRuntime } from '../unity-weapon-runtime.mjs';
+
+test('runtime rifle defaults override stale generated data and retain other weapon fields', () => {
+  const content = { weapons: [{ id:'rifle_standard',damage:24,range:40,fire_rate:6.5,ammo_type:'ammo_rifle' },{ id:'rifle_m16',damage:22,range:80,fire_rate:10 }] };
+  const ak = 'm_EditorClassIdentifier: ShadowVale.Gameplay::ShadowVale.Gameplay.Combat.Weapon\n  damage: 30\n  range: 120\n  cooldown: 0.1\n';
+  const player = 'm_EditorClassIdentifier: ShadowVale.Gameplay::ShadowVale.Gameplay.Combat.PlayerCombat\n  tuning:\n    magazineCapacity: 30\n    reloadSeconds: 2.4\n';
+  const m16 = 'public const float Damage = 22f, Range = 80f, RoundsPerMinute = 600f;';
+  const resolved = resolveWeaponRuntime(content,ak,player,m16);
+  assert.deepEqual(resolved.content.weapons[0],{id:'rifle_standard',damage:30,range:120,fire_rate:10,ammo_type:'ammo_rifle',magazine_size:30,reload_seconds:2.4});
+  assert.equal(content.weapons[0].damage,24);
+  assert.throws(()=>resolveWeaponRuntime(content,ak.replace('cooldown: 0.1','cooldown: 0'),player,m16),/cooldown/);
+  assert.throws(()=>resolveWeaponRuntime(content,ak,player,m16.replace('600f','unknown')),/RoundsPerMinute/);
+});
 
 test('tier mass falls down to nearest available tier, then goes up if none is lower', () => {
   const entries = [{ tier: 2, weight: 1 }, { tier: 4, weight: 1 }];
