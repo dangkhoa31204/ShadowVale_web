@@ -1,29 +1,36 @@
-# Dọn item test — 22/11/2026
+# Dọn dữ liệu test — 22/11/2026
 
-Đã xóa dữ liệu test thật trong Supabase theo yêu cầu. Người dùng chọn giữ các bản Published/lịch sử và dừng ở 20 item đã dọn.
+**Kết quả cuối: 0 item test, 0 map test, 0 bundle test trong database.** Các bảng nội dung hiện còn 31 items, 4 weapons và 3 maps game thật của Draft #15, revision 3. Không tự publish Draft #15.
 
-## Đã dọn
+## Hai giai đoạn đã thực hiện
 
-- 20 item có đúng các code `test_ammo_pistol`, `test_ammo_rifle`, `test_pistol`, `test_rifle`.
-- Thuộc 5 version chưa từng publish và không có session/publication history tham chiếu: #3, #7, #8, #10, #13; mỗi bản 4 item.
-- Xóa trước 10 hàng weapons phụ thuộc; không có loot, crafting, quest, consumable hoặc enemy phụ thuộc cần xóa.
-- Tăng revision và xóa bundle/checksum/validation cũ của các version bị sửa. #7 từ Rejected về Draft theo quy tắc chỉnh nội dung; các bản Archived giữ trạng thái.
-- Lưu backup trước giao dịch: `output/local-unity-integration/test-items-before-1795357447303.json`, gồm version metadata, items và weapons. Backup không đưa vào Git.
+Lần đầu người dùng chọn giữ Published/lịch sử. Đã dọn 20 item test và 10 weapon phụ thuộc ở #3, #7, #8, #10, #13, là các bản chưa từng publish và không có session/history tham chiếu. Backup: output/local-unity-integration/test-items-before-1795357447303.json.
 
-## Giữ lại theo lựa chọn của người dùng
+Sau đó người dùng yêu cầu dọn kỹ hơn và làm rõ “chỉ xóa dữ liệu test”. Đã kiểm kê toàn bộ nội dung cũ, rồi dọn tiếp:
 
-28 item test thuộc #4, #5, #6, #9, #11, #12, #14. Các bản này có lịch sử phát hành, trong đó #9 là Published và được 18 phiên chơi tham chiếu. Không sửa các hàng này, frozen bundle, publication history hay session.
+- 28 item: test_ammo_pistol, test_ammo_rifle, test_pistol, test_rifle.
+- 14 weapon phụ thuộc của các item trên.
+- 24 map: test_field và test_safe_camp trong các phiên bản cũ.
+- 7 bundle JSON chứa các item/map test.
 
-Draft #15 giữ nguyên revision 3 với 31 item, 4 súng gameplay; maps, loot, crafting và các nội dung game khác không đổi. Sau dọn, toàn database có 59 items (31 game + 28 test lịch sử), 18 weapons (4 game + 14 test lịch sử).
+Tổng hai lần: xóa **48 item test, 24 weapon test, 24 map test và 7 bundle test**. Các code giống test chưa biết, nội dung hỗn hợp hoặc tham chiếu ngoài bộ test sẽ làm công cụ dừng; không cascade-delete nội dung khác.
+
+## Trạng thái phiên bản và dữ liệu được giữ
+
+Versions #3–#14 được Archived; xóa bundle/checksum/validation và cờ published_at/published_by_id để ngừng phục vụ/rollback bộ test. Ràng buộc ck_content_versions_published_has_bundle được giữ nguyên. Lần ghi đầu thiếu bước ngừng cờ published đã bị CHECK chặn và rollback toàn bộ; lần sau thực hiện giao dịch với trạng thái hợp lệ, không tắt CHECK hoặc FK.
+
+Bản test Published #9 đã ngừng phát hành; **hiện không có Published version**. Unity sử dụng cơ chế cache/local fallback hiện có cho tới khi Designer kiểm tra/submit Draft #15 và Admin duyệt/publish. Lần dọn này không tự phát hành nội dung thay thế.
+
+Giữ metadata phiên bản để các FK session/publication history vẫn hợp lệ. Không xóa hay sửa tài khoản, refresh token, players, solver configurations, game sessions, telemetry events, coordination results hoặc publication history. Lịch sử log còn liên kết được tới version cũ; các snapshot nội dung test đã bỏ nên không dùng các bản đó để rollback nữa.
+
+Backup trước giao dịch cuối: output/local-unity-integration/legacy-test-content-before-1795358072061.json, gồm đầy đủ metadata/version bundle, content rows và weapons bị tác động; không commit backup vào Git.
 
 ## Công cụ và kiểm chứng
 
-`tools/clean-test-items.mjs` mặc định chỉ đọc/lập kế hoạch. Chỉ nhận các mã test đã biết; chỉ dọn version Draft/Rejected/Archived chưa từng publish, không có session và không có publication history. Dừng nếu có mã giống test chưa biết hoặc quan hệ phụ thuộc ngoài weapons; không cascade-delete nội dung khác.
+- tools/clean-test-items.mjs: chỉ dọn test chưa publish, không có session/history; mặc định lập kế hoạch, --write yêu cầu số item đã kiểm kê.
+- tools/retire-legacy-test-content.mjs: maintenance riêng cho các bản test #3–#14; mặc định lập kế hoạch. --write yêu cầu cờ --retire-published-test và số items/weapons/maps/bundles đã kiểm kê.
+- tools/legacy-test-content.mjs: kiểm tra snapshot chỉ chứa các mã test đã biết, chặn bundle trộn dữ liệu thật và version #15 trở lên.
 
-```powershell
-node tools/clean-test-items.mjs --pg-module output/local-unity-integration/pg-runtime/node_modules/pg/lib/index.js
-```
+Mỗi lần ghi dùng transaction Serializable, khóa các version/row liên quan, backup trước ghi và kiểm tra row count. So sánh digest server-side của dữ liệu nằm ngoài đích dọn và toàn bộ tài khoản/session/telemetry/history; rollback nếu dữ liệu ngoài phạm vi bị đổi. Không export payload của users/token/telemetry khi kiểm tra.
 
-`--write` bắt buộc kèm `--expected-items <số đã kiểm kê>`. Ghi trong transaction Serializable, khóa các version/item liên quan, backup trước ghi và kiểm tra số hàng đã xóa. So sánh digest dữ liệu nằm ngoài đích dọn, Published, publication history và sessions trước/sau; rollback nếu có thay đổi không mong đợi. Digest không được export cùng dữ liệu người dùng/token/telemetry.
-
-Đọc lại sau commit: **0 item test còn đủ điều kiện dọn**, 28 item lịch sử giữ nguyên; toàn bộ số dòng và map rules của Draft #15 vẫn khớp snapshot Unity. Không publish hoặc deploy nội dung trong thao tác này.
+Đọc lại độc lập sau commit: không còn test items/maps/bundles; chạy kế hoạch lần nữa trả 0 hàng cần dọn. Audit xác nhận đủ 31 items, 4 weapons, 3 maps cùng mọi bảng/quan hệ khác của Draft #15 khớp snapshot Unity; revision vẫn là 3.

@@ -1,5 +1,7 @@
 # Đồng bộ weapons và phân quyền Designer — 22/11/2026
 
+> Trạng thái cuối sau yêu cầu dọn hết dữ liệu test: chỉ còn 31 item, 4 súng, 3 map thật của Draft #15. Đã ngừng Published test #9 và xóa nội dung/bundle test cũ; hiện chưa có bản Published. Các mô tả “Published #9 không đổi” bên dưới là lịch sử các lần đồng bộ trước. Xem [báo cáo dọn test](TEST_ITEM_CLEANUP_2026-11-22.md).
+
 Đã đọc proposal gốc [ShadowVale_RBL_Capstone_Proposal.docx](https://docs.google.com/document/d/1YcvHYPC9uM9GjLfx8VijyOdNmXJ6L9zH/edit), mục 3.1.b–c: Designer author nội dung maps, enemy parameters, loot, recipes, quests và weapon stats; Admin phụ trách user/role, review/approval và configuration. Theo yêu cầu trực tiếp mới nhất của người dùng, **mọi chỉnh sửa nội dung và cấu hình ảnh hưởng gameplay, gồm AI/solver, thuộc Designer**. Đây là quyết định phân quyền triển khai; không sửa proposal để khớp code.
 
 | Chức năng | Designer | Analyst | Admin |
@@ -15,7 +17,7 @@ Quyền sửa solver áp dụng cả frontend và endpoint backend. Các API sol
 
 ## Sai lệch đã xác định
 
-Sau lần [dọn item test](TEST_ITEM_CLEANUP_2026-11-22.md), `weapons` chứa 18 hàng: 14 hàng test lịch sử và 4 súng gameplay trong Draft #15 (AK47, M16, K54, Mosin). Shotgun/SMG/carbine chỉ là định nghĩa trong JSON mẫu cũ, chưa được triển khai. Đã loại ba định nghĩa này khỏi bản nháp và khỏi các lần import mới; vẫn bảo toàn metadata nguồn để truy vết. Không xóa lịch sử hoặc thay Published #9.
+Sau lần dọn hết test, `weapons` chỉ chứa 4 súng gameplay trong Draft #15 (AK47, M16, K54, Mosin). Shotgun/SMG/carbine chỉ là định nghĩa trong JSON mẫu cũ, chưa được triển khai. Đã loại ba định nghĩa này khỏi bản nháp và khỏi các lần import mới; vẫn bảo toàn metadata nguồn để truy vết. Không xóa lịch sử hoặc thay Published #9.
 
 Bộ import cũ chỉ lấy `Map01Content.json`. AK47 thực tế được tạo từ `W_AK47.prefab`; `Map01RifleVisual` giữ baseline của prefab khi dùng AK và dùng hằng số `Map01M16` khi đổi sang M16. Vì vậy số trong JSON không phản ánh đúng AK runtime.
 

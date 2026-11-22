@@ -1,5 +1,5 @@
 {
-  "observedAt": "2026-11-22T14:24:20.380Z",
+  "observedAt": "2026-11-22T14:34:45.357Z",
   "schemas": [
     "shadowvale",
     "public"
@@ -34,13 +34,7 @@
     "enemy_placements": 0
   },
   "importRulesMatch": true,
-  "published": [
-    {
-      "version_no": "9",
-      "status": "Published",
-      "items": 4
-    }
-  ],
+  "published": [],
   "weaponRuntimeSync": {
     "matched": 4,
     "differences": 0,
@@ -52,17 +46,29 @@
     ]
   },
   "testItemCleanup": {
-    "removedItems": 20,
-    "removedWeapons": 10,
-    "versions": [
+    "removedItemsTotal": 48,
+    "removedWeaponsTotal": 24,
+    "removedMapsTotal": 24,
+    "removedTestBundles": 7,
+    "remainingTestItems": 0,
+    "remainingTestMaps": 0,
+    "remainingTestBundles": 0,
+    "retiredLegacyVersions": [
       3,
+      4,
+      5,
+      6,
       7,
       8,
+      9,
       10,
-      13
+      11,
+      12,
+      13,
+      14
     ],
-    "remainingHistoricalTestItems": 28,
-    "keepHistoryConfirmedByUser": true,
-    "gameDraftUnchanged": true
+    "publishedTest9Retired": true,
+    "gameDraftUnchanged": true,
+    "accountsSessionsTelemetryPublicationLogsUnchanged": true
   }
 }

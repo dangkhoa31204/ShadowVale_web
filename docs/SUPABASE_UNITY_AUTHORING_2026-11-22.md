@@ -1,5 +1,7 @@
 # Unity → Supabase và Designer authoring — 22/11/2026
 
+> Trạng thái cuối sau yêu cầu dọn hết dữ liệu test: chỉ còn 31 item, 4 súng, 3 map thật của Draft #15. Đã ngừng Published test #9 và xóa nội dung/bundle test cũ; hiện chưa có bản Published. Các mô tả “Published #9 không đổi” bên dưới là lịch sử các lần đồng bộ trước. Xem [báo cáo dọn test](TEST_ITEM_CLEANUP_2026-11-22.md).
+
 ## Kết quả trên Supabase thật
 
 Đã kiểm kê chỉ đọc schema `shadowvale` và `public` của database backend đang cấu hình. Kết quả: **23 bảng ứng dụng**, **1 bảng `__ef_migrations_history`**, không có bảng ứng dụng trong `public` và không có bảng ngoài mô hình EF hiện tại. Các bảng loot, crafting, skills, enemy và quest trước đó trống do chưa nhập dữ liệu game. Không có bảng nào được xác định an toàn để DROP, nên không xóa bảng hoặc lịch sử phiên bản.

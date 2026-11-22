@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node --test tests/unity-catalog.test.mjs tests/unity-authoring.test.mjs",
+    "test": "node --test tests/unity-catalog.test.mjs tests/unity-authoring.test.mjs tests/legacy-test-content.test.mjs",
     "sync:unity": "node sync-unity-catalog.mjs",
     "supabase:plan": "node supabase-content-sync.mjs"
   },
