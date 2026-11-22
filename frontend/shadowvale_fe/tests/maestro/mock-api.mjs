@@ -1,4 +1,5 @@
 import seed from '../../src/features/content/contracts/demo-bundle.json' with { type: 'json' };
+import catalog from '../../../../backend/shadowvale_be/ShadowVale.BLL/Catalog/unity-catalog.json' with { type: 'json' };
 import { editorToEntities, entitiesToEditor, resources } from '../../src/features/content/apiModel.ts';
 import { compareBundles } from '../../src/features/content/validation.ts';
 
@@ -52,6 +53,8 @@ export function mockApi() {
     }
     if (!['admin','designer','analyst'].includes(role)) return send({status:401,message:'UI test session required.'},401);
     if (route === '/auth/me') return send(user(role));
+    if (route === '/game-catalog') return send(catalog);
+    if (route === '/game-catalog/comparison') return send({ status: 'nothing_published', differences: [] });
     if (route === '/auth/logout') return send({});
     if (route === '/meta/enums') return send(enums);
     if (route === '/users') return send(page(['admin','designer','analyst'].map(user)));

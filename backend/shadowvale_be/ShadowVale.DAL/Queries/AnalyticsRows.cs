@@ -37,7 +37,9 @@ public sealed record HeatCellRow(
 
 public sealed record FunnelStepRow(
     [property: Column("step")] int Step,
-    [property: Column("sessions")] long Sessions);
+    [property: Column("sessions")] long Sessions,
+    [property: Column("map_code")] string MapCode = "",
+    [property: Column("objective_code")] string ObjectiveCode = "");
 
 public sealed record WeaponRow(
     [property: Column("weapon")] string Weapon,

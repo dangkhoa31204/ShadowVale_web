@@ -19,9 +19,9 @@ export const navigation: { label: string; path: string; icon: string; permission
   { label: 'Versions', path: '/admin/releases', icon: 'deployed_code', permission: 'versions', group: 'Workspace' },
   { label: 'Users', path: '/admin/users', icon: 'group', permission: 'users', group: 'Workspace' },
   { label: 'Analytics', path: '/admin/analytics', icon: 'monitoring', permission: 'analytics', group: 'Insights' },
+  { label: 'Unity game catalog', path: '/admin/game-catalog', icon: 'inventory_2', permission: 'analytics', group: 'Insights' },
 ];
 export const navigationForRole = (role: Role) => navigation
   .filter(n => !n.permission || can(role, n.permission))
   .filter(n => !(role === 'designer' && n.path === '/admin/releases'))
-  .filter(n => !(role === 'admin' && n.path === '/admin/analytics'))
   .map(n => ({ ...n, label: n.path === '/admin/releases' && role === 'admin' ? 'Publish content' : n.label }));

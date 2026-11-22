@@ -25,7 +25,7 @@ public sealed record HeatCellDto(double X, double Y, long Count);
 // A-05: sessions reaching each objective, then winning the mission
 public sealed record FunnelDto(long SessionsStarted, IReadOnlyList<FunnelStepDto> Objectives, long MissionsCompleted, double? CompletionRate);
 
-public sealed record FunnelStepDto(int ObjectiveIndex, long Sessions, double? ShareOfStarted);
+public sealed record FunnelStepDto(int ObjectiveIndex, long Sessions, double? ShareOfStarted, string MapCode = "", string ObjectiveCode = "");
 
 // A-06 (from session stats: exact even though shot events are throttled)
 public sealed record WeaponUsageDto(long FinishedSessions, IReadOnlyList<WeaponDto> Weapons);

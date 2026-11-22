@@ -257,6 +257,14 @@
   },
   {
     "method": "GET",
+    "url": "/api/game-catalog"
+  },
+  {
+    "method": "GET",
+    "url": "/api/game-catalog/comparison"
+  },
+  {
+    "method": "GET",
     "url": "/api/game/content/manifest"
   },
   {

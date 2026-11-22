@@ -91,8 +91,8 @@ test('author submits, admin approves and publish seals an immutable snapshot wit
   published.drafts[0].bundle.weapons[0].damage = 999;
   assert.equal(original.drafts[0].bundle.weapons[0].damage, 24);
 });
-test('admin has review, publishing and users navigation with analytics in the account menu', async () => {
-  assert.deepEqual(navigationForRole('admin').map(n => n.path), ['/admin/reviews', '/admin/releases', '/admin/users']);
+test('admin can navigate to review, publishing, users, analytics and Unity catalog', async () => {
+  assert.deepEqual(navigationForRole('admin').map(n => n.path), ['/admin/reviews', '/admin/releases', '/admin/users', '/admin/analytics', '/admin/game-catalog']);
   assert.equal(homeForRole('admin'), '/admin/reviews'); assert.equal(homeForRole('designer'), '/admin/content');
   assert.equal(safeRedirect('/admin/dashboard', 'admin'), '/admin/reviews');
   for (const permission of ['author'] as const) assert.equal(can('admin', permission), false);
@@ -103,6 +103,7 @@ test('admin has review, publishing and users navigation with analytics in the ac
   assert.equal(safeRedirect('/admin/users', 'admin'), '/admin/users');
   assert.equal(safeRedirect('/admin/users', 'designer'), '/admin/content');
   for (const role of ['admin', 'designer', 'analyst'] as const) {
+    assert.equal(safeRedirect('/admin/game-catalog', role), '/admin/game-catalog');
     assert.equal(safeRedirect('/admin/profile', role), homeForRole(role));
     assert.equal(safeRedirect('/admin/change-password', role), '/admin/change-password');
   }

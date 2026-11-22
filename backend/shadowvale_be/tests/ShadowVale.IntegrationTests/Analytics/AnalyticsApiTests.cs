@@ -106,6 +106,26 @@ public class AnalyticsApiTests(ApiFixture api) : IntegrationTest(api)
     }
 
     [DbFact]
+    public async Task Funnel_DoesNotMergeTheSameIndexFromDifferentMapsOrObjectives()
+    {
+        var game = Api.CreateGameClient();
+        var upload = Upload(Guid.NewGuid(), "human", []);
+        upload.ContentVersionId = _versionA.Id;
+        var map1 = Event(TelemetryEventTypes.ObjectiveCompleted, payload: new() { ["index"] = 0, ["objective"] = "rescue_hung" });
+        map1.MapCode = "map01";
+        var map2 = Event(TelemetryEventTypes.ObjectiveCompleted, payload: new() { ["index"] = 0, ["objective"] = "D1_01" });
+        map2.MapCode = "map02";
+        upload.Events = [map1, map2];
+        (await game.PutAsJsonAsync($"/api/game/sessions/{Guid.NewGuid()}", upload)).EnsureSuccessStatusCode();
+
+        var funnel = (await _analyst.GetFromJsonAsync<FunnelDto>("/api/analytics/funnel"))!;
+        var objectives = funnel.Objectives.Where(o => o.ObjectiveCode.Length > 0).ToList();
+        objectives.Count.ShouldBe(2);
+        objectives.ShouldContain(o => o.MapCode == "map01" && o.ObjectiveCode == "rescue_hung" && o.Sessions == 1);
+        objectives.ShouldContain(o => o.MapCode == "map02" && o.ObjectiveCode == "D1_01" && o.Sessions == 1);
+    }
+
+    [DbFact]
     public async Task WeaponsAndPlaystyle_ComeFromSessionStats()
     {
         var weapons = (await _analyst.GetFromJsonAsync<WeaponUsageDto>("/api/analytics/weapons"))!;
