@@ -122,9 +122,10 @@ export function buildCatalog(assets) {
   let unityCommit = null;
   try { unityCommit = execFileSync('git', ['-C', path.dirname(assets), 'rev-parse', 'HEAD'], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim(); } catch { /* hashes still identify the source */ }
   const sourceList = [...sources.values()].sort((a, b) => a.path.localeCompare(b.path));
-  const imported = authoringBundle({items,content,loot,balance,skills,recipes,quests,graphs,tradeOffers});
+  const imported = authoringBundle({items,content,loot,balance,skills,recipes,quests,graphs,tradeOffers,playable});
   imported.notes.push('Rifle damage/range/fire rate resolve Unity prefab and M16 runtime constants; magazine/reload resolve Player prefab. Generated JSON alone is not the effective rifle configuration. Skills, lethal-hit rules and enemy difficulty modifiers remain runtime behavior.');
-  projection.items=projection.items.filter(i=>i.code!=='knife');
+  projection.items=projection.items.filter(i=>imported.bundle.items.some(row=>row.code===i.code));
+  projection.weapons=projection.weapons.filter(w=>imported.bundle.weapons.some(row=>row.item_code===w.item_code));
   projection.maps=imported.bundle.maps.map(m=>({code:m.code,scene_key:m.scene_key,layout:m.layout}));
   return { schemaVersion: 1, generatedAt: new Date().toISOString(), unityCommit, sourceHash: hash(JSON.stringify(sourceList)), sources: sourceList,
     authoringBundle: imported.bundle, importNotes: imported.notes, weaponRuntimeOverrides: runtimeWeapons.overrides,

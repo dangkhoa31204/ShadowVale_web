@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-11-22T13:59:51.660Z",
+  "generatedAt": "2026-11-22T14:12:38.328Z",
   "unityCommit": "e09caff9b2eba70d6f3e93a4b5e2750437b5b473",
   "sourceHash": "6531c1b76ca6c2807f02da03cecfdd97acedc1176ce4e061bb68bc56b8ebe8b4",
   "sources": [
@@ -204,18 +204,6 @@
         "max_stack": 64,
         "weight": 0.4,
         "base_value": 20,
-        "icon_key": null,
-        "stats": {}
-      },
-      {
-        "code": "carbine_scout",
-        "name": "Scout Carbine",
-        "description": null,
-        "item_type": "weapon",
-        "rarity": "common",
-        "max_stack": 1,
-        "weight": 0,
-        "base_value": 0,
         "icon_key": null,
         "stats": {}
       },
@@ -497,30 +485,6 @@
         "stats": {}
       },
       {
-        "code": "shotgun_pump",
-        "name": "Pump Shotgun",
-        "description": null,
-        "item_type": "weapon",
-        "rarity": "common",
-        "max_stack": 1,
-        "weight": 0,
-        "base_value": 0,
-        "icon_key": null,
-        "stats": {}
-      },
-      {
-        "code": "smg_compact",
-        "name": "Compact SMG",
-        "description": null,
-        "item_type": "weapon",
-        "rarity": "common",
-        "max_stack": 1,
-        "weight": 0,
-        "base_value": 0,
-        "icon_key": null,
-        "stats": {}
-      },
-      {
         "code": "smoke_bomb",
         "name": "Bom khói",
         "description": null,
@@ -615,38 +579,6 @@
         "is_suppressed": false
       },
       {
-        "item_code": "smg_compact",
-        "item_type": "weapon",
-        "weapon_class": "smg",
-        "damage": 14,
-        "fire_rate": 11,
-        "effective_range": 22,
-        "magazine_size": 35,
-        "reload_time_s": 1.8,
-        "ammo_item_code": "ammo_smg",
-        "ammo_type": "ammo",
-        "max_durability": 90,
-        "durability_per_use": 0.1,
-        "noise_radius": 14,
-        "is_suppressed": false
-      },
-      {
-        "item_code": "shotgun_pump",
-        "item_type": "weapon",
-        "weapon_class": "shotgun",
-        "damage": 60,
-        "fire_rate": 1.2,
-        "effective_range": 12,
-        "magazine_size": 6,
-        "reload_time_s": 3,
-        "ammo_item_code": "ammo_shotgun",
-        "ammo_type": "ammo",
-        "max_durability": 120,
-        "durability_per_use": 0.4,
-        "noise_radius": 24,
-        "is_suppressed": false
-      },
-      {
         "item_code": "pistol_k54",
         "item_type": "weapon",
         "weapon_class": "pistol",
@@ -676,22 +608,6 @@
         "max_durability": 110,
         "durability_per_use": 1,
         "noise_radius": 30,
-        "is_suppressed": false
-      },
-      {
-        "item_code": "carbine_scout",
-        "item_type": "weapon",
-        "weapon_class": "rifle",
-        "damage": 20,
-        "fire_rate": 5,
-        "effective_range": 32,
-        "magazine_size": 20,
-        "reload_time_s": 2,
-        "ammo_item_code": "ammo_rifle",
-        "ammo_type": "ammo",
-        "max_durability": 100,
-        "durability_per_use": 0.1,
-        "noise_radius": 16,
         "is_suppressed": false
       }
     ],
@@ -19149,7 +19065,7 @@
         "vision_angle_deg": 110,
         "hearing_range": 16,
         "accuracy": 0.85,
-        "weapon_item_code": "carbine_scout",
+        "weapon_item_code": null,
         "loot_table_code": "loot_tier_1",
         "fsm_params": {
           "alert_decay_seconds": 6,
@@ -19196,7 +19112,7 @@
         "vision_angle_deg": 80,
         "hearing_range": 10,
         "accuracy": 0.85,
-        "weapon_item_code": "shotgun_pump",
+        "weapon_item_code": null,
         "loot_table_code": "loot_tier_2",
         "fsm_params": {
           "alert_decay_seconds": 10,
@@ -19243,7 +19159,7 @@
         "vision_angle_deg": 120,
         "hearing_range": 18,
         "accuracy": 0.85,
-        "weapon_item_code": "smg_compact",
+        "weapon_item_code": null,
         "loot_table_code": "loot_tier_3",
         "fsm_params": {
           "alert_decay_seconds": 999,
@@ -20700,6 +20616,7 @@
   },
   "importNotes": [
     "Scripted knife is reference-only: omitted from editable rows because numeric weapon stats are not defined in the source.",
+    "Unimplemented weapon definitions are reference-only and excluded from database authoring: smg_compact, shotgun_pump, carbine_scout. Generated enemy links to these definitions are cleared; review prototype enemy metadata before publish.",
     "Missing local stack/weight/value uses schema defaults; inspect item metadata before publish. Consumable use times and generic effects are not inferred.",
     "Map game_rules contains trade stock, tier/adaptive/repair/logistics and field crafting in existing maps.layout JSON. No new tables.",
     "Enemy perception uses the corresponding grunt/commander archetype where only loot enemy metadata exists; review before publish.",
@@ -24389,9 +24306,6 @@
         "base_value": 20
       },
       {
-        "code": "carbine_scout"
-      },
-      {
         "code": "cloth",
         "max_stack": 64,
         "base_value": 2
@@ -24473,12 +24387,6 @@
         "base_value": 3
       },
       {
-        "code": "shotgun_pump"
-      },
-      {
-        "code": "smg_compact"
-      },
-      {
         "code": "smoke_bomb",
         "max_stack": 64,
         "base_value": 15
@@ -24530,32 +24438,6 @@
         "is_suppressed": false
       },
       {
-        "item_code": "smg_compact",
-        "damage": 14,
-        "fire_rate": 11,
-        "effective_range": 22,
-        "magazine_size": 35,
-        "reload_time_s": 1.8,
-        "ammo_item_code": "ammo_smg",
-        "max_durability": 90,
-        "durability_per_use": 0.1,
-        "noise_radius": 14,
-        "is_suppressed": false
-      },
-      {
-        "item_code": "shotgun_pump",
-        "damage": 60,
-        "fire_rate": 1.2,
-        "effective_range": 12,
-        "magazine_size": 6,
-        "reload_time_s": 3,
-        "ammo_item_code": "ammo_shotgun",
-        "max_durability": 120,
-        "durability_per_use": 0.4,
-        "noise_radius": 24,
-        "is_suppressed": false
-      },
-      {
         "item_code": "pistol_k54",
         "damage": 22,
         "fire_rate": 3,
@@ -24579,19 +24461,6 @@
         "max_durability": 110,
         "durability_per_use": 1,
         "noise_radius": 30,
-        "is_suppressed": false
-      },
-      {
-        "item_code": "carbine_scout",
-        "damage": 20,
-        "fire_rate": 5,
-        "effective_range": 32,
-        "magazine_size": 20,
-        "reload_time_s": 2,
-        "ammo_item_code": "ammo_rifle",
-        "max_durability": 100,
-        "durability_per_use": 0.1,
-        "noise_radius": 16,
         "is_suppressed": false
       }
     ],

@@ -1,5 +1,5 @@
 {
-  "observedAt": "2026-11-22T14:03:12.253Z",
+  "observedAt": "2026-11-22T14:14:15.704Z",
   "schemas": [
     "shadowvale",
     "public"
@@ -12,20 +12,20 @@
     "id": "a1c53061-65ce-4896-a940-e7526109d2c2",
     "version_no": "15",
     "status": "Draft",
-    "revision": "2",
+    "revision": "3",
     "validated_at": null,
     "bundle_not_published": true,
     "authorUsername": "designer"
   },
   "importedCounts": {
-    "items": 34,
+    "items": 31,
     "skills": 3,
     "loot_tables": 17,
     "maps": 3,
     "enemy_types": 8,
     "crafting_recipes": 10,
     "quests": 2,
-    "weapons": 7,
+    "weapons": 4,
     "consumables": 4,
     "loot_table_entries": 148,
     "map_loot_tables": 10,
@@ -42,8 +42,13 @@
     }
   ],
   "weaponRuntimeSync": {
-    "matched": 7,
+    "matched": 4,
     "differences": 0,
-    "sourceHash": "6531c1b76ca6c2807f02da03cecfdd97acedc1176ce4e061bb68bc56b8ebe8b4"
+    "sourceHash": "6531c1b76ca6c2807f02da03cecfdd97acedc1176ce4e061bb68bc56b8ebe8b4",
+    "excludedReferenceOnly": [
+      "shotgun_pump",
+      "smg_compact",
+      "carbine_scout"
+    ]
   }
 }

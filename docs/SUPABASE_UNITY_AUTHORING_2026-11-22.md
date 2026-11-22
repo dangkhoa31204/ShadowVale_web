@@ -4,12 +4,12 @@
 
 Đã kiểm kê chỉ đọc schema `shadowvale` và `public` của database backend đang cấu hình. Kết quả: **23 bảng ứng dụng**, **1 bảng `__ef_migrations_history`**, không có bảng ứng dụng trong `public` và không có bảng ngoài mô hình EF hiện tại. Các bảng loot, crafting, skills, enemy và quest trước đó trống do chưa nhập dữ liệu game. Không có bảng nào được xác định an toàn để DROP, nên không xóa bảng hoặc lịch sử phiên bản.
 
-Đã nhập một giao dịch thành công thành **Draft #15**, ID `a1c53061-65ce-4896-a940-e7526109d2c2`, revision 1. Không validate/submit/approve/publish tự động. Bundle và validated_at của Draft vẫn trống để bắt buộc đi qua quy trình backend bình thường. **Published #9 không bị thay đổi.**
+Đã nhập một giao dịch thành công thành **Draft #15**, ID `a1c53061-65ce-4896-a940-e7526109d2c2`; hiện revision 3 sau khi sửa AK47, chuyển cho tài khoản designer và loại shotgun/SMG/carbine mẫu chưa triển khai. Không validate/submit/approve/publish tự động. Bundle và validated_at của Draft vẫn trống để bắt buộc đi qua quy trình backend bình thường. **Published #9 không bị thay đổi.**
 
 | Bảng/nhóm | Dòng của Draft #15 |
 | --- | ---: |
-| items | 34 |
-| weapons | 7 |
+| items | 31 |
+| weapons | 4 |
 | consumables | 4 |
 | skills | 3 |
 | loot_tables | 17 |
@@ -39,7 +39,7 @@ Dao scripted vẫn nằm ở Unity source reference; không tạo chỉ số dao
 
 Designer là người tạo, import, chỉnh sửa, xóa bản nháp, validate và submit. Frontend chỉ cho Designer mở Content authoring và chỉnh Draft/Rejected của mình. Backend chặn Admin tại mọi endpoint ghi nội dung, kể cả gọi API trực tiếp. Admin xem nội dung, approve/reject, publish và rollback; Analyst không được authoring. Approved, InReview, Published và Archived vẫn chỉ đọc. Luồng giữ nguyên: **Draft → Validate → Submit → Approve → Publish**, có revision và lịch sử publication.
 
-Sau khi triển khai FE/BE mới: đăng nhập Designer → **Content authoring → Unity catalog → Import Unity as new draft** để tạo bản nháp thuộc Designer, rồi sửa trong **Content authoring → Drafts**. Draft #15 đã chuyển sang tài khoản `designer` theo lựa chọn của người dùng; revision 2 có thông số AK47 lấy từ prefab runtime (30 damage, 10 phát/giây, 120 m). Chưa publish; xem `WEAPON_DB_SYNC_2026-11-22.md`. Sửa item/weapon/loot/crafting bằng các form có sẵn. Trong **Maps → Trade and game rules** có form thêm/sửa/xóa stock, số đạn kèm, điểm nộp vật liệu, tier odds và adaptive values. Repair/field crafting đầy đủ ở Advanced JSON → layout.game_rules. Validation backend chặn cấu trúc sai, khoảng giá trị sai, mã item/ammo/recipe/mục tiêu không tồn tại và credit ID trùng trước khi publish.
+Sau khi triển khai FE/BE mới: đăng nhập Designer → **Content authoring → Unity catalog → Import Unity as new draft** để tạo bản nháp thuộc Designer, rồi sửa trong **Content authoring → Drafts**. Draft #15 đã chuyển sang tài khoản `designer` theo lựa chọn của người dùng; revision 3 chỉ còn 4 súng gameplay (AK47, M16, K54, Mosin), đã bỏ shotgun/SMG/carbine mẫu; thông số AK47 lấy từ prefab runtime (30 damage, 10 phát/giây, 120 m). Chưa publish; xem `WEAPON_DB_SYNC_2026-11-22.md`. Sửa item/weapon/loot/crafting bằng các form có sẵn. Trong **Maps → Trade and game rules** có form thêm/sửa/xóa stock, số đạn kèm, điểm nộp vật liệu, tier odds và adaptive values. Repair/field crafting đầy đủ ở Advanced JSON → layout.game_rules. Validation backend chặn cấu trúc sai, khoảng giá trị sai, mã item/ammo/recipe/mục tiêu không tồn tại và credit ID trùng trước khi publish.
 
 Unity catalog chỉ nằm trong Content authoring của Designer, không có mục sidebar riêng hoặc liên kết trong Analytics. Admin và Analyst không được truy cập API catalog/comparison; đường dẫn cũ chỉ redirect Designer sang tab Unity. Analytics dùng mã telemetry ghi trong phiên chơi.
 
