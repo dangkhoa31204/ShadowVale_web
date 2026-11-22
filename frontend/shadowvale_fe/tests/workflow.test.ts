@@ -92,13 +92,13 @@ test('author submits, admin approves and publish seals an immutable snapshot wit
   assert.equal(original.drafts[0].bundle.weapons[0].damage, 24);
 });
 test('admin can navigate to review, publishing, users, analytics and Unity catalog', async () => {
-  assert.deepEqual(navigationForRole('admin').map(n => n.path), ['/admin/reviews', '/admin/releases', '/admin/users', '/admin/analytics', '/admin/game-catalog']);
+  assert.deepEqual(navigationForRole('admin').map(n => n.path), ['/admin/content', '/admin/reviews', '/admin/releases', '/admin/users', '/admin/analytics', '/admin/game-catalog']);
   assert.equal(homeForRole('admin'), '/admin/reviews'); assert.equal(homeForRole('designer'), '/admin/content');
   assert.equal(safeRedirect('/admin/dashboard', 'admin'), '/admin/reviews');
-  for (const permission of ['author'] as const) assert.equal(can('admin', permission), false);
+  assert.equal(can('admin', 'author'), true);
   assert.equal(can('admin', 'analytics'), true); assert.equal(safeRedirect('/admin/analytics', 'admin'), '/admin/analytics');
   assert.equal(can('designer', 'solverEdit'), false);
-  for (const path of ['/admin/content', '/admin/content/d1']) assert.equal(safeRedirect(path, 'admin'), '/admin/reviews');
+  for (const path of ['/admin/content', '/admin/content/d1']) assert.equal(safeRedirect(path, 'admin'), path);
   assert.equal(safeRedirect('/admin/releases', 'admin'), '/admin/releases');
   assert.equal(safeRedirect('/admin/users', 'admin'), '/admin/users');
   assert.equal(safeRedirect('/admin/users', 'designer'), '/admin/content');
@@ -107,8 +107,12 @@ test('admin can navigate to review, publishing, users, analytics and Unity catal
     assert.equal(safeRedirect('/admin/profile', role), homeForRole(role));
     assert.equal(safeRedirect('/admin/change-password', role), '/admin/change-password');
   }
-  await assert.rejects(applyCommand(state(), { type: 'createDraft', title: 'Admin draft' }, admin, validate), /role/);
-  await assert.rejects(applyCommand(state(), { type: 'submitDraft', id: 'd1', revision: 1 }, admin, validate), /role/);
+  const created=await applyCommand(state(), { type: 'createDraft', title: 'Admin draft' }, admin, validate);
+  assert.equal(created.drafts[0].authorId, admin.id);
+  const submitted=await applyCommand(state(), { type: 'submitDraft', id: 'd1', revision: 1 }, admin, validate);
+  assert.equal(submitted.drafts[0].status,'in_review');
+  const live=state();live.drafts[0].status='published';
+  await assert.rejects(applyCommand(live,{type:'saveDraft',id:'d1',revision:1,title:'Changed',bundle:live.drafts[0].bundle},admin,validate),/Only draft/);
 });
 test('stale revisions, invalid bundles and duplicate version numbers are blocked', async () => {
   await assert.rejects(applyCommand(state(), { type: 'submitDraft', id: 'd1', revision: 0 }, designer, validate), /changed/);

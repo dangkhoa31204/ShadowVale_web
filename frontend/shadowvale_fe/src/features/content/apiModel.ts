@@ -130,3 +130,14 @@ export function draftFromApi(v: ContentVersionDto, bundle = emptyBundle(v)): Dra
 }
 
 /** Imported editor identities belong to the current version, never another version. */
+export function importToVersion(source: ContentBundle, version: ContentVersionDto): ContentBundle {
+  const bundle = structuredClone(source);
+  bundle.version_no = Number(version.versionNo); bundle.content_version_id = version.id;
+  bundle.label = version.label; bundle.changelog = version.changelog || '';
+  delete bundle.checksum; delete bundle.published_at;
+  for (const { key } of collections) for (const row of bundle[key]) {
+    delete row.api_id; delete row.content_version_id; delete row.created_at; delete row.updated_at;
+    if (key === 'enemy_placements' && row.id) row.id = crypto.randomUUID();
+  }
+  return bundle;
+}

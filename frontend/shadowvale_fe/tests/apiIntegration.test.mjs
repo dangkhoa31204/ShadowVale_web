@@ -218,10 +218,43 @@ test('partial failures retain saved/remaining context and map nested API validat
 });
 test('role access starts each role on its screen and restricts solver mutations',()=>{
  for(const role of ['designer','analyst','admin'])assert.equal(api.can(role,'analytics'),true);
- assert.deepEqual(api.navigationForRole('admin').map(n=>n.path),['/admin/reviews','/admin/releases','/admin/users','/admin/analytics','/admin/game-catalog']);
+ assert.deepEqual(api.navigationForRole('admin').map(n=>n.path),['/admin/content','/admin/reviews','/admin/releases','/admin/users','/admin/analytics','/admin/game-catalog']);
  assert.equal(api.safeRedirect('/admin/analytics','admin'),'/admin/analytics');
  assert.equal(api.can('designer','solverEdit'),false);
  assert.equal(api.can('analyst','solverEdit'),true);
+});
+
+test('Unity import rebinds version identities and resumes a partial Draft without cloning live content or publishing',async()=>{
+ const source=api.entitiesToEditor(version,entities());
+ source.content_version_id='old-version';source.checksum='old-checksum';source.published_at='2026-01-01T00:00:00Z';
+ source.items[0].api_id='old-row-id';source.items[0].content_version_id='old-version';
+ const v={...structuredClone(version),id:'unity-import-test',versionNo:16,label:'Unity import test',revision:1};
+ const rebound=api.importToVersion(source,v);
+ assert.equal(rebound.content_version_id,v.id);assert.equal(rebound.version_no,16);
+ assert.equal(rebound.checksum,undefined);assert.equal(rebound.items[0].api_id,undefined);
+ assert.equal(rebound.items[0].content_version_id,undefined);assert.equal(source.items[0].api_id,'old-row-id');
+ const data=Object.fromEntries(api.resources.map(([key])=>[key,[]]));let failRifle=true;
+ handler=c=>{
+  if(c.url==='/content-versions'&&c.method==='post'){assert.equal(body(c).parentVersionId,null);return ok(c,v,201);}
+  if(c.url==='/content-versions/'+v.id)return ok(c,{version:v,bundle:api.entitiesToEditor(v,data)});
+  const match=c.url.match(/\/content-versions\/unity-import-test\/([^/]+)(?:\/(.+))?/);
+  const resource=match&&api.resources.find(r=>r[1]===match[1]);
+  if(resource){
+   const rows=data[resource[0]];
+   if(c.method==='get')return ok(c,match[2]?rows.find(r=>r.id===match[2]):rows);
+   if(c.method==='post'){
+    const input=body(c);
+    if(resource[0]==='items'&&input.code==='rifle'&&failRifle){failRifle=false;return fail(c,409,{message:'Retry fixture'});}
+    const row={...input,id:resource[0]+'-'+input.code};rows.push(row);v.revision++;return ok(c,row,201);
+   }
+  }
+  throw new Error('Unexpected request '+c.method+' '+c.url);
+ };
+ await assert.rejects(api.contentApi.importUnity(source,'source-hash'),e=>e.draftId===v.id&&/Saved: items\/ammo_small/.test(e.message));
+ const id=await api.contentApi.importUnity(source,'source-hash',v.id);
+ assert.equal(id,v.id);assert.equal(calls.filter(c=>c.method==='post'&&c.url==='/content-versions').length,1);
+ assert.equal(data.items.filter(i=>i.code==='ammo_small').length,1);
+ assert.ok(!calls.some(c=>/\/(validate|submit|approve|publish)$/.test(c.url)));
 });
 
 test('all nested child collections round-trip into their parent request without flat foreign columns',()=>{

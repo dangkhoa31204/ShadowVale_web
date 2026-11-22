@@ -3,6 +3,7 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
+import { authoringBundle } from './unity-authoring-bundle.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const hash = value => crypto.createHash('sha256').update(value).digest('hex');
@@ -93,8 +94,10 @@ export function buildCatalog(assets) {
     { code: 'map01_main', mapCode: 'map01', title: 'Chiến dịch rừng — Map 1', objectives: stageIds.map((id, index) => ({ id, index, title: objectives[index], requires: [], count: 1, playOrder: index === 9 ? stageIds.length : index })) },
     { code: 'map02_chapter', mapCode: 'map02', title: 'Làng ven sông — Map 2', objectives: chapter.tasks.map((t, index) => ({ ...t, index, playOrder: index, credit: loot.logistics.mapTwoRewards.find(r => r.id === t.id)?.points ?? 0 })) }
   ];
+  const graphs = [];
   const maps = [['Map00_Tutorial', 'map00_tutorial'], ['Map 1', 'map01'], ['Map 2', 'map02']].map(([scene, code]) => {
     const g = json(`_Project/Resources/TacticalGraphs/${scene}.nav_graph.json`);
+    graphs.push({code,graph:g});
     const nodes = g.nav_graph_nodes;
     return { code, name: g.display_name, scene: g.scene_name, nodeCount: nodes.length,
       bounds: { minX: Math.min(...nodes.map(n => n.x)), maxX: Math.max(...nodes.map(n => n.x)), minZ: Math.min(...nodes.map(n => n.z)), maxZ: Math.max(...nodes.map(n => n.z)) },
@@ -116,17 +119,21 @@ export function buildCatalog(assets) {
   let unityCommit = null;
   try { unityCommit = execFileSync('git', ['-C', path.dirname(assets), 'rev-parse', 'HEAD'], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim(); } catch { /* hashes still identify the source */ }
   const sourceList = [...sources.values()].sort((a, b) => a.path.localeCompare(b.path));
+  const imported = authoringBundle({items,content,loot,balance,skills,recipes,quests,graphs,tradeOffers});
+  projection.items=projection.items.filter(i=>i.code!=='knife');
+  projection.maps=imported.bundle.maps.map(m=>({code:m.code,scene_key:m.scene_key,layout:m.layout}));
   return { schemaVersion: 1, generatedAt: new Date().toISOString(), unityCommit, sourceHash: hash(JSON.stringify(sourceList)), sources: sourceList,
+    authoringBundle: imported.bundle, importNotes: imported.notes,
     items, weapons, lootTables, recipes, trade: { offers: tradeOffers, materials: loot.logistics.materialTrade, logistics: loot.logistics },
     maps, quests, adaptive: loot.adaptive, tierOdds: loot.tierOdds, repair: loot.repair, balance, skills,
     enemyTypes: loot.enemyTypes, authoringProjection: projection,
     databaseAudit: JSON.parse(fs.readFileSync(path.join(root, 'tools/database-content-audit.json'), 'utf8')),
     limitations: [
       'Snapshot of checked-out Unity sources, not proof of the configuration a running player loaded. Published values can override local defaults at scene load.',
-      'Trade stock, adaptive loot, field craft settings and mission flow remain local game content. Web tracks them read-only; publishing authoring rows does not change these rules.',
+      'Import creates editable database rows. Updated Unity builds apply prices and maps.layout.game_rules for trade, adaptive loot, repair and field crafting after publish. Mission flow and scene geometry remain in Unity.',
       'Loot chance is per random roll before adaptive boosts, guard ammo replacement and medkit pity. Tier 5 entries are guaranteed per container; multiple rolls can repeat items.',
       'Weapon definitions include unused catalog weapons. Playable marks the inventory whitelist; scripted knife stats are intentionally absent.',
-      'Tutorial objectives and scene geometry are not exported. Database assessment is based on source references, not live row counts or production query history.'
+      'Tutorial objectives and scene geometry are not exported. Database retention decisions describe the source model; live row counts are recorded separately in the Supabase audit report.'
     ] };
 }
 

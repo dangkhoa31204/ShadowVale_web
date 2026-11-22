@@ -2,7 +2,7 @@ import { axiosClient } from '../../services/api/axiosClient';
 import { storageService } from '../../services/storage/storageService';
 import { errorMessage } from '../../services/api/errors';
 import type { ContentVersionDto, ContentVersionDetailsDto, EnumsDto, ContentValidationResultDto, ContentComparisonDto, ContentPublicationDto } from '../../services/api/contracts';
-import { resources, draftFromApi, editorToEntities, entitiesToEditor, type Entity, type EntitySet } from './apiModel';
+import { resources, draftFromApi, editorToEntities, entitiesToEditor, importToVersion, validateEditor, type Entity, type EntitySet } from './apiModel';
 import { planSave, runSavePlan, payload } from './savePlan';
 import type { Command, ContentBundle, Draft, Workspace } from './types';
 export interface Page<T> { items:T[]; page:number; pageSize:number; totalCount:number; totalPages:number }
@@ -14,7 +14,28 @@ const root='/content-versions';
 type Snapshot={ version:ContentVersionDto; entities:EntitySet };
 const snapshots=new Map<string,Snapshot>();
 const actor=(id:string|null|undefined)=>id===storageService.getUser()?.id?storageService.getUser()!.callsign:id||'—';
+export class UnityImportError extends Error {
+  readonly draftId: string;
+  constructor(draftId: string, cause: unknown) {
+    super('Unity import stopped in Draft ' + draftId + '. Retry resumes this draft. ' + errorMessage(cause), { cause });
+    this.draftId=draftId;
+  }
+}
 export const contentApi={
+  async importUnity(source:ContentBundle,sourceHash:string,existingId?:string):Promise<string>{
+    const errors=validateEditor(source);
+    if(errors.length)throw new Error('Unity source is invalid: '+errors.slice(0,5).join('; '));
+    let id=existingId;
+    try{
+      if(!id) id=(await axiosClient.post<ContentVersionDto>(root,{label:'Unity import '+sourceHash.slice(0,12),changelog:'Imported Unity source '+sourceHash+'. Review before publish.',parentVersionId:null,schemaVersion:'1.0'})).data.id;
+      const current=await this.editor(id);
+      if(current.status!=='draft')throw new Error('Only a Draft can receive this import.');
+      const version=await this.version(id);
+      const bundle=importToVersion(source,version);
+      await this.save(id,bundle,version.label,version.changelog||'');
+      return id;
+    }catch(error){if(id)throw new UnityImportError(id,error);throw error;}
+  },
   enums:async()=> (await axiosClient.get<EnumsDto>('/meta/enums')).data,
   versions:async()=>{
     // BE intentionally excludes Archived from the unfiltered list.

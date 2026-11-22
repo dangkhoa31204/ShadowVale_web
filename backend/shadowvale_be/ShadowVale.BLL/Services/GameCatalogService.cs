@@ -31,7 +31,7 @@ public class GameCatalogService(IGameContentRepository content)
             ["status"] = differences.Count == 0 ? "covered_fields_match" : "different",
             ["versionId"] = manifest.Id.ToString(), ["versionNo"] = manifest.VersionNo, ["label"] = manifest.Label,
             ["checksum"] = published.Checksum, ["differences"] = differences,
-            ["scope"] = "Local defaults versus published bundle, for exported fields only. Matching does not verify a running player's effective configuration. Trade, field crafting, adaptive rules and mission flow are local-only."
+            ["scope"] = "Unity defaults versus published database bundle for exported fields, including map game_rules. Matching does not verify a running player's configuration. Older Unity builds may ignore the new trade/field rules; mission state machines remain in Unity."
         };
     }
 

@@ -1,5 +1,7 @@
 # Đối chiếu Unity, admin và database — 22/11/2026
 
+> Cập nhật sau yêu cầu đồng bộ Supabase và Admin CRUD: xem [kết quả kiểm kê DB thật, Draft #15 và authoring](SUPABASE_UNITY_AUTHORING_2026-11-22.md). Báo cáo bên dưới ghi lại giai đoạn catalog chỉ đọc trước khi nhập database.
+
 ## Kết luận
 
 Đã bổ sung danh mục Unity chỉ đọc tại `/admin/game-catalog`, dùng chung cho Admin, Designer và Analyst. Designer còn có tab **Unity game catalog** trong Content management. Analytics hiển thị tên súng, tên mục tiêu và gợi ý mã map từ cùng danh mục; Admin được hiển thị lại mục Analytics trong sidebar.

@@ -24,6 +24,8 @@
 
   <ItemGroup>
     <EmbeddedResource Include="Schemas\content-bundle-1.0.schema.json" />
+    <EmbeddedResource Include="Schemas\game-rules.schema.json" />
+    <EmbeddedResource Include="Schemas\loot-item-stats.schema.json" />
     <EmbeddedResource Include="Catalog\unity-catalog.json" LogicalName="ShadowVale.BLL.Catalog.unity-catalog.json" />
   </ItemGroup>
 

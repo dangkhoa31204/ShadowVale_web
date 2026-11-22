@@ -9,6 +9,8 @@ namespace ShadowVale.BLL.Services;
 public sealed class ContentBundleValidator : IContentBundleValidator
 {
     private readonly JsonSchema _schema;
+    private readonly JsonSchema _rulesSchema;
+    private readonly JsonSchema _lootStatsSchema;
 
     public ContentBundleValidator()
     {
@@ -17,6 +19,12 @@ public sealed class ContentBundleValidator : IContentBundleValidator
         using var document = JsonDocument.Parse(stream);
         // JsonSchema retains elements from its input beyond this document's lifetime.
         _schema = JsonSchema.Build(document.RootElement.Clone());
+        using var rulesStream = typeof(ContentBundleValidator).Assembly.GetManifestResourceStream("ShadowVale.BLL.Schemas.game-rules.schema.json")!;
+        using var rulesDocument = JsonDocument.Parse(rulesStream);
+        _rulesSchema = JsonSchema.Build(rulesDocument.RootElement.Clone());
+        using var statsStream = typeof(ContentBundleValidator).Assembly.GetManifestResourceStream("ShadowVale.BLL.Schemas.loot-item-stats.schema.json")!;
+        using var statsDocument = JsonDocument.Parse(statsStream);
+        _lootStatsSchema = JsonSchema.Build(statsDocument.RootElement.Clone());
     }
 
     private static readonly Dictionary<string, string[]> Identities = new()
@@ -132,8 +140,75 @@ public sealed class ContentBundleValidator : IContentBundleValidator
                 errors.Add(new($"/crafting_recipes/{i}/required_skill_level", "Required level must fit the selected skill."));
         }
         CheckQuestCycles(bundle, errors);
+        CheckGameRules(bundle, errors);
         return errors.Distinct().ToArray();
     }
+
+    private void CheckGameRules(JsonObject bundle, List<ContentValidationIssue> errors)
+    {
+        var itemRows = bundle["items"]!.AsArray();
+        var weapons = bundle["weapons"]!.AsArray().Select(w => w!["item_code"]!.ToString()).ToHashSet();
+        var ammo = itemRows.Where(i => i!["item_type"]!.ToString() == "ammo").Select(i => i!["code"]!.ToString()).ToHashSet();
+        var items = itemRows.Select(i => i!["code"]!.ToString()).ToHashSet();
+        for (var i = 0; i < itemRows.Count; i++)
+        {
+            var stats = itemRows[i]!["stats"]!;
+            var prefix = $"/items/{i}/stats";
+            var check = _lootStatsSchema.Evaluate(JsonSerializer.SerializeToElement(stats), new EvaluationOptions { OutputFormat = OutputFormat.List });
+            var issues = new List<ContentValidationIssue>(); CollectErrors(check, issues);
+            errors.AddRange(issues.Select(e => new ContentValidationIssue(prefix + e.Path, e.Message)));
+            if (!check.IsValid) continue;
+            if (stats["found_min"] is { } min && stats["found_max"] is { } max && Number(min) > Number(max))
+                errors.Add(new(prefix, "Found condition minimum must not exceed maximum."));
+            if (stats["salvage_good_item"] is { } good && !items.Contains(good.ToString()))
+                errors.Add(new(prefix + "/salvage_good_item", "Unknown salvage bonus item."));
+            foreach (var yield in stats["salvage"] as JsonArray ?? [])
+                if (!items.Contains(yield!["item"]!.ToString()) || Number(yield["min"]!) > Number(yield["max"]!))
+                    errors.Add(new(prefix + "/salvage", "Salvage needs existing items and an ordered quantity range."));
+        }
+        var recipes = bundle["crafting_recipes"]!.AsArray().Select(r => r!["code"]!.ToString()).ToHashSet();
+        var objectiveIds = bundle["quests"]!.AsArray().SelectMany(q => (q!["objectives"] as JsonArray ?? []).OfType<JsonObject>()).Select(o => o["id"]?.ToString()).ToHashSet();
+        var maps = bundle["maps"]!.AsArray();
+        for (var index = 0; index < maps.Count; index++)
+        {
+            var rules = maps[index]?["layout"]?["game_rules"];
+            if (rules is null) continue;
+            var prefix = $"/maps/{index}/layout/game_rules";
+            var evaluation = _rulesSchema.Evaluate(JsonSerializer.SerializeToElement(rules), new EvaluationOptions { OutputFormat = OutputFormat.List });
+            var issues = new List<ContentValidationIssue>();
+            CollectErrors(evaluation, issues);
+            errors.AddRange(issues.Select(e => new ContentValidationIssue(prefix + e.Path, e.Message)));
+            if (!evaluation.IsValid) continue;
+            var seen = new HashSet<string>();
+            foreach (var offer in rules["trade_offers"] as JsonArray ?? [])
+            {
+                if (!weapons.Contains(offer!["gun"]!.ToString()) || !ammo.Contains(offer["ammo"]!.ToString()))
+                    errors.Add(new(prefix + "/trade_offers", "Trade stock must reference a weapon and ammunition in the same version."));
+                if (!seen.Add(offer["gun"]!.ToString())) errors.Add(new(prefix + "/trade_offers", "Each weapon may appear once in stock."));
+            }
+            if (rules["tier_odds"] is JsonArray odds && odds.Sum(o => Number(o!)) <= 0)
+                errors.Add(new(prefix + "/tier_odds", "Tier odds must have a positive sum."));
+            if (rules["logistics"] is JsonObject logistics)
+            {
+                if (logistics["turnInFloor"] is { } floor && logistics["turnInCeiling"] is { } ceiling && Number(floor) > Number(ceiling))
+                    errors.Add(new(prefix + "/logistics", "Turn-in floor must not exceed ceiling."));
+                foreach (var field in new[] { "materialTrade", "mapTwoRewards" })
+                {
+                    var ids = new HashSet<string>();
+                    foreach (var entry in logistics[field] as JsonArray ?? [])
+                    {
+                        var code = entry!["id"]!.ToString();
+                        if (!ids.Add(code) || (field == "materialTrade" ? !items.Contains(code) : !objectiveIds.Contains(code)))
+                            errors.Add(new(prefix + "/logistics/" + field, "Credit entries need unique, existing item/objective IDs."));
+                    }
+                }
+            }
+            foreach (var recipe in rules["field_crafting"] as JsonObject ?? [])
+                if (!recipes.Contains(recipe.Key)) errors.Add(new(prefix + "/field_crafting", "Unknown recipe: " + recipe.Key));
+        }
+    }
+
+    private static double Number(JsonNode node) => double.Parse(node.ToString(), System.Globalization.CultureInfo.InvariantCulture);
 
     private static void CollectErrors(EvaluationResults result, List<ContentValidationIssue> errors)
     {

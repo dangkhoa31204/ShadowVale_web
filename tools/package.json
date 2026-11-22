@@ -1,0 +1,11 @@
+{
+  "name": "shadowvale-content-tools",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test tests/unity-catalog.test.mjs tests/unity-authoring.test.mjs",
+    "sync:unity": "node sync-unity-catalog.mjs",
+    "supabase:plan": "node supabase-content-sync.mjs"
+  },
+  "dependencies": { "pg": "8.23.1" }
+}

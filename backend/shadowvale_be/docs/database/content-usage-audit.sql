@@ -14,7 +14,7 @@ WITH expected(name) AS (VALUES
 )
 SELECT n.nspname AS schema_name, c.relname AS table_name,
        CASE WHEN n.nspname = 'shadowvale' AND e.name IS NOT NULL THEN 'Mapped application table'
-            WHEN c.relname = '__EFMigrationsHistory' THEN 'EF migration history; retain'
+            WHEN c.relname IN ('__EFMigrationsHistory', '__ef_migrations_history') THEN 'EF migration history; retain'
             ELSE 'Unmapped here; investigate ownership and consumers' END AS source_assessment,
        s.n_live_tup AS estimated_rows, s.seq_scan, s.idx_scan,
        s.n_tup_ins, s.n_tup_upd, s.n_tup_del,

@@ -1,6 +1,6 @@
 import type { Role } from '../../types/user';
 export const permissions = {
-  author: ['designer'], review: ['admin'], publish: ['admin'],
+  author: ['designer', 'admin'], review: ['admin'], publish: ['admin'],
   analytics: ['designer', 'analyst', 'admin'], solverEdit: ['analyst', 'admin'], users: ['admin'],
   versions: ['designer', 'admin'],
 } as const satisfies Record<string, readonly Role[]>;
@@ -19,7 +19,7 @@ export const navigation: { label: string; path: string; icon: string; permission
   { label: 'Versions', path: '/admin/releases', icon: 'deployed_code', permission: 'versions', group: 'Workspace' },
   { label: 'Users', path: '/admin/users', icon: 'group', permission: 'users', group: 'Workspace' },
   { label: 'Analytics', path: '/admin/analytics', icon: 'monitoring', permission: 'analytics', group: 'Insights' },
-  { label: 'Unity game catalog', path: '/admin/game-catalog', icon: 'inventory_2', permission: 'analytics', group: 'Insights' },
+  { label: 'Unity source reference', path: '/admin/game-catalog', icon: 'inventory_2', permission: 'analytics', group: 'Insights' },
 ];
 export const navigationForRole = (role: Role) => navigation
   .filter(n => !n.permission || can(role, n.permission))

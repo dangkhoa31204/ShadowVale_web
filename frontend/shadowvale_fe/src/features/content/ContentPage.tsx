@@ -27,6 +27,7 @@ import { errorMessage } from '../../services/api/errors';
 import { editorFieldErrors } from './apiFieldErrors';
 import type { EnumsDto } from '../../services/api/contracts';
 import { isExistingRecord, recordEditorFields, assertReadOnlyFields } from './recordFieldPolicy';
+import { GameRulesEditor } from './GameRulesEditor';
 
 function referenceOptions(field: FieldDefinition, bundle: ContentBundle) {
   if (!field.reference) return [];
@@ -106,7 +107,7 @@ function DraftEditor({ draft, enums }: { draft: Draft; enums?: EnumsDto }) {
       validationRef.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
     }
   }, [showValidation]);
-  const owner = user?.role === 'designer' && draft.authorId === user.id;
+  const owner = user?.role === 'admin' || user?.role === 'designer' && draft.authorId === user.id;
   const editable = (draft.status === 'draft' || (!isDemoMode && draft.status === 'rejected')) && owner;
   const record = bundle[category][selected];
   const categoryInfo = collections.find(collection => collection.key === category)!;
@@ -242,6 +243,7 @@ function RecordEditor({ collection, bundle, record, existing, editable, enums, s
       }
       return <label key={definition.key}>{definition.label}<Input aria-invalid={!!serverErrors[definition.key]} type="text" value={String(value ?? '')} disabled={disabled} required={definition.required} pattern={definition.pattern} maxLength={definition.maxLength} onChange={event => field(definition.key, definition.nullable && !event.target.value ? null : event.target.value)} /><small role="alert">{serverErrors[definition.key]}</small></label>;
     })}</div>
+    {collection==='maps'&&<GameRulesEditor layout={record.layout} bundle={bundle} editable={editable} onChange={value=>field('layout',value)}/>}
     <details className="sv-json-editor"><summary>Advanced JSON {visibleDefinitions.some(field => field.type === 'json') ? ' · ' + visibleDefinitions.filter(field => field.type === 'json').map(field => field.label).join(', ') : ''}</summary><Textarea className="min-h-72 rounded-none border-0 border-t font-mono text-xs" aria-label="Record JSON" spellCheck={false} disabled={!editable} value={raw} onChange={event => {
       const value = event.target.value; setRaw(value);
       try {
@@ -258,7 +260,7 @@ export function ContentPage({ embedded = false }: { embedded?: boolean }) {
   const { state, execute, busy } = useWorkspace(), { user } = useAuth();
   const { draftId } = useParams(), navigate = useNavigate();
   const [newLabel, setNewLabel] = useState(''), [creating, setCreating] = useState(false);
-  const drafts = state.drafts.filter(draft => draft.authorId === user?.id && draft.status !== 'archived');
+  const drafts = state.drafts.filter(draft => (user?.role === 'admin' || draft.authorId === user?.id) && draft.status !== 'archived');
   const selected = draftId ? drafts.find(draft => draft.id === draftId) : drafts.find(draft => ['draft', 'rejected'].includes(draft.status)) || drafts[0];
   async function create(event: React.FormEvent) {
     event.preventDefault();
@@ -267,7 +269,7 @@ export function ContentPage({ embedded = false }: { embedded?: boolean }) {
       setCreating(false); setNewLabel(''); navigate('/admin/content/' + next.drafts[0].id);
     } catch { /* Workspace displays the error. */ }
   }
-  if (draftId && state.drafts.some(draft => draft.id === draftId && draft.authorId === user?.id && draft.status === 'archived')) {
+  if (draftId && state.drafts.some(draft => draft.id === draftId && (user?.role === 'admin' || draft.authorId === user?.id) && draft.status === 'archived')) {
     return <Navigate to="/admin/content" replace />;
   }
   return <div className="sv-page">{embedded ? <div className="flex justify-end"><Button onClick={() => setCreating(!creating)}><Icon name="add" />Create content version</Button></div> : <PageHeading title="Content management" description="Edit game balancing and content tables." action={<Button onClick={() => setCreating(!creating)}><Icon name="add" />Create content version</Button>} />}

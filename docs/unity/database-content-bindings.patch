@@ -1,0 +1,161 @@
+diff --git a/Assets/_Project/Map01/Runtime/CampTrader.cs b/Assets/_Project/Map01/Runtime/CampTrader.cs
+index 972f759d..cdfa6ed7 100644
+--- a/Assets/_Project/Map01/Runtime/CampTrader.cs
++++ b/Assets/_Project/Map01/Runtime/CampTrader.cs
+@@ -64 +64 @@ namespace ShadowVale.Map01
+-            trader.Stock = mapTwo ? Map2Stock : Map1Stock;
++            trader.Stock = PublishedContent.TradeStock(mapTwo, mapTwo ? Map2Stock : Map1Stock);
+diff --git a/Assets/_Project/Map01/Runtime/PublishedContent.cs b/Assets/_Project/Map01/Runtime/PublishedContent.cs
+index 912e5346..17516842 100644
+--- a/Assets/_Project/Map01/Runtime/PublishedContent.cs
++++ b/Assets/_Project/Map01/Runtime/PublishedContent.cs
+@@ -2,0 +3,2 @@ using System.Linq;
++using Newtonsoft.Json;
++using Newtonsoft.Json.Linq;
+@@ -12,2 +14,2 @@ namespace ShadowVale.Map01
+-    /// local one and everything else stays: field crafting (field_seconds, field_max_batch), salvage and repair
+-    /// rules, containers placed in the scene. New recipes and loot tables are added; new weapons and enemies are
++    /// local one. Item loot metadata and maps.layout.game_rules tune prices, trade, repair and field crafting;
++    /// absent optional fields keep their local defaults. New recipes and loot tables are added; new weapons and enemies are
+@@ -80 +82 @@ namespace ShadowVale.Map01
+-                    // Bench only: field crafting has no column in the web schema
++                    // Field crafting remains disabled unless a per-map rule explicitly enables it.
+@@ -87,0 +90,6 @@ namespace ShadowVale.Map01
++                var field = published.Maps.FirstOrDefault(m => m.Id == Map01Mission.MapId)?.GameRules?["field_crafting"]?[p.Id];
++                if (field != null)
++                {
++                    recipe.field_seconds = field.Value<float?>("seconds") ?? recipe.field_seconds;
++                    recipe.field_max_batch = field.Value<int?>("max_batch") ?? recipe.field_max_batch;
++                }
+@@ -95,0 +104,24 @@ namespace ShadowVale.Map01
++            var rules = published.Maps.FirstOrDefault(m => m.Id == Map01Mission.MapId)?.GameRules;
++            if (rules != null)
++            {
++                if (rules["tier_odds"] is JArray odds) tuned.tierOdds = odds.ToObject<float[]>();
++                // Populate preserves local defaults for optional fields in older/partial bundles.
++                if (rules["adaptive"] is JObject adaptive) JsonConvert.PopulateObject(adaptive.ToString(), tuned.adaptive);
++                if (rules["repair"] is JObject repair) JsonConvert.PopulateObject(repair.ToString(), tuned.repair);
++                if (rules["logistics"] is JObject logistics) JsonConvert.PopulateObject(logistics.ToString(), tuned.logistics,
++                    new JsonSerializerSettings { ObjectCreationHandling = ObjectCreationHandling.Replace });
++            }
++            var metadata = published.Items.ToDictionary(i => i.Id);
++            foreach (var item in tuned.items ?? new Map01Loot.Item[0])
++            {
++                if (!metadata.TryGetValue(item.code, out var p)) continue;
++                // Legacy bundles without stats retain their local loot metadata.
++                if (p.Stats == null) continue;
++                item.baseValue = p.BaseValue; item.weight = p.Weight;
++                if (!string.IsNullOrEmpty(p.Rarity)) item.rarity = p.Rarity;
++                item.foundMin = p.Stats.Value<float?>("found_min") ?? item.foundMin;
++                item.foundMax = p.Stats.Value<float?>("found_max") ?? item.foundMax;
++                item.salvageGood = p.Stats.Value<float?>("salvage_good") ?? item.salvageGood;
++                item.salvageGoodItem = p.Stats.Value<string>("salvage_good_item") ?? item.salvageGoodItem;
++                if (p.Stats["salvage"] is JArray salvage) item.salvage = salvage.ToObject<Map01Loot.Yield[]>();
++            }
+@@ -138,0 +171,25 @@ namespace ShadowVale.Map01
++
++        public static CampTrader.Offer[] TradeStock(bool mapTwo, CampTrader.Offer[] fallback)
++        {
++            if (!ContentService.TryGetPublished(out var published)) return fallback;
++            return TradeStock(published, mapTwo ? "map02" : Map01Mission.MapId, fallback);
++        }
++
++        public static CampTrader.Offer[] TradeStock(ContentBundle published, string mapCode, CampTrader.Offer[] fallback)
++        {
++            var stock = published.Maps.FirstOrDefault(m => m.Id == mapCode)?.GameRules?["trade_offers"] as JArray;
++            if (stock == null) return fallback;
++            var weapons = new HashSet<string>(published.Weapons.Select(w => w.Id));
++            var ammo = new HashSet<string>(published.Items.Where(i => i.Category == "ammo").Select(i => i.Id));
++            var offers = new List<CampTrader.Offer>();
++            foreach (var row in stock)
++            {
++                var gun = row.Value<string>("gun"); var rounds = row.Value<int?>("rounds") ?? 0;
++                var ammunition = row.Value<string>("ammo");
++                if (!weapons.Contains(gun) || !ammo.Contains(ammunition) || rounds < 1) return fallback;
++                // New weapon models still need a gameplay implementation; stock only supports the existing inventory whitelist.
++                if (!ForestInventory.IsWeapon(gun)) return fallback;
++                offers.Add(new CampTrader.Offer(gun, ammunition, rounds));
++            }
++            return offers.ToArray();
++        }
+diff --git a/Assets/_Project/Map01/Tests/PublishedContentTests.cs b/Assets/_Project/Map01/Tests/PublishedContentTests.cs
+index 130424a7..ddfcc119 100644
+--- a/Assets/_Project/Map01/Tests/PublishedContentTests.cs
++++ b/Assets/_Project/Map01/Tests/PublishedContentTests.cs
+@@ -8,0 +9 @@ using UnityEngine;
++using Newtonsoft.Json.Linq;
+@@ -115,0 +117,37 @@ namespace ShadowVale.Map01.Tests
++
++        [Test]
++        public void DatabasePricesAndGameRulesReachLootAndFieldCrafting()
++        {
++            var published = Imported();
++            var rifle = published.Items.Single(i => i.Id == "rifle_standard");
++            rifle.BaseValue = 95; rifle.Stats = new JObject();
++            published.Maps.Single(m => m.Id == "map01").GameRules = JObject.Parse(@"{
++                'tier_odds':[60,30,8,2], 'adaptive':{'ammoBoost':4},
++                'logistics':{'materialTrade':[{'id':'weapon_parts','points':11}]},
++                'field_crafting':{'recover_ammo_556':{'seconds':6,'max_batch':2}}
++            }");
++            var local = Map01Loot.Load();
++            var tuned = PublishedContent.Apply(local, published);
++            Assert.AreEqual(95, tuned.BaseValue("rifle_standard"));
++            Assert.AreNotEqual(95, local.BaseValue("rifle_standard"));
++            Assert.AreEqual(4, tuned.adaptive.ammoBoost);
++            Assert.AreEqual(local.adaptive.medkitPity, tuned.adaptive.medkitPity);
++            Assert.AreEqual(11, tuned.logistics.MaterialCredit("weapon_parts"));
++            Assert.AreEqual(1, tuned.logistics.materialTrade.Length, "Published arrays replace local turn-in rules.");
++            CollectionAssert.AreEqual(new float[]{60,30,8,2},tuned.tierOdds);
++            var forest = Local(); PublishedContent.Apply(forest,published);
++            var recipe = forest.craft_recipes.Single(r => r.id == "recover_ammo_556");
++            Assert.AreEqual(6,recipe.field_seconds); Assert.AreEqual(2,recipe.field_max_batch);
++        }
++
++        [Test]
++        public void DatabaseTradeStockCanChangeOrBeEmpty_AndLegacyBundlesKeepLocalStock()
++        {
++            var published=Imported(); var fallback=new[]{new CampTrader.Offer("rifle_standard","ammo_rifle",10)};
++            Assert.AreSame(fallback,PublishedContent.TradeStock(published,"map02",fallback));
++            published.Maps.Single(m=>m.Id=="map02").GameRules=JObject.Parse(@"{'trade_offers':[{'gun':'rifle_m16','ammo':'ammo_556','rounds':25}]}");
++            var offers=PublishedContent.TradeStock(published,"map02",fallback);
++            Assert.AreEqual("rifle_m16",offers.Single().Gun);Assert.AreEqual(25,offers.Single().Rounds);
++            published.Maps.Single(m=>m.Id=="map02").GameRules=JObject.Parse(@"{'trade_offers':[]}");
++            Assert.IsEmpty(PublishedContent.TradeStock(published,"map02",fallback));
++        }
+diff --git a/Assets/_Project/Map01/Tests/ShadowVale.Map01.Tests.asmdef b/Assets/_Project/Map01/Tests/ShadowVale.Map01.Tests.asmdef
+index dca224eb..0c05bdea 100644
+--- a/Assets/_Project/Map01/Tests/ShadowVale.Map01.Tests.asmdef
++++ b/Assets/_Project/Map01/Tests/ShadowVale.Map01.Tests.asmdef
+@@ -7 +7,2 @@
+-    "nunit.framework.dll"
++    "nunit.framework.dll",
++    "Newtonsoft.Json.dll"
+diff --git a/Assets/_Project/Scripts/Content/BundleV1Mapper.cs b/Assets/_Project/Scripts/Content/BundleV1Mapper.cs
+index 4979986a..bfe7703a 100644
+--- a/Assets/_Project/Scripts/Content/BundleV1Mapper.cs
++++ b/Assets/_Project/Scripts/Content/BundleV1Mapper.cs
+@@ -40 +40,2 @@ namespace ShadowVale.Content
+-                    Id = i.Code, DisplayName = i.Name, Category = i.ItemType, StackMax = i.MaxStack, Weight = i.Weight
++                    Id = i.Code, DisplayName = i.Name, Category = i.ItemType, StackMax = i.MaxStack, Weight = i.Weight,
++                    BaseValue = i.BaseValue, Rarity = i.Rarity, Stats = i.Stats
+@@ -108,0 +110 @@ namespace ShadowVale.Content
++                    GameRules = m.Layout?["game_rules"] as JObject,
+diff --git a/Assets/_Project/Scripts/Data/Content/ContentBundle.cs b/Assets/_Project/Scripts/Data/Content/ContentBundle.cs
+index 224f65a0..20883bce 100644
+--- a/Assets/_Project/Scripts/Data/Content/ContentBundle.cs
++++ b/Assets/_Project/Scripts/Data/Content/ContentBundle.cs
+@@ -1,0 +2 @@ using System.Collections.Generic;
++using Newtonsoft.Json.Linq;
+@@ -37,0 +39,3 @@ namespace ShadowVale.Data.Content
++        public int BaseValue { get; set; }
++        public string Rarity { get; set; }
++        public JObject Stats { get; set; }
+diff --git a/Assets/_Project/Scripts/Data/Content/MapDefinition.cs b/Assets/_Project/Scripts/Data/Content/MapDefinition.cs
+index 7b4cc8ff..e19d43b4 100644
+--- a/Assets/_Project/Scripts/Data/Content/MapDefinition.cs
++++ b/Assets/_Project/Scripts/Data/Content/MapDefinition.cs
+@@ -1,0 +2 @@ using System.Collections.Generic;
++using Newtonsoft.Json.Linq;
+@@ -15,0 +17,2 @@ namespace ShadowVale.Data.Content
++        /// <summary>Versioned trade, loot and crafting rules from maps.layout.game_rules.</summary>
++        public JObject GameRules { get; set; }

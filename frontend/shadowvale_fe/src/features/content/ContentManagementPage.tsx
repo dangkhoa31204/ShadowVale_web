@@ -15,9 +15,9 @@ export function ContentManagementPage() {
     <PageHeading title="Content management" description="Author game content, submit it for review and track published content bundles." />
     <Tabs value={unity ? 'unity' : published ? 'published' : 'author'} onValueChange={value => navigate(value === 'author' ? '/admin/content' : '/admin/content?view=' + value)}>
       <TabsList variant="line" aria-label="Content management">
-        <TabsTrigger value="author">Author content</TabsTrigger>
+        <TabsTrigger value="author">Database content</TabsTrigger>
         <TabsTrigger value="published">Published content</TabsTrigger>
-        <TabsTrigger value="unity">Unity game catalog</TabsTrigger>
+        <TabsTrigger value="unity">Unity source reference</TabsTrigger>
       </TabsList>
     </Tabs>
     {unity ? <GameCatalogPage embedded /> : published ? <ContentVersions embedded /> : <ContentPage embedded />}
