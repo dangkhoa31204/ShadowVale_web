@@ -287,6 +287,8 @@ export type FunnelStepDto = {
   "objectiveIndex": number | string;
   "sessions": number | string;
   "shareOfStarted": null | number | string;
+  "mapCode"?: string;
+  "objectiveCode"?: string;
 };
 export type HeatCellDto = {
   "x": number | string;

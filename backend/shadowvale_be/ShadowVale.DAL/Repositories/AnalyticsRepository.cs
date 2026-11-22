@@ -76,17 +76,20 @@ public class AnalyticsRepository(ShadowValeDbContext context) : IAnalyticsReposi
     public Task<List<FunnelStepRow>> GetObjectiveStepsAsync(AnalyticsFilter filter, CancellationToken ct = default)
     {
         var sql = new Sql();
+        var map = sql.Add(filter.MapCode);
         // payload.index must be a small whole number; anything else is ignored instead of failing the cast
         return Query<FunnelStepRow>(sql, $"""
             WITH {Sessions(sql, filter)}
-            SELECT (e.payload ->> 'index')::int AS step, count(DISTINCT e.session_id) AS sessions
+            SELECT (e.payload ->> 'index')::int AS step, count(DISTINCT e.session_id) AS sessions,
+                   coalesce(e.map_code, '') AS map_code, coalesce(e.payload ->> 'objective', '') AS objective_code
             FROM shadowvale.telemetry_events e
             JOIN sessions s ON s.id = e.session_id
             WHERE e.event_type = 'objective_completed'
+              AND ({map}::text IS NULL OR e.map_code = {map}::text)
               AND jsonb_typeof(e.payload -> 'index') = 'number'
               AND (e.payload ->> 'index') ~ '^[0-9]+$' AND length(e.payload ->> 'index') <= 4
-            GROUP BY 1
-            ORDER BY 1
+            GROUP BY 1, 3, 4
+            ORDER BY 3, 1, 4
             """).ToListAsync(ct);
     }
 

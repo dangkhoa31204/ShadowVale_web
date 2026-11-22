@@ -176,7 +176,7 @@ public class AnalyticsService(IAnalyticsRepository analytics, IGameContentReposi
         var completed = await analytics.CountMissionsCompletedAsync(filter, ct);
 
         return new FunnelDto(started,
-            steps.Select(s => new FunnelStepDto(s.Step, s.Sessions, Ratio(s.Sessions, started))).ToList(),
+            steps.Select(s => new FunnelStepDto(s.Step, s.Sessions, Ratio(s.Sessions, started), s.MapCode, s.ObjectiveCode)).ToList(),
             completed, Ratio(completed, started));
     }
 

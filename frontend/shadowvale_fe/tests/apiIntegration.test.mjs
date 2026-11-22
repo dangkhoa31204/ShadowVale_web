@@ -218,7 +218,7 @@ test('partial failures retain saved/remaining context and map nested API validat
 });
 test('role access starts each role on its screen and restricts solver mutations',()=>{
  for(const role of ['designer','analyst','admin'])assert.equal(api.can(role,'analytics'),true);
- assert.deepEqual(api.navigationForRole('admin').map(n=>n.path),['/admin/reviews','/admin/releases','/admin/users']);
+ assert.deepEqual(api.navigationForRole('admin').map(n=>n.path),['/admin/reviews','/admin/releases','/admin/users','/admin/analytics','/admin/game-catalog']);
  assert.equal(api.safeRedirect('/admin/analytics','admin'),'/admin/analytics');
  assert.equal(api.can('designer','solverEdit'),false);
  assert.equal(api.can('analyst','solverEdit'),true);

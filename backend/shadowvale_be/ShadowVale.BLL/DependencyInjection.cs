@@ -36,6 +36,7 @@ public static class DependencyInjection
         services.AddScoped<ICraftingRecipeService, CraftingRecipeService>();
         services.AddScoped<IQuestService, QuestService>();
         services.AddScoped<IGameContentService, GameContentService>();
+        services.AddScoped<GameCatalogService>();
         services.AddScoped<IGameSessionService, GameSessionService>();
         services.AddScoped<IAnalyticsService, AnalyticsService>();
         services.AddSingleton<IMetaService, MetaService>();

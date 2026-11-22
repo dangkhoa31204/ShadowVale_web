@@ -1,0 +1,5485 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-11-22T08:56:33.497Z",
+  "unityCommit": "e09caff9b2eba70d6f3e93a4b5e2750437b5b473",
+  "sourceHash": "3fcce53d72e5f87a31b475ebd486217748cfb5509e8daefec7435478f7b84cc8",
+  "sources": [
+    {
+      "path": "_Project/Map01/Generated/Map01Content.json",
+      "sha256": "d3f71b80281bc5c0ceae88785ccd85625c95dbbd901c86872c255e23061d25ab"
+    },
+    {
+      "path": "_Project/Map01/Map01Balance.json",
+      "sha256": "2ca8415a1d05df9a4acd7d25742d4735324dd884c8745b68ef7979e551feb028"
+    },
+    {
+      "path": "_Project/Map01/Resources/Loot/Map01Loot.json",
+      "sha256": "b8fc105fb8090b4d34b4d9c3f7b2ce3eb70a23d05eff7d42ea51b442e06ef633"
+    },
+    {
+      "path": "_Project/Map01/Resources/Story/Map02Chapter.json",
+      "sha256": "a44106b2aa802ffe9dc2d46c914d7f6d0dac3dff9d7271271daaf870c89d94fe"
+    },
+    {
+      "path": "_Project/Map01/Runtime/CampTrader.cs",
+      "sha256": "0586f139c1cb0840866b42131544342c422657e2f3fd9abf2924174215f900f8"
+    },
+    {
+      "path": "_Project/Map01/Runtime/ForestInventory.cs",
+      "sha256": "4b42623a570c32a8301f347daf88f901f221c197842af947e005aa76143e317e"
+    },
+    {
+      "path": "_Project/Map01/Runtime/Map01Inventory.Condition.cs",
+      "sha256": "326fc7ca9f34a76c888527341b5b867d5900fb0b48da39f91d255381bd011eab"
+    },
+    {
+      "path": "_Project/Map01/Runtime/Map01Inventory.cs",
+      "sha256": "15af9a60d6d7935a279929a0a5606247c874f5fc20a191b1329c8161e72e3ffd"
+    },
+    {
+      "path": "_Project/Map01/Runtime/Map01Inventory.FieldCraft.cs",
+      "sha256": "e86373afea25e17a2f86739838912308222e8347e636adbaada4fa5551be05b4"
+    },
+    {
+      "path": "_Project/Map01/Runtime/Map01Logistics.cs",
+      "sha256": "0d45ec2cd8617338e4508482f337647dc97ca2ae2f05c910b72b636a36542bfb"
+    },
+    {
+      "path": "_Project/Map01/Runtime/Map01Loot.cs",
+      "sha256": "29ee1f11ee1b3e8435aa78000443476367181bd68fd9d5e16e65a4aee0c8eb86"
+    },
+    {
+      "path": "_Project/Map01/Runtime/Map01M16.cs",
+      "sha256": "51fd75623db92985be733505d43b1708a9fedb4c80430a2852d9dce4e6d3ebe8"
+    },
+    {
+      "path": "_Project/Map01/Runtime/Map01Quest.cs",
+      "sha256": "28c6735b6ddcbfb019b4cb4f64886b31a5f69acca0e69ae516650e969b63b4de"
+    },
+    {
+      "path": "_Project/Map01/Runtime/PublishedContent.cs",
+      "sha256": "ef092463371df4c9a83e9439841926d74c3a7017c5520b04934f1247f0f8736c"
+    },
+    {
+      "path": "_Project/Map02/Runtime/Map02Mission.Telemetry.cs",
+      "sha256": "51d115faaf7223bb03c724460044cc1ac0bada9c1ee57e6dbbbd57bd03e9d4a1"
+    },
+    {
+      "path": "_Project/Resources/TacticalGraphs/Map 1.nav_graph.json",
+      "sha256": "3024012dfeeecb1989c6bc838cc60b2b4a221329f2d0d9ab7033f5bc92e45230"
+    },
+    {
+      "path": "_Project/Resources/TacticalGraphs/Map 2.nav_graph.json",
+      "sha256": "6d1490d3a7f8b68b7931b4f4bbe26ca306391aabfeccc17bbc27d88eb182bcec"
+    },
+    {
+      "path": "_Project/Resources/TacticalGraphs/Map00_Tutorial.nav_graph.json",
+      "sha256": "e6d2a2481352520fd983b253ec22adba0bf022935c316850ca0f0c90a1c1643e"
+    },
+    {
+      "path": "_Project/Scripts/Bootstrap/GameBootstrap.cs",
+      "sha256": "89163466f01f6d8249ad02fc5e72aef70b6f1d7d65dc62d2d8f68cfe04f6dc56"
+    },
+    {
+      "path": "Resources/Skills/SkillBalance.json",
+      "sha256": "62359a281290df7043b60b241b13bd59132ec56baffe338f3d143d4f2c27a97c"
+    }
+  ],
+  "items": [
+    {
+      "code": "ak_loading_pack",
+      "name": "Gói tiếp liệu AK",
+      "type": "material",
+      "maxStack": 64,
+      "weight": 0.12,
+      "baseValue": 3,
+      "inRuntimeInventory": true,
+      "loot": {
+        "code": "ak_loading_pack",
+        "type": "Material",
+        "rarity": "Common",
+        "baseValue": 3,
+        "weight": 0.12
+      }
+    },
+    {
+      "code": "ammo_556",
+      "name": "Đạn 5,56×45 mm",
+      "type": "ammo",
+      "maxStack": 99,
+      "weight": 0.02,
+      "baseValue": 1,
+      "inRuntimeInventory": true,
+      "loot": {
+        "code": "ammo_556",
+        "type": "Ammo",
+        "rarity": "Common",
+        "baseValue": 1,
+        "weight": 0.02
+      }
+    },
+    {
+      "code": "ammo_pistol",
+      "name": "Đạn K-54",
+      "type": "ammo",
+      "maxStack": 99,
+      "weight": 0.01,
+      "baseValue": 2,
+      "inRuntimeInventory": true,
+      "loot": {
+        "code": "ammo_pistol",
+        "type": "Ammo",
+        "rarity": "Uncommon",
+        "baseValue": 2,
+        "weight": 0.01
+      }
+    },
+    {
+      "code": "ammo_recovered",
+      "name": "Vật tư đạn thu hồi",
+      "type": "material",
+      "maxStack": 64,
+      "weight": 0.08,
+      "baseValue": 1,
+      "inRuntimeInventory": true,
+      "loot": {
+        "code": "ammo_recovered",
+        "type": "Material",
+        "rarity": "Common",
+        "baseValue": 1,
+        "weight": 0.08
+      }
+    },
+    {
+      "code": "ammo_rifle",
+      "name": "Đạn súng trường",
+      "type": "ammo",
+      "maxStack": 99,
+      "weight": 0.02,
+      "baseValue": 1,
+      "inRuntimeInventory": true,
+      "loot": {
+        "code": "ammo_rifle",
+        "type": "Ammo",
+        "rarity": "Common",
+        "baseValue": 1,
+        "weight": 0.02
+      }
+    },
+    {
+      "code": "ammo_shotgun",
+      "name": "Đạn shotgun",
+      "type": "ammo",
+      "maxStack": 99,
+      "weight": 0.05,
+      "baseValue": null,
+      "inRuntimeInventory": false,
+      "loot": null
+    },
+    {
+      "code": "ammo_smg",
+      "name": "Đạn tiểu liên",
+      "type": "ammo",
+      "maxStack": 99,
+      "weight": 0.01,
+      "baseValue": null,
+      "inRuntimeInventory": false,
+      "loot": null
+    },
+    {
+      "code": "ammo_sniper",
+      "name": "Đạn Mosin",
+      "type": "ammo",
+      "maxStack": 99,
+      "weight": 0.04,
+      "baseValue": 4,
+      "inRuntimeInventory": true,
+      "loot": {
+        "code": "ammo_sniper",
+        "type": "Ammo",
+        "rarity": "Rare",
+        "baseValue": 4,
+        "weight": 0.04
+      }
+    },
+    {
+      "code": "blast_charge",
+      "name": "Lõi nổ",
+      "type": "material",
+      "maxStack": 64,
+      "weight": 0.4,
+      "baseValue": 20,
+      "inRuntimeInventory": true,
+      "loot": {
+        "code": "blast_charge",
+        "type": "Material",
+        "rarity": "Epic",
+        "baseValue": 20,
+        "weight": 0.4
+      }
+    },
+    {
+      "code": "carbine_scout",
+      "name": "Scout Carbine",
+      "type": "weapon",
+      "maxStack": null,
+      "weight": null,
+      "baseValue": null,
+      "inRuntimeInventory": false,
+      "loot": null
+    },
+    {
+      "code": "cloth",
+      "name": "Vải",
+      "type": "material",
+      "maxStack": 64,
+      "weight": 0.1,
+      "baseValue": 2,
+      "inRuntimeInventory": true,
+      "loot": {
+        "code": "cloth",
+        "type": "Material",
+        "rarity": "Common",
+        "baseValue": 2,
+        "weight": 0.1
+      }
+    },
+    {
+      "code": "fuse_module",
+      "name": "Mô-đun kích hoạt",
+      "type": "material",
+      "maxStack": 64,
+      "weight": 0.1,
+      "baseValue": 15,
+      "inRuntimeInventory": true,
+      "loot": {
+        "code": "fuse_module",
+        "type": "Material",
+        "rarity": "Epic",
+        "baseValue": 15,
+        "weight": 0.1
+      }
+    },
+    {
+      "code": "grenade_f1",
+      "name": "Lựu đạn F1",
+      "type": "consumable",
+      "maxStack": 64,
+      "weight": 0.6,
+      "baseValue": 30,
+      "inRuntimeInventory": true,
+      "loot": {
+        "code": "grenade_f1",
+        "type": "Consumable",
+        "rarity": "Epic",
+        "baseValue": 30,
+        "weight": 0.6
+      }
+    },
+    {
+      "code": "gun_oil",
+      "name": "Dầu súng",
+      "type": "material",
+      "maxStack": 64,
+      "weight": 0.2,
+      "baseValue": 10,
+      "inRuntimeInventory": true,
+      "loot": {
+        "code": "gun_oil",
+        "type": "Material",
+        "rarity": "Uncommon",
+        "baseValue": 10,
+        "weight": 0.2
+      }
+    },
+    {
+      "code": "gunpowder",
+      "name": "Thuốc súng",
+      "type": "material",
+      "maxStack": 64,
+      "weight": 0.1,
+      "baseValue": 5,
+      "inRuntimeInventory": true,
+      "loot": {
+        "code": "gunpowder",
+        "type": "Material",
+        "rarity": "Uncommon",
+        "baseValue": 5,
+        "weight": 0.1
+      }
+    },
+    {
+      "code": "herb",
+      "name": "Thảo dược",
+      "type": "material",
+      "maxStack": 64,
+      "weight": 0.05,
+      "baseValue": 3,
+      "inRuntimeInventory": true,
+      "loot": {
+        "code": "herb",
+        "type": "Material",
+        "rarity": "Common",
+        "baseValue": 3,
+        "weight": 0.05
+      }
+    },
+    {
+      "code": "knife",
+      "name": "Dao",
+      "type": "weapon",
+      "maxStack": null,
+      "weight": 0.4,
+      "baseValue": 10,
+      "inRuntimeInventory": true,
+      "loot": {
+        "code": "knife",
+        "type": "Weapon",
+        "rarity": "Common",
+        "baseValue": 10,
+        "weight": 0.4
+      }
+    },
+    {
+      "code": "m1_supply_cargo",
+      "name": "Túi thuốc của Hùng",
+      "type": "questitem",
+      "maxStack": null,
+      "weight": 3,
+      "baseValue": 0,
+      "inRuntimeInventory": true,
+      "loot": {
+        "code": "m1_supply_cargo",
+        "type": "QuestItem",
+        "rarity": "Common",
+        "baseValue": 0,
+        "weight": 3
+      }
+    },
+    {
+      "code": "m1_supply_key",
+      "name": "Chìa khóa kho — Điểm 1",
+      "type": "questitem",
+      "maxStack": null,
+      "weight": 0.05,
+      "baseValue": 0,
+      "inRuntimeInventory": true,
+      "loot": {
+        "code": "m1_supply_key",
+        "type": "QuestItem",
+        "rarity": "Common",
+        "baseValue": 0,
+        "weight": 0.05
+      }
+    },
+    {
+      "code": "medkit_small",
+      "name": "Băng cứu thương",
+      "type": "consumable",
+      "maxStack": 64,
+      "weight": 0.3,
+      "baseValue": 12,
+      "inRuntimeInventory": true,
+      "loot": {
+        "code": "medkit_small",
+        "type": "Consumable",
+        "rarity": "Uncommon",
+        "baseValue": 12,
+        "weight": 0.3
+      }
+    },
+    {
+      "code": "pistol_k54",
+      "name": "Súng lục K-54",
+      "type": "weapon",
+      "maxStack": 1,
+      "weight": 0.85,
+      "baseValue": 45,
+      "inRuntimeInventory": true,
+      "loot": {
+        "code": "pistol_k54",
+        "type": "Weapon",
+        "rarity": "Uncommon",
+        "baseValue": 45,
+        "weight": 0.85,
+        "foundMin": 0.6,
+        "foundMax": 0.75,
+        "salvage": [
+          {
+            "item": "scrap_metal",
+            "min": 1,
+            "max": 1
+          },
+          {
+            "item": "weapon_parts",
+            "min": 1,
+            "max": 1
+          }
+        ],
+        "salvageGood": 0.5,
+        "salvageGoodItem": "weapon_parts"
+      }
+    },
+    {
+      "code": "repair_kit",
+      "name": "Bộ sửa chữa",
+      "type": "tool",
+      "maxStack": 64,
+      "weight": 0.8,
+      "baseValue": 30,
+      "inRuntimeInventory": true,
+      "loot": {
+        "code": "repair_kit",
+        "type": "Tool",
+        "rarity": "Rare",
+        "baseValue": 30,
+        "weight": 0.8
+      }
+    },
+    {
+      "code": "rifle_m16",
+      "name": "M16",
+      "type": "weapon",
+      "maxStack": 1,
+      "weight": 3.5,
+      "baseValue": 60,
+      "inRuntimeInventory": true,
+      "loot": {
+        "code": "rifle_m16",
+        "type": "Weapon",
+        "rarity": "Common",
+        "baseValue": 60,
+        "weight": 3.5,
+        "foundMin": 0.55,
+        "foundMax": 0.75,
+        "salvage": [
+          {
+            "item": "scrap_metal",
+            "min": 2,
+            "max": 2
+          },
+          {
+            "item": "weapon_parts",
+            "min": 1,
+            "max": 1
+          }
+        ],
+        "salvageGood": 0.5,
+        "salvageGoodItem": "weapon_parts"
+      }
+    },
+    {
+      "code": "rifle_mosin",
+      "name": "Súng Mosin ống ngắm PU",
+      "type": "weapon",
+      "maxStack": 1,
+      "weight": 4,
+      "baseValue": 120,
+      "inRuntimeInventory": true,
+      "loot": {
+        "code": "rifle_mosin",
+        "type": "Weapon",
+        "rarity": "Rare",
+        "baseValue": 120,
+        "weight": 4,
+        "foundMin": 0.65,
+        "foundMax": 0.8,
+        "salvage": [
+          {
+            "item": "scrap_metal",
+            "min": 2,
+            "max": 2
+          },
+          {
+            "item": "weapon_parts",
+            "min": 1,
+            "max": 1
+          },
+          {
+            "item": "scope_lens",
+            "min": 1,
+            "max": 1
+          }
+        ],
+        "salvageGood": 0.5,
+        "salvageGoodItem": "weapon_parts"
+      }
+    },
+    {
+      "code": "rifle_standard",
+      "name": "AK47",
+      "type": "weapon",
+      "maxStack": null,
+      "weight": 3.5,
+      "baseValue": 60,
+      "inRuntimeInventory": true,
+      "loot": {
+        "code": "rifle_standard",
+        "type": "Weapon",
+        "rarity": "Common",
+        "baseValue": 60,
+        "weight": 3.5,
+        "foundMin": 0.55,
+        "foundMax": 0.75,
+        "salvage": [
+          {
+            "item": "scrap_metal",
+            "min": 2,
+            "max": 2
+          },
+          {
+            "item": "weapon_parts",
+            "min": 1,
+            "max": 1
+          }
+        ],
+        "salvageGood": 0.5,
+        "salvageGoodItem": "weapon_parts"
+      }
+    },
+    {
+      "code": "river_documents",
+      "name": "Tài liệu",
+      "type": "questitem",
+      "maxStack": null,
+      "weight": 0.2,
+      "baseValue": 0,
+      "inRuntimeInventory": true,
+      "loot": {
+        "code": "river_documents",
+        "type": "QuestItem",
+        "rarity": "Common",
+        "baseValue": 0,
+        "weight": 0.2
+      }
+    },
+    {
+      "code": "scope_lens",
+      "name": "Kính ngắm",
+      "type": "material",
+      "maxStack": 64,
+      "weight": 0.1,
+      "baseValue": 25,
+      "inRuntimeInventory": true,
+      "loot": {
+        "code": "scope_lens",
+        "type": "Material",
+        "rarity": "Epic",
+        "baseValue": 25,
+        "weight": 0.1
+      }
+    },
+    {
+      "code": "scrap_metal",
+      "name": "Kim loại vụn",
+      "type": "material",
+      "maxStack": 64,
+      "weight": 0.5,
+      "baseValue": 3,
+      "inRuntimeInventory": true,
+      "loot": {
+        "code": "scrap_metal",
+        "type": "Material",
+        "rarity": "Common",
+        "baseValue": 3,
+        "weight": 0.5
+      }
+    },
+    {
+      "code": "shotgun_pump",
+      "name": "Pump Shotgun",
+      "type": "weapon",
+      "maxStack": null,
+      "weight": null,
+      "baseValue": null,
+      "inRuntimeInventory": false,
+      "loot": null
+    },
+    {
+      "code": "smg_compact",
+      "name": "Compact SMG",
+      "type": "weapon",
+      "maxStack": null,
+      "weight": null,
+      "baseValue": null,
+      "inRuntimeInventory": false,
+      "loot": null
+    },
+    {
+      "code": "smoke_bomb",
+      "name": "Bom khói",
+      "type": "consumable",
+      "maxStack": 64,
+      "weight": 0.4,
+      "baseValue": 15,
+      "inRuntimeInventory": true,
+      "loot": {
+        "code": "smoke_bomb",
+        "type": "Consumable",
+        "rarity": "Rare",
+        "baseValue": 15,
+        "weight": 0.4
+      }
+    },
+    {
+      "code": "smoke_module",
+      "name": "Ống tạo khói",
+      "type": "material",
+      "maxStack": 64,
+      "weight": 0.2,
+      "baseValue": 12,
+      "inRuntimeInventory": true,
+      "loot": {
+        "code": "smoke_module",
+        "type": "Material",
+        "rarity": "Rare",
+        "baseValue": 12,
+        "weight": 0.2
+      }
+    },
+    {
+      "code": "stone",
+      "name": "Đá ném",
+      "type": "consumable",
+      "maxStack": null,
+      "weight": 0.3,
+      "baseValue": 0,
+      "inRuntimeInventory": true,
+      "loot": {
+        "code": "stone",
+        "type": "Consumable",
+        "rarity": "Common",
+        "baseValue": 0,
+        "weight": 0.3
+      }
+    },
+    {
+      "code": "supplies",
+      "name": "Hàng tiếp tế",
+      "type": "questitem",
+      "maxStack": null,
+      "weight": 2,
+      "baseValue": 0,
+      "inRuntimeInventory": true,
+      "loot": {
+        "code": "supplies",
+        "type": "QuestItem",
+        "rarity": "Common",
+        "baseValue": 0,
+        "weight": 2
+      }
+    },
+    {
+      "code": "weapon_parts",
+      "name": "Linh kiện súng",
+      "type": "material",
+      "maxStack": 64,
+      "weight": 0.2,
+      "baseValue": 15,
+      "inRuntimeInventory": true,
+      "loot": {
+        "code": "weapon_parts",
+        "type": "Material",
+        "rarity": "Rare",
+        "baseValue": 15,
+        "weight": 0.2
+      }
+    }
+  ],
+  "weapons": [
+    {
+      "id": "rifle_standard",
+      "display_name": "Service Rifle",
+      "class": "rifle",
+      "damage": 24,
+      "fire_rate": 6.5,
+      "range": 40,
+      "ammo_type": "ammo_rifle",
+      "magazine_size": 30,
+      "reload_seconds": 2.4,
+      "durability_max": 100,
+      "durability_per_shot": 0.35,
+      "noise_radius": 18,
+      "suppressed": false,
+      "name": "AK47",
+      "playable": true
+    },
+    {
+      "id": "rifle_m16",
+      "display_name": "M16",
+      "class": "rifle",
+      "damage": 22,
+      "fire_rate": 10,
+      "range": 80,
+      "ammo_type": "ammo_556",
+      "magazine_size": 30,
+      "reload_seconds": 2.4,
+      "durability_max": 100,
+      "durability_per_shot": 0.35,
+      "noise_radius": 18,
+      "suppressed": false,
+      "name": "M16",
+      "playable": true
+    },
+    {
+      "id": "smg_compact",
+      "display_name": "Compact SMG",
+      "class": "smg",
+      "damage": 14,
+      "fire_rate": 11,
+      "range": 22,
+      "ammo_type": "ammo_smg",
+      "magazine_size": 35,
+      "reload_seconds": 1.8,
+      "durability_max": 90,
+      "durability_per_shot": 0.1,
+      "noise_radius": 14,
+      "suppressed": false,
+      "name": "Compact SMG",
+      "playable": false
+    },
+    {
+      "id": "shotgun_pump",
+      "display_name": "Pump Shotgun",
+      "class": "shotgun",
+      "damage": 60,
+      "fire_rate": 1.2,
+      "range": 12,
+      "ammo_type": "ammo_shotgun",
+      "magazine_size": 6,
+      "reload_seconds": 3,
+      "durability_max": 120,
+      "durability_per_shot": 0.4,
+      "noise_radius": 24,
+      "suppressed": false,
+      "name": "Pump Shotgun",
+      "playable": false
+    },
+    {
+      "id": "pistol_k54",
+      "display_name": "K-54 Pistol",
+      "class": "pistol",
+      "damage": 22,
+      "fire_rate": 3,
+      "range": 25,
+      "ammo_type": "ammo_pistol",
+      "magazine_size": 8,
+      "reload_seconds": 1.8,
+      "durability_max": 80,
+      "durability_per_shot": 0.4,
+      "noise_radius": 16,
+      "suppressed": false,
+      "name": "Súng lục K-54",
+      "playable": true
+    },
+    {
+      "id": "rifle_mosin",
+      "display_name": "Mosin PU Rifle",
+      "class": "sniper",
+      "damage": 200,
+      "fire_rate": 0.7,
+      "range": 200,
+      "ammo_type": "ammo_sniper",
+      "magazine_size": 5,
+      "reload_seconds": 5,
+      "durability_max": 110,
+      "durability_per_shot": 1,
+      "noise_radius": 30,
+      "suppressed": false,
+      "name": "Súng Mosin ống ngắm PU",
+      "playable": true
+    },
+    {
+      "id": "carbine_scout",
+      "display_name": "Scout Carbine",
+      "class": "carbine",
+      "damage": 20,
+      "fire_rate": 5,
+      "range": 32,
+      "ammo_type": "ammo_rifle",
+      "magazine_size": 20,
+      "reload_seconds": 2,
+      "durability_max": 100,
+      "durability_per_shot": 0.1,
+      "noise_radius": 16,
+      "suppressed": false,
+      "name": "Scout Carbine",
+      "playable": false
+    },
+    {
+      "id": "knife",
+      "name": "Dao",
+      "playable": true,
+      "scripted": true
+    }
+  ],
+  "lootTables": [
+    {
+      "code": "lt_c3_field_ak",
+      "name": "Tiếp đạn AK trước C3 (một lần)",
+      "rollsMin": 0,
+      "rollsMax": 0,
+      "entries": [
+        {
+          "item": "ammo_rifle",
+          "tier": 5,
+          "weight": 1,
+          "min": 30,
+          "max": 30,
+          "baselineChance": null,
+          "guaranteed": true
+        },
+        {
+          "item": "ak_loading_pack",
+          "tier": 5,
+          "weight": 1,
+          "min": 2,
+          "max": 2,
+          "baselineChance": null,
+          "guaranteed": true
+        }
+      ],
+      "source": "runtime"
+    },
+    {
+      "code": "lt_m1_patrol",
+      "name": "Túi lính tuần tra",
+      "rollsMin": 1,
+      "rollsMax": 1,
+      "entries": [
+        {
+          "item": "ammo_rifle",
+          "tier": 5,
+          "weight": 1,
+          "min": 6,
+          "max": 12,
+          "baselineChance": null,
+          "guaranteed": true
+        },
+        {
+          "item": "ammo_rifle",
+          "tier": 1,
+          "weight": 50,
+          "min": 5,
+          "max": 10,
+          "baselineChance": 0.26,
+          "guaranteed": false
+        },
+        {
+          "item": "cloth",
+          "tier": 1,
+          "weight": 25,
+          "min": 1,
+          "max": 2,
+          "baselineChance": 0.13,
+          "guaranteed": false
+        },
+        {
+          "item": "scrap_metal",
+          "tier": 1,
+          "weight": 25,
+          "min": 1,
+          "max": 1,
+          "baselineChance": 0.13,
+          "guaranteed": false
+        },
+        {
+          "item": "medkit_small",
+          "tier": 2,
+          "weight": 45,
+          "min": 1,
+          "max": 1,
+          "baselineChance": 0.171,
+          "guaranteed": false
+        },
+        {
+          "item": "gunpowder",
+          "tier": 2,
+          "weight": 35,
+          "min": 1,
+          "max": 2,
+          "baselineChance": 0.13299999999999998,
+          "guaranteed": false
+        },
+        {
+          "item": "herb",
+          "tier": 2,
+          "weight": 20,
+          "min": 1,
+          "max": 2,
+          "baselineChance": 0.07600000000000001,
+          "guaranteed": false
+        },
+        {
+          "item": "gun_oil",
+          "tier": 3,
+          "weight": 50,
+          "min": 1,
+          "max": 1,
+          "baselineChance": 0.04,
+          "guaranteed": false
+        },
+        {
+          "item": "weapon_parts",
+          "tier": 3,
+          "weight": 50,
+          "min": 1,
+          "max": 1,
+          "baselineChance": 0.04,
+          "guaranteed": false
+        },
+        {
+          "item": "repair_kit",
+          "tier": 4,
+          "weight": 60,
+          "min": 1,
+          "max": 1,
+          "baselineChance": 0.012,
+          "guaranteed": false
+        },
+        {
+          "item": "smoke_module",
+          "tier": 4,
+          "weight": 40,
+          "min": 1,
+          "max": 1,
+          "baselineChance": 0.008,
+          "guaranteed": false
+        }
+      ],
+      "source": "runtime"
+    },
+    {
+      "code": "lt_m1_camp_guard",
+      "name": "Túi lính gác trại",
+      "rollsMin": 1,
+      "rollsMax": 2,
+      "entries": [
+        {
+          "item": "ammo_rifle",
+          "tier": 5,
+          "weight": 1,
+          "min": 8,
+          "max": 14,
+          "baselineChance": null,
+          "guaranteed": true
+        },
+        {
+          "item": "ammo_rifle",
+          "tier": 1,
+          "weight": 45,
+          "min": 6,
+          "max": 12,
+          "baselineChance": 0.234,
+          "guaranteed": false
+        },
+        {
+          "item": "cloth",
+          "tier": 1,
+          "weight": 20,
+          "min": 1,
+          "max": 2,
+          "baselineChance": 0.10400000000000001,
+          "guaranteed": false
+        },
+        {
+          "item": "scrap_metal",
+          "tier": 1,
+          "weight": 25,
+          "min": 1,
+          "max": 2,
+          "baselineChance": 0.13,
+          "guaranteed": false
+        },
+        {
+          "item": "herb",
+          "tier": 1,
+          "weight": 10,
+          "min": 1,
+          "max": 1,
+          "baselineChance": 0.052000000000000005,
+          "guaranteed": false
+        },
+        {
+          "item": "medkit_small",
+          "tier": 2,
+          "weight": 40,
+          "min": 1,
+          "max": 1,
+          "baselineChance": 0.15200000000000002,
+          "guaranteed": false
+        },
+        {
+          "item": "gunpowder",
+          "tier": 2,
+          "weight": 40,
+          "min": 1,
+          "max": 2,
+          "baselineChance": 0.15200000000000002,
+          "guaranteed": false
+        },
+        {
+          "item": "ammo_pistol",
+          "tier": 2,
+          "weight": 20,
+          "min": 4,
+          "max": 8,
+          "baselineChance": 0.07600000000000001,
+          "guaranteed": false
+        },
+        {
+          "item": "gun_oil",
+          "tier": 3,
+          "weight": 40,
+          "min": 1,
+          "max": 1,
+          "baselineChance": 0.032,
+          "guaranteed": false
+        },
+        {
+          "item": "weapon_parts",
+          "tier": 3,
+          "weight": 40,
+          "min": 1,
+          "max": 1,
+          "baselineChance": 0.032,
+          "guaranteed": false
+        },
+        {
+          "item": "smoke_module",
+          "tier": 3,
+          "weight": 20,
+          "min": 1,
+          "max": 1,
+          "baselineChance": 0.016,
+          "guaranteed": false
+        },
+        {
+          "item": "repair_kit",
+          "tier": 4,
+          "weight": 45,
+          "min": 1,
+          "max": 1,
+          "baselineChance": 0.009000000000000001,
+          "guaranteed": false
+        },
+        {
+          "item": "fuse_module",
+          "tier": 4,
+          "weight": 30,
+          "min": 1,
+          "max": 1,
+          "baselineChance": 0.006,
+          "guaranteed": false
+        },
+        {
+          "item": "ammo_sniper",
+          "tier": 4,
+          "weight": 25,
+          "min": 2,
+          "max": 3,
+          "baselineChance": 0.005,
+          "guaranteed": false
+        }
+      ],
+      "source": "runtime"
+    },
+    {
+      "code": "lt_m1_operation_guard",
+      "name": "Túi lính canh điểm nhiệm vụ",
+      "rollsMin": 2,
+      "rollsMax": 2,
+      "entries": [
+        {
+          "item": "ammo_rifle",
+          "tier": 5,
+          "weight": 1,
+          "min": 10,
+          "max": 16,
+          "baselineChance": null,
+          "guaranteed": true
+        },
+        {
+          "item": "ammo_rifle",
+          "tier": 1,
+          "weight": 50,
+          "min": 8,
+          "max": 14,
+          "baselineChance": 0.26,
+          "guaranteed": false
+        },
+        {
+          "item": "scrap_metal",
+          "tier": 1,
+          "weight": 30,
+          "min": 1,
+          "max": 2,
+          "baselineChance": 0.156,
+          "guaranteed": false
+        },
+        {
+          "item": "cloth",
+          "tier": 1,
+          "weight": 20,
+          "min": 1,
+          "max": 2,
+          "baselineChance": 0.10400000000000001,
+          "guaranteed": false
+        },
+        {
+          "item": "medkit_small",
+          "tier": 2,
+          "weight": 40,
+          "min": 1,
+          "max": 1,
+          "baselineChance": 0.12666666666666665,
+          "guaranteed": false
+        },
+        {
+          "item": "gunpowder",
+          "tier": 2,
+          "weight": 35,
+          "min": 2,
+          "max": 2,
+          "baselineChance": 0.11083333333333334,
+          "guaranteed": false
+        },
+        {
+          "item": "ammo_pistol",
+          "tier": 2,
+          "weight": 25,
+          "min": 6,
+          "max": 8,
+          "baselineChance": 0.07916666666666668,
+          "guaranteed": false
+        },
+        {
+          "item": "smoke_bomb",
+          "tier": 2,
+          "weight": 20,
+          "min": 1,
+          "max": 1,
+          "baselineChance": 0.06333333333333332,
+          "guaranteed": false
+        },
+        {
+          "item": "weapon_parts",
+          "tier": 3,
+          "weight": 20,
+          "min": 1,
+          "max": 1,
+          "baselineChance": 0.016,
+          "guaranteed": false
+        },
+        {
+          "item": "gun_oil",
+          "tier": 3,
+          "weight": 25,
+          "min": 1,
+          "max": 1,
+          "baselineChance": 0.02,
+          "guaranteed": false
+        },
+        {
+          "item": "smoke_module",
+          "tier": 3,
+          "weight": 15,
+          "min": 1,
+          "max": 1,
+          "baselineChance": 0.012,
+          "guaranteed": false
+        },
+        {
+          "item": "smoke_bomb",
+          "tier": 3,
+          "weight": 40,
+          "min": 1,
+          "max": 1,
+          "baselineChance": 0.032,
+          "guaranteed": false
+        },
+        {
+          "item": "repair_kit",
+          "tier": 4,
+          "weight": 35,
+          "min": 1,
+          "max": 1,
+          "baselineChance": 0.005384615384615384,
+          "guaranteed": false
+        },
+        {
+          "item": "fuse_module",
+          "tier": 4,
+          "weight": 25,
+          "min": 1,
+          "max": 1,
+          "baselineChance": 0.0038461538461538464,
+          "guaranteed": false
+        },
+        {
+          "item": "blast_charge",
+          "tier": 4,
+          "weight": 15,
+          "min": 1,
+          "max": 1,
+          "baselineChance": 0.002307692307692308,
+          "guaranteed": false
+        },
+        {
+          "item": "ammo_sniper",
+          "tier": 4,
+          "weight": 25,
+          "min": 3,
+          "max": 4,
+          "baselineChance": 0.0038461538461538464,
+          "guaranteed": false
+        },
+        {
+          "item": "grenade_f1",
+          "tier": 4,
+          "weight": 30,
+          "min": 1,
+          "max": 1,
+          "baselineChance": 0.004615384615384616,
+          "guaranteed": false
+        }
+      ],
+      "source": "runtime"
+    },
+    {
+      "code": "lt_m1_commander",
+      "name": "Đồ của chỉ huy địch",
+      "rollsMin": 3,
+      "rollsMax": 3,
+      "entries": [
+        {
+          "item": "ammo_pistol",
+          "tier": 5,
+          "weight": 1,
+          "min": 8,
+          "max": 16,
+          "baselineChance": null,
+          "guaranteed": true
+        },
+        {
+          "item": "medkit_small",
+          "tier": 5,
+          "weight": 1,
+          "min": 1,
+          "max": 1,
+          "baselineChance": null,
+          "guaranteed": true
+        },
+        {
+          "item": "ammo_rifle",
+          "tier": 1,
+          "weight": 100,
+          "min": 10,
+          "max": 20,
+          "baselineChance": 0.52,
+          "guaranteed": false
+        },
+        {
+          "item": "gunpowder",
+          "tier": 2,
+          "weight": 50,
+          "min": 2,
+          "max": 3,
+          "baselineChance": 0.19,
+          "guaranteed": false
+        },
+        {
+          "item": "medkit_small",
+          "tier": 2,
+          "weight": 50,
+          "min": 1,
+          "max": 1,
+          "baselineChance": 0.19,
+          "guaranteed": false
+        },
+        {
+          "item": "weapon_parts",
+          "tier": 3,
+          "weight": 50,
+          "min": 1,
+          "max": 2,
+          "baselineChance": 0.04,
+          "guaranteed": false
+        },
+        {
+          "item": "gun_oil",
+          "tier": 3,
+          "weight": 50,
+          "min": 1,
+          "max": 2,
+          "baselineChance": 0.04,
+          "guaranteed": false
+        },
+        {
+          "item": "grenade_f1",
+          "tier": 4,
+          "weight": 40,
+          "min": 1,
+          "max": 1,
+          "baselineChance": 0.008,
+          "guaranteed": false
+        },
+        {
+          "item": "repair_kit",
+          "tier": 4,
+          "weight": 30,
+          "min": 1,
+          "max": 1,
+          "baselineChance": 0.006,
+          "guaranteed": false
+        },
+        {
+          "item": "scope_lens",
+          "tier": 4,
+          "weight": 30,
+          "min": 1,
+          "max": 1,
+          "baselineChance": 0.006,
+          "guaranteed": false
+        }
+      ],
+      "source": "runtime"
+    },
+    {
+      "code": "lt_m1_chest_c1",
+      "name": "Hòm sắt trại C1",
+      "rollsMin": 2,
+      "rollsMax": 2,
+      "entries": [
+        {
+          "item": "gun_oil",
+          "tier": 5,
+          "weight": 1,
+          "min": 1,
+          "max": 1,
+          "baselineChance": null,
+          "guaranteed": true
+        },
+        {
+          "item": "ammo_pistol",
+          "tier": 5,
+          "weight": 1,
+          "min": 16,
+          "max": 16,
+          "baselineChance": null,
+          "guaranteed": true
+        },
+        {
+          "item": "medkit_small",
+          "tier": 5,
+          "weight": 1,
+          "min": 2,
+          "max": 2,
+          "baselineChance": null,
+          "guaranteed": true
+        },
+        {
+          "item": "smoke_bomb",
+          "tier": 5,
+          "weight": 1,
+          "min": 1,
+          "max": 1,
+          "baselineChance": null,
+          "guaranteed": true
+        },
+        {
+          "item": "grenade_f1",
+          "tier": 5,
+          "weight": 1,
+          "min": 1,
+          "max": 1,
+          "baselineChance": null,
+          "guaranteed": true
+        },
+        {
+          "item": "gunpowder",
+          "tier": 5,
+          "weight": 1,
+          "min": 2,
+          "max": 2,
+          "baselineChance": null,
+          "guaranteed": true
+        },
+        {
+          "item": "ammo_rifle",
+          "tier": 1,
+          "weight": 45,
+          "min": 15,
+          "max": 25,
+          "baselineChance": 0.234,
+          "guaranteed": false
+        },
+        {
+          "item": "cloth",
+          "tier": 1,
+          "weight": 25,
+          "min": 2,
+          "max": 3,
+          "baselineChance": 0.13,
+          "guaranteed": false
+        },
+        {
+          "item": "scrap_metal",
+          "tier": 1,
+          "weight": 30,
+          "min": 2,
+          "max": 3,
+          "baselineChance": 0.156,
+          "guaranteed": false
+        },
+        {
+          "item": "medkit_small",
+          "tier": 2,
+          "weight": 35,
+          "min": 1,
+          "max": 1,
+          "baselineChance": 0.13299999999999998,
+          "guaranteed": false
+        },
+        {
+          "item": "gunpowder",
+          "tier": 2,
+          "weight": 40,
+          "min": 1,
+          "max": 2,
+          "baselineChance": 0.15200000000000002,
+          "guaranteed": false
+        },
+        {
+          "item": "ammo_pistol",
+          "tier": 2,
+          "weight": 25,
+          "min": 8,
+          "max": 8,
+          "baselineChance": 0.095,
+          "guaranteed": false
+        },
+        {
+          "item": "gun_oil",
+          "tier": 3,
+          "weight": 50,
+          "min": 1,
+          "max": 1,
+          "baselineChance": 0.04,
+          "guaranteed": false
+        },
+        {
+          "item": "weapon_parts",
+          "tier": 3,
+          "weight": 50,
+          "min": 1,
+          "max": 1,
+          "baselineChance": 0.04,
+          "guaranteed": false
+        },
+        {
+          "item": "repair_kit",
+          "tier": 4,
+          "weight": 60,
+          "min": 1,
+          "max": 1,
+          "baselineChance": 0.012,
+          "guaranteed": false
+        },
+        {
+          "item": "smoke_module",
+          "tier": 4,
+          "weight": 40,
+          "min": 1,
+          "max": 1,
+          "baselineChance": 0.008,
+          "guaranteed": false
+        }
+      ],
+      "source": "runtime"
+    },
+    {
+      "code": "lt_m1_chest_c2",
+      "name": "Hòm sắt trại C2",
+      "rollsMin": 2,
+      "rollsMax": 3,
+      "entries": [
+        {
+          "item": "ak_loading_pack",
+          "tier": 5,
+          "weight": 1,
+          "min": 2,
+          "max": 2,
+          "baselineChance": null,
+          "guaranteed": true
+        },
+        {
+          "item": "ammo_rifle",
+          "tier": 5,
+          "weight": 1,
+          "min": 60,
+          "max": 60,
+          "baselineChance": null,
+          "guaranteed": true
+        },
+        {
+          "item": "smoke_module",
+          "tier": 5,
+          "weight": 1,
+          "min": 1,
+          "max": 1,
+          "baselineChance": null,
+          "guaranteed": true
+        },
+        {
+          "item": "weapon_parts",
+          "tier": 5,
+          "weight": 1,
+          "min": 1,
+          "max": 1,
+          "baselineChance": null,
+          "guaranteed": true
+        },
+        {
+          "item": "medkit_small",
+          "tier": 5,
+          "weight": 1,
+          "min": 3,
+          "max": 3,
+          "baselineChance": null,
+          "guaranteed": true
+        },
+        {
+          "item": "smoke_bomb",
+          "tier": 5,
+          "weight": 1,
+          "min": 2,
+          "max": 2,
+          "baselineChance": null,
+          "guaranteed": true
+        },
+        {
+          "item": "grenade_f1",
+          "tier": 5,
+          "weight": 1,
+          "min": 1,
+          "max": 1,
+          "baselineChance": null,
+          "guaranteed": true
+        },
+        {
+          "item": "gunpowder",
+          "tier": 5,
+          "weight": 1,
+          "min": 3,
+          "max": 3,
+          "baselineChance": null,
+          "guaranteed": true
+        },
+        {
+          "item": "cloth",
+          "tier": 1,
+          "weight": 35,
+          "min": 2,
+          "max": 3,
+          "baselineChance": 0.182,
+          "guaranteed": false
+        },
+        {
+          "item": "herb",
+          "tier": 1,
+          "weight": 30,
+          "min": 2,
+          "max": 2,
+          "baselineChance": 0.156,
+          "guaranteed": false
+        },
+        {
+          "item": "scrap_metal",
+          "tier": 1,
+          "weight": 35,
+          "min": 2,
+          "max": 3,
+          "baselineChance": 0.182,
+          "guaranteed": false
+        },
+        {
+          "item": "medkit_small",
+          "tier": 2,
+          "weight": 50,
+          "min": 1,
+          "max": 1,
+          "baselineChance": 0.19,
+          "guaranteed": false
+        },
+        {
+          "item": "ammo_pistol",
+          "tier": 2,
+          "weight": 25,
+          "min": 8,
+          "max": 8,
+          "baselineChance": 0.095,
+          "guaranteed": false
+        },
+        {
+          "item": "gunpowder",
+          "tier": 2,
+          "weight": 25,
+          "min": 2,
+          "max": 2,
+          "baselineChance": 0.095,
+          "guaranteed": false
+        },
+        {
+          "item": "gun_oil",
+          "tier": 3,
+          "weight": 50,
+          "min": 1,
+          "max": 1,
+          "baselineChance": 0.04,
+          "guaranteed": false
+        },
+        {
+          "item": "weapon_parts",
+          "tier": 3,
+          "weight": 25,
+          "min": 1,
+          "max": 1,
+          "baselineChance": 0.02,
+          "guaranteed": false
+        },
+        {
+          "item": "smoke_module",
+          "tier": 3,
+          "weight": 25,
+          "min": 1,
+          "max": 1,
+          "baselineChance": 0.02,
+          "guaranteed": false
+        },
+        {
+          "item": "repair_kit",
+          "tier": 4,
+          "weight": 50,
+          "min": 1,
+          "max": 1,
+          "baselineChance": 0.01,
+          "guaranteed": false
+        },
+        {
+          "item": "grenade_f1",
+          "tier": 4,
+          "weight": 30,
+          "min": 1,
+          "max": 1,
+          "baselineChance": 0.006,
+          "guaranteed": false
+        },
+        {
+          "item": "blast_charge",
+          "tier": 4,
+          "weight": 20,
+          "min": 1,
+          "max": 1,
+          "baselineChance": 0.004,
+          "guaranteed": false
+        }
+      ],
+      "source": "runtime"
+    },
+    {
+      "code": "lt_m1_chest_c3",
+      "name": "Hòm sắt trại C3",
+      "rollsMin": 3,
+      "rollsMax": 3,
+      "entries": [
+        {
+          "item": "ammo_sniper",
+          "tier": 5,
+          "weight": 1,
+          "min": 10,
+          "max": 10,
+          "baselineChance": null,
+          "guaranteed": true
+        },
+        {
+          "item": "scope_lens",
+          "tier": 5,
+          "weight": 1,
+          "min": 1,
+          "max": 1,
+          "baselineChance": null,
+          "guaranteed": true
+        },
+        {
+          "item": "blast_charge",
+          "tier": 5,
+          "weight": 1,
+          "min": 1,
+          "max": 1,
+          "baselineChance": null,
+          "guaranteed": true
+        },
+        {
+          "item": "repair_kit",
+          "tier": 5,
+          "weight": 1,
+          "min": 1,
+          "max": 1,
+          "baselineChance": null,
+          "guaranteed": true
+        },
+        {
+          "item": "medkit_small",
+          "tier": 5,
+          "weight": 1,
+          "min": 1,
+          "max": 1,
+          "baselineChance": null,
+          "guaranteed": true
+        },
+        {
+          "item": "ammo_rifle",
+          "tier": 1,
+          "weight": 60,
+          "min": 20,
+          "max": 30,
+          "baselineChance": 0.312,
+          "guaranteed": false
+        },
+        {
+          "item": "scrap_metal",
+          "tier": 1,
+          "weight": 40,
+          "min": 2,
+          "max": 3,
+          "baselineChance": 0.20800000000000002,
+          "guaranteed": false
+        },
+        {
+          "item": "medkit_small",
+          "tier": 2,
+          "weight": 40,
+          "min": 1,
+          "max": 1,
+          "baselineChance": 0.15200000000000002,
+          "guaranteed": false
+        },
+        {
+          "item": "gunpowder",
+          "tier": 2,
+          "weight": 35,
+          "min": 2,
+          "max": 3,
+          "baselineChance": 0.13299999999999998,
+          "guaranteed": false
+        },
+        {
+          "item": "ammo_sniper",
+          "tier": 2,
+          "weight": 25,
+          "min": 3,
+          "max": 5,
+          "baselineChance": 0.095,
+          "guaranteed": false
+        },
+        {
+          "item": "weapon_parts",
+          "tier": 3,
+          "weight": 45,
+          "min": 1,
+          "max": 2,
+          "baselineChance": 0.036000000000000004,
+          "guaranteed": false
+        },
+        {
+          "item": "gun_oil",
+          "tier": 3,
+          "weight": 35,
+          "min": 1,
+          "max": 1,
+          "baselineChance": 0.027999999999999997,
+          "guaranteed": false
+        },
+        {
+          "item": "smoke_module",
+          "tier": 3,
+          "weight": 20,
+          "min": 1,
+          "max": 1,
+          "baselineChance": 0.016,
+          "guaranteed": false
+        },
+        {
+          "item": "grenade_f1",
+          "tier": 4,
+          "weight": 45,
+          "min": 1,
+          "max": 1,
+          "baselineChance": 0.009000000000000001,
+          "guaranteed": false
+        },
+        {
+          "item": "fuse_module",
+          "tier": 4,
+          "weight": 30,
+          "min": 1,
+          "max": 1,
+          "baselineChance": 0.006,
+          "guaranteed": false
+        },
+        {
+          "item": "repair_kit",
+          "tier": 4,
+          "weight": 25,
+          "min": 1,
+          "max": 1,
+          "baselineChance": 0.005,
+          "guaranteed": false
+        }
+      ],
+      "source": "runtime"
+    },
+    {
+      "code": "lt_m1_mosin_cache",
+      "name": "Súng trinh sát giấu ở đồi Nam trại 3",
+      "rollsMin": 0,
+      "rollsMax": 0,
+      "entries": [
+        {
+          "item": "rifle_mosin",
+          "tier": 5,
+          "weight": 1,
+          "min": 1,
+          "max": 1,
+          "baselineChance": null,
+          "guaranteed": true
+        },
+        {
+          "item": "ammo_sniper",
+          "tier": 5,
+          "weight": 1,
+          "min": 5,
+          "max": 5,
+          "baselineChance": null,
+          "guaranteed": true
+        }
+      ],
+      "source": "runtime"
+    },
+    {
+      "code": "lt_c3_field_approach",
+      "name": "Tiếp tế trước C3",
+      "rollsMin": 0,
+      "rollsMax": 0,
+      "entries": [
+        {
+          "item": "medkit_small",
+          "tier": 5,
+          "weight": 1,
+          "min": 3,
+          "max": 3,
+          "baselineChance": null,
+          "guaranteed": true
+        },
+        {
+          "item": "smoke_bomb",
+          "tier": 5,
+          "weight": 1,
+          "min": 2,
+          "max": 2,
+          "baselineChance": null,
+          "guaranteed": true
+        },
+        {
+          "item": "grenade_f1",
+          "tier": 5,
+          "weight": 1,
+          "min": 1,
+          "max": 1,
+          "baselineChance": null,
+          "guaranteed": true
+        }
+      ],
+      "source": "runtime"
+    },
+    {
+      "code": "lt_c3_field_medic",
+      "name": "Quân y sân Tây C3",
+      "rollsMin": 0,
+      "rollsMax": 0,
+      "entries": [
+        {
+          "item": "medkit_small",
+          "tier": 5,
+          "weight": 1,
+          "min": 2,
+          "max": 2,
+          "baselineChance": null,
+          "guaranteed": true
+        },
+        {
+          "item": "smoke_bomb",
+          "tier": 5,
+          "weight": 1,
+          "min": 1,
+          "max": 1,
+          "baselineChance": null,
+          "guaranteed": true
+        }
+      ],
+      "source": "runtime"
+    },
+    {
+      "code": "lt_m1_supply_reward",
+      "name": "Thưởng bàn giao tiếp tế C1",
+      "rollsMin": 0,
+      "rollsMax": 0,
+      "entries": [
+        {
+          "item": "ak_loading_pack",
+          "tier": 5,
+          "weight": 1,
+          "min": 2,
+          "max": 2,
+          "baselineChance": null,
+          "guaranteed": true
+        },
+        {
+          "item": "medkit_small",
+          "tier": 5,
+          "weight": 1,
+          "min": 2,
+          "max": 2,
+          "baselineChance": null,
+          "guaranteed": true
+        },
+        {
+          "item": "ammo_rifle",
+          "tier": 5,
+          "weight": 1,
+          "min": 30,
+          "max": 30,
+          "baselineChance": null,
+          "guaranteed": true
+        },
+        {
+          "item": "smoke_bomb",
+          "tier": 5,
+          "weight": 1,
+          "min": 1,
+          "max": 1,
+          "baselineChance": null,
+          "guaranteed": true
+        },
+        {
+          "item": "grenade_f1",
+          "tier": 5,
+          "weight": 1,
+          "min": 1,
+          "max": 1,
+          "baselineChance": null,
+          "guaranteed": true
+        }
+      ],
+      "source": "runtime"
+    },
+    {
+      "code": "lt_m1_base_start",
+      "name": "Thùng vật tư căn cứ A (một lần)",
+      "rollsMin": 0,
+      "rollsMax": 0,
+      "entries": [
+        {
+          "item": "ammo_rifle",
+          "tier": 5,
+          "weight": 1,
+          "min": 60,
+          "max": 60,
+          "baselineChance": null,
+          "guaranteed": true
+        },
+        {
+          "item": "medkit_small",
+          "tier": 5,
+          "weight": 1,
+          "min": 2,
+          "max": 2,
+          "baselineChance": null,
+          "guaranteed": true
+        },
+        {
+          "item": "smoke_bomb",
+          "tier": 5,
+          "weight": 1,
+          "min": 1,
+          "max": 1,
+          "baselineChance": null,
+          "guaranteed": true
+        },
+        {
+          "item": "herb",
+          "tier": 5,
+          "weight": 1,
+          "min": 2,
+          "max": 2,
+          "baselineChance": null,
+          "guaranteed": true
+        },
+        {
+          "item": "cloth",
+          "tier": 5,
+          "weight": 1,
+          "min": 4,
+          "max": 4,
+          "baselineChance": null,
+          "guaranteed": true
+        }
+      ],
+      "source": "runtime"
+    },
+    {
+      "code": "lt_m1_base_stock",
+      "name": "Kho căn cứ — hàng lĩnh được",
+      "rollsMin": 0,
+      "rollsMax": 0,
+      "entries": [
+        {
+          "item": "ak_loading_pack",
+          "tier": 5,
+          "weight": 1,
+          "min": 1,
+          "max": 1,
+          "baselineChance": null,
+          "guaranteed": true
+        },
+        {
+          "item": "grenade_f1",
+          "tier": 5,
+          "weight": 1,
+          "min": 1,
+          "max": 1,
+          "baselineChance": null,
+          "guaranteed": true
+        },
+        {
+          "item": "ammo_556",
+          "tier": 5,
+          "weight": 1,
+          "min": 15,
+          "max": 15,
+          "baselineChance": null,
+          "guaranteed": true
+        },
+        {
+          "item": "ammo_rifle",
+          "tier": 5,
+          "weight": 1,
+          "min": 15,
+          "max": 15,
+          "baselineChance": null,
+          "guaranteed": true
+        },
+        {
+          "item": "ammo_pistol",
+          "tier": 5,
+          "weight": 1,
+          "min": 8,
+          "max": 8,
+          "baselineChance": null,
+          "guaranteed": true
+        },
+        {
+          "item": "ammo_sniper",
+          "tier": 5,
+          "weight": 1,
+          "min": 5,
+          "max": 5,
+          "baselineChance": null,
+          "guaranteed": true
+        },
+        {
+          "item": "medkit_small",
+          "tier": 5,
+          "weight": 1,
+          "min": 1,
+          "max": 1,
+          "baselineChance": null,
+          "guaranteed": true
+        },
+        {
+          "item": "repair_kit",
+          "tier": 5,
+          "weight": 1,
+          "min": 1,
+          "max": 1,
+          "baselineChance": null,
+          "guaranteed": true
+        },
+        {
+          "item": "gun_oil",
+          "tier": 5,
+          "weight": 1,
+          "min": 1,
+          "max": 1,
+          "baselineChance": null,
+          "guaranteed": true
+        },
+        {
+          "item": "weapon_parts",
+          "tier": 5,
+          "weight": 1,
+          "min": 1,
+          "max": 1,
+          "baselineChance": null,
+          "guaranteed": true
+        },
+        {
+          "item": "smoke_bomb",
+          "tier": 5,
+          "weight": 1,
+          "min": 1,
+          "max": 1,
+          "baselineChance": null,
+          "guaranteed": true
+        }
+      ],
+      "source": "runtime"
+    }
+  ],
+  "recipes": [
+    {
+      "id": "recover_ammo_556",
+      "output_item_id": "ammo_recovered",
+      "output_count": 1,
+      "craft_seconds": 3,
+      "field_seconds": 3,
+      "field_max_batch": 3,
+      "inputs": [
+        {
+          "item_id": "ammo_556",
+          "count": 10
+        }
+      ],
+      "benchAvailable": true,
+      "fieldAvailable": true
+    },
+    {
+      "id": "assemble_ammo_ak",
+      "output_item_id": "ammo_rifle",
+      "output_count": 10,
+      "craft_seconds": 5,
+      "field_seconds": 8,
+      "field_max_batch": 1,
+      "inputs": [
+        {
+          "item_id": "ammo_recovered",
+          "count": 2
+        },
+        {
+          "item_id": "ak_loading_pack",
+          "count": 1
+        }
+      ],
+      "benchAvailable": true,
+      "fieldAvailable": true
+    },
+    {
+      "id": "craft_medkit_small",
+      "output_item_id": "medkit_small",
+      "output_count": 1,
+      "required_skill": "engineering",
+      "required_skill_level": 1,
+      "craft_seconds": 4,
+      "field_seconds": 4,
+      "field_max_batch": 1,
+      "inputs": [
+        {
+          "item_id": "cloth",
+          "count": 2
+        },
+        {
+          "item_id": "herb",
+          "count": 1
+        }
+      ],
+      "benchAvailable": true,
+      "fieldAvailable": true
+    },
+    {
+      "id": "craft_repair_kit",
+      "output_item_id": "repair_kit",
+      "output_count": 1,
+      "required_skill": "engineering",
+      "required_skill_level": 2,
+      "craft_seconds": 6,
+      "field_seconds": 8,
+      "field_max_batch": 1,
+      "inputs": [
+        {
+          "item_id": "scrap_metal",
+          "count": 3
+        },
+        {
+          "item_id": "gun_oil",
+          "count": 1
+        }
+      ],
+      "benchAvailable": true,
+      "fieldAvailable": true
+    },
+    {
+      "id": "craft_ammo_pistol",
+      "output_item_id": "ammo_pistol",
+      "output_count": 8,
+      "required_skill": "engineering",
+      "required_skill_level": 1,
+      "craft_seconds": 3,
+      "inputs": [
+        {
+          "item_id": "gunpowder",
+          "count": 1
+        },
+        {
+          "item_id": "scrap_metal",
+          "count": 1
+        }
+      ],
+      "benchAvailable": true,
+      "fieldAvailable": false
+    },
+    {
+      "id": "craft_ammo_rifle",
+      "output_item_id": "ammo_rifle",
+      "output_count": 10,
+      "required_skill": "engineering",
+      "required_skill_level": 1,
+      "craft_seconds": 5,
+      "inputs": [
+        {
+          "item_id": "gunpowder",
+          "count": 2
+        },
+        {
+          "item_id": "scrap_metal",
+          "count": 1
+        }
+      ],
+      "benchAvailable": true,
+      "fieldAvailable": false
+    },
+    {
+      "id": "craft_ammo_556",
+      "output_item_id": "ammo_556",
+      "output_count": 10,
+      "required_skill": "engineering",
+      "required_skill_level": 1,
+      "craft_seconds": 5,
+      "inputs": [
+        {
+          "item_id": "gunpowder",
+          "count": 2
+        },
+        {
+          "item_id": "scrap_metal",
+          "count": 1
+        }
+      ],
+      "benchAvailable": true,
+      "fieldAvailable": false
+    },
+    {
+      "id": "craft_ammo_sniper",
+      "output_item_id": "ammo_sniper",
+      "output_count": 5,
+      "required_skill": "engineering",
+      "required_skill_level": 1,
+      "craft_seconds": 6,
+      "inputs": [
+        {
+          "item_id": "gunpowder",
+          "count": 3
+        },
+        {
+          "item_id": "scrap_metal",
+          "count": 1
+        }
+      ],
+      "benchAvailable": true,
+      "fieldAvailable": false
+    },
+    {
+      "id": "craft_smoke_bomb",
+      "output_item_id": "smoke_bomb",
+      "output_count": 1,
+      "required_skill": "engineering",
+      "required_skill_level": 1,
+      "craft_seconds": 4,
+      "field_seconds": 6,
+      "field_max_batch": 1,
+      "inputs": [
+        {
+          "item_id": "smoke_module",
+          "count": 1
+        },
+        {
+          "item_id": "cloth",
+          "count": 1
+        }
+      ],
+      "benchAvailable": true,
+      "fieldAvailable": true
+    },
+    {
+      "id": "craft_grenade_f1",
+      "output_item_id": "grenade_f1",
+      "output_count": 1,
+      "required_skill": "engineering",
+      "required_skill_level": 1,
+      "craft_seconds": 6,
+      "inputs": [
+        {
+          "item_id": "blast_charge",
+          "count": 1
+        },
+        {
+          "item_id": "fuse_module",
+          "count": 1
+        },
+        {
+          "item_id": "scrap_metal",
+          "count": 1
+        }
+      ],
+      "benchAvailable": true,
+      "fieldAvailable": false
+    }
+  ],
+  "trade": {
+    "offers": [
+      {
+        "mapCode": "map01",
+        "gun": "rifle_standard",
+        "ammo": "ammo_rifle",
+        "rounds": 10,
+        "price": 60
+      },
+      {
+        "mapCode": "map01",
+        "gun": "rifle_mosin",
+        "ammo": "ammo_sniper",
+        "rounds": 5,
+        "price": 120
+      },
+      {
+        "mapCode": "map02",
+        "gun": "rifle_standard",
+        "ammo": "ammo_rifle",
+        "rounds": 10,
+        "price": 60
+      },
+      {
+        "mapCode": "map02",
+        "gun": "rifle_m16",
+        "ammo": "ammo_556",
+        "rounds": 20,
+        "price": 60
+      }
+    ],
+    "materials": [
+      {
+        "id": "ammo_recovered",
+        "points": 1
+      },
+      {
+        "id": "scrap_metal",
+        "points": 1
+      },
+      {
+        "id": "weapon_parts",
+        "points": 6
+      },
+      {
+        "id": "gun_oil",
+        "points": 4
+      },
+      {
+        "id": "scope_lens",
+        "points": 8
+      }
+    ],
+    "logistics": {
+      "turnInFloor": 0.15,
+      "turnInCeiling": 0.6,
+      "operationCredit": [
+        30,
+        40,
+        50,
+        50
+      ],
+      "mapTwoRewards": [
+        {
+          "id": "D1_06",
+          "points": 10
+        },
+        {
+          "id": "N1_04",
+          "points": 10
+        },
+        {
+          "id": "D2_07",
+          "points": 15
+        },
+        {
+          "id": "N2_05",
+          "points": 15
+        },
+        {
+          "id": "D3_06",
+          "points": 25
+        },
+        {
+          "id": "N3_09",
+          "points": 35
+        }
+      ],
+      "materialTrade": [
+        {
+          "id": "ammo_recovered",
+          "points": 1
+        },
+        {
+          "id": "scrap_metal",
+          "points": 1
+        },
+        {
+          "id": "weapon_parts",
+          "points": 6
+        },
+        {
+          "id": "gun_oil",
+          "points": 4
+        },
+        {
+          "id": "scope_lens",
+          "points": 8
+        }
+      ]
+    }
+  },
+  "maps": [
+    {
+      "code": "map00_tutorial",
+      "name": "Map00_Tutorial",
+      "scene": "Map00_Tutorial",
+      "nodeCount": 44,
+      "bounds": {
+        "minX": -62.746006,
+        "maxX": -1.3474,
+        "minZ": -46.8643036,
+        "maxZ": 88.89862
+      },
+      "escapeRoutes": [
+        20,
+        25,
+        32
+      ],
+      "spawnGroups": [],
+      "containers": [],
+      "fieldCaches": [],
+      "objectiveCount": 0,
+      "note": "Nav graph metadata only; scene geometry, actual spawns and NavMesh remain Unity assets."
+    },
+    {
+      "code": "map01",
+      "name": "Map 1",
+      "scene": "Map 1",
+      "nodeCount": 477,
+      "bounds": {
+        "minX": -106.185,
+        "maxX": 103.138351,
+        "minZ": -96.28421,
+        "maxZ": 99.44
+      },
+      "escapeRoutes": [
+        168,
+        172,
+        186,
+        189,
+        190,
+        194,
+        196,
+        201,
+        205,
+        213,
+        217,
+        222,
+        223,
+        233,
+        234,
+        235,
+        240,
+        250,
+        255,
+        273,
+        275,
+        294,
+        296,
+        312,
+        313,
+        330,
+        447,
+        474,
+        475,
+        476
+      ],
+      "spawnGroups": [],
+      "containers": [
+        {
+          "tag": "c3_field_ak_v1",
+          "lootTable": "lt_c3_field_ak"
+        },
+        {
+          "tag": "c3_field_approach_v1",
+          "lootTable": "lt_c3_field_approach"
+        },
+        {
+          "tag": "c3_field_medic_v1",
+          "lootTable": "lt_c3_field_medic"
+        },
+        {
+          "tag": "camp_chest_c1",
+          "lootTable": "lt_m1_chest_c1"
+        },
+        {
+          "tag": "camp_chest_c2",
+          "lootTable": "lt_m1_chest_c2"
+        },
+        {
+          "tag": "camp_chest_c3",
+          "lootTable": "lt_m1_chest_c3"
+        },
+        {
+          "tag": "c3_mosin_cache",
+          "lootTable": "lt_m1_mosin_cache"
+        },
+        {
+          "tag": "base_start_crate",
+          "lootTable": "lt_m1_base_start"
+        },
+        {
+          "tag": "base_requisition",
+          "lootTable": "lt_m1_base_stock"
+        },
+        {
+          "tag": "supply_delivery_reward",
+          "lootTable": "lt_m1_supply_reward"
+        }
+      ],
+      "fieldCaches": [
+        {
+          "id": "c3_field_ak_v1",
+          "label": "Túi đạn AK — 30 viên, 2 gói tiếp liệu",
+          "x": 109,
+          "z": 22.3,
+          "minStage": 7
+        },
+        {
+          "id": "c3_field_approach_v1",
+          "label": "Tiếp tế trước C3 — 3 băng, 2 khói, 1 F1",
+          "x": 109,
+          "z": 21,
+          "minStage": 7
+        },
+        {
+          "id": "c3_field_medic_v1",
+          "label": "Túi quân y sân Tây — 2 băng, 1 khói",
+          "x": 59,
+          "z": 56.4,
+          "minStage": 7
+        }
+      ],
+      "objectiveCount": 12,
+      "note": "Nav graph metadata only; scene geometry, actual spawns and NavMesh remain Unity assets."
+    },
+    {
+      "code": "map02",
+      "name": "Map 2",
+      "scene": "Map 2",
+      "nodeCount": 451,
+      "bounds": {
+        "minX": -104.025,
+        "maxX": 109,
+        "minZ": -94.07028,
+        "maxZ": 92.61386
+      },
+      "escapeRoutes": [
+        33,
+        34,
+        86,
+        103,
+        121,
+        123,
+        126,
+        139,
+        141,
+        142,
+        144,
+        146,
+        157,
+        161,
+        162,
+        164,
+        178,
+        180,
+        198,
+        202,
+        215,
+        216,
+        220,
+        238,
+        256,
+        258,
+        413,
+        421,
+        429,
+        445,
+        448,
+        449,
+        450
+      ],
+      "spawnGroups": [],
+      "containers": [],
+      "fieldCaches": [],
+      "objectiveCount": 43,
+      "note": "Nav graph metadata only; scene geometry, actual spawns and NavMesh remain Unity assets."
+    }
+  ],
+  "quests": [
+    {
+      "code": "map01_main",
+      "mapCode": "map01",
+      "title": "Chiến dịch rừng — Map 1",
+      "objectives": [
+        {
+          "id": "rescue_hung",
+          "index": 0,
+          "title": "Giải cứu Hùng tại bến phía bắc: giữ im lặng khi giám sát còn canh Hùng; hạ đủ bốn lính rồi cởi trói [E]",
+          "requires": [],
+          "count": 1,
+          "playOrder": 0
+        },
+        {
+          "id": "escort_hung",
+          "index": 1,
+          "title": "Yểm hộ Hùng về hầm trú ẩn, vượt qua ba đợt truy kích",
+          "requires": [],
+          "count": 1,
+          "playOrder": 1
+        },
+        {
+          "id": "briefing",
+          "index": 2,
+          "title": "Gặp chỉ huy tại căn cứ để báo cáo và nhận lệnh [E]",
+          "requires": [],
+          "count": 1,
+          "playOrder": 2
+        },
+        {
+          "id": "op1_supplies",
+          "index": 3,
+          "title": "Điểm 1: hạ bốn lính bảo vệ, lấy chìa mở kho rồi giải khóa hòm tiếp tế [E]",
+          "requires": [],
+          "count": 1,
+          "playOrder": 3
+        },
+        {
+          "id": "report_supplies",
+          "index": 4,
+          "title": "Báo cáo đã lấy hàng qua đàm, mang túi về hầm và bàn giao chỉ huy [E]",
+          "requires": [],
+          "count": 1,
+          "playOrder": 4
+        },
+        {
+          "id": "op2_radio",
+          "index": 5,
+          "title": "Điểm 2: hạ năm lính bảo vệ, đấu bảng mạch để vô hiệu hóa đài [E]",
+          "requires": [],
+          "count": 1,
+          "playOrder": 5
+        },
+        {
+          "id": "report_radio",
+          "index": 6,
+          "title": "Rời giao tranh rồi báo cáo đài đã bị vô hiệu với chỉ huy [E]",
+          "requires": [],
+          "count": 1,
+          "playOrder": 6
+        },
+        {
+          "id": "op3_commander",
+          "index": 7,
+          "title": "Điểm 3: đứng xa doanh trại ít nhất 18 m, giữ ống nhòm [F] nhìn về khu trại rồi báo cáo",
+          "requires": [],
+          "count": 1,
+          "playOrder": 7
+        },
+        {
+          "id": "report_retreat",
+          "index": 8,
+          "title": "Sĩ quan đã bị hạ. Thoát giao tranh rồi báo cáo để nhận đường rút [E]",
+          "requires": [],
+          "count": 1,
+          "playOrder": 8
+        },
+        {
+          "id": "complete",
+          "index": 9,
+          "title": "Đã rời bến. Tiếp tục tới điểm liên lạc ở làng ven sông",
+          "requires": [],
+          "count": 1,
+          "playOrder": 12
+        },
+        {
+          "id": "extraction",
+          "index": 10,
+          "title": "Tới bến phía bắc, lên thuyền cùng Hùng và chỉ huy",
+          "requires": [],
+          "count": 1,
+          "playOrder": 10
+        },
+        {
+          "id": "boarding",
+          "index": 11,
+          "title": "Lên thuyền và rút khỏi khu rừng",
+          "requires": [],
+          "count": 1,
+          "playOrder": 11
+        }
+      ]
+    },
+    {
+      "code": "map02_chapter",
+      "mapCode": "map02",
+      "title": "Làng ven sông — Map 2",
+      "objectives": [
+        {
+          "id": "D1_01",
+          "title": "Bắt liên lạc với anh Lực tại chốt đầu làng",
+          "phase": 0,
+          "kind": "talk",
+          "site": "gate",
+          "requires": [],
+          "count": 1,
+          "scene": "contact",
+          "seconds": 3,
+          "purpose": "Xác nhận nơi trú quân và nhận việc từ chỉ huy tại làng.",
+          "index": 0,
+          "playOrder": 0,
+          "credit": 0
+        },
+        {
+          "id": "D1_02",
+          "title": "Đưa Hùng tới hiên nhà chị Lành để thay băng",
+          "phase": 0,
+          "kind": "escortHung",
+          "site": "family",
+          "requires": [
+            "D1_01"
+          ],
+          "count": 1,
+          "scene": "bandage",
+          "seconds": 24,
+          "purpose": "Hùng bị thương tay phải; cần được thay băng trước khi nhận việc.",
+          "index": 1,
+          "playOrder": 1,
+          "credit": 0
+        },
+        {
+          "id": "D1_03",
+          "title": "Trao gói thuốc mang theo cho chị Lành",
+          "phase": 0,
+          "kind": "medicine",
+          "site": "family",
+          "requires": [
+            "D1_02"
+          ],
+          "count": 1,
+          "scene": "medicine",
+          "seconds": 3,
+          "purpose": "Số thuốc mang theo từ căn cứ cũ sẽ được dùng cho thương binh và người dân.",
+          "index": 2,
+          "playOrder": 2,
+          "credit": 0
+        },
+        {
+          "id": "D1_04",
+          "title": "Chuyển ba thùng từ bến vào kho kín",
+          "phase": 0,
+          "kind": "carry",
+          "site": "store",
+          "requires": [
+            "D1_02"
+          ],
+          "count": 3,
+          "scene": "",
+          "seconds": 3,
+          "purpose": "Cất vật tư khỏi bến trống; đây là nguồn thuốc và đạn cho những ngày tới.",
+          "index": 3,
+          "playOrder": 3,
+          "credit": 0
+        },
+        {
+          "id": "D1_05",
+          "title": "Sửa bậc bến nam cùng chú Bảy: hai cọc, ba tấm ván",
+          "phase": 0,
+          "kind": "repair",
+          "site": "dock",
+          "requires": [
+            "D1_02"
+          ],
+          "count": 5,
+          "scene": "repair",
+          "seconds": 3,
+          "purpose": "Bến nam là đường đưa người bị thương và dân làng tới nơi trú khi có biến.",
+          "index": 4,
+          "playOrder": 4,
+          "credit": 0
+        },
+        {
+          "id": "D1_06",
+          "title": "Báo cáo anh Thành trước khi trời tối",
+          "phase": 0,
+          "kind": "talk",
+          "site": "command",
+          "requires": [
+            "D1_03",
+            "D1_04",
+            "D1_05"
+          ],
+          "count": 1,
+          "scene": "day1report",
+          "seconds": 3,
+          "purpose": "Chỉ kết thúc ngày sau khi các việc chuẩn bị đã xong.",
+          "index": 5,
+          "playOrder": 5,
+          "credit": 10
+        },
+        {
+          "id": "N1_01",
+          "title": "Ngồi vào mâm cơm cùng Hùng",
+          "phase": 1,
+          "kind": "cinematic",
+          "site": "family",
+          "requires": [
+            "D1_06"
+          ],
+          "count": 1,
+          "scene": "promise",
+          "seconds": 90,
+          "purpose": "Bữa cơm đầu tiên sau khi thoát khỏi vòng vây.",
+          "index": 6,
+          "playOrder": 6,
+          "credit": 0
+        },
+        {
+          "id": "N1_02",
+          "title": "Cùng Hùng kiểm tra chốt bờ tre",
+          "phase": 1,
+          "kind": "patrolHung",
+          "site": "bamboo",
+          "requires": [
+            "N1_01"
+          ],
+          "count": 1,
+          "scene": "postbamboo",
+          "seconds": 3,
+          "purpose": "Kiểm tra ca trực cùng Hùng; giữ gần người đi cùng.",
+          "index": 7,
+          "playOrder": 7,
+          "credit": 0
+        },
+        {
+          "id": "N1_03",
+          "title": "Cùng Hùng mang thuốc tới chốt đầu làng",
+          "phase": 1,
+          "kind": "patrolHung",
+          "site": "gate",
+          "requires": [
+            "N1_02"
+          ],
+          "count": 1,
+          "scene": "nightwatch",
+          "seconds": 3,
+          "purpose": "Chuyển phần thuốc dành cho anh em giữ chốt.",
+          "index": 8,
+          "playOrder": 8,
+          "credit": 0
+        },
+        {
+          "id": "N1_04",
+          "title": "Cùng Hùng về chỗ nghỉ và đổi ca",
+          "phase": 1,
+          "kind": "cinematic",
+          "site": "rest",
+          "requires": [
+            "N1_03"
+          ],
+          "count": 1,
+          "scene": "shift",
+          "seconds": 12,
+          "purpose": "Bàn giao ca trực để đơn vị được nghỉ thay phiên.",
+          "index": 9,
+          "playOrder": 9,
+          "credit": 10
+        },
+        {
+          "id": "D2_01",
+          "title": "Nhận lệnh tìm Tâm từ anh Thành",
+          "phase": 2,
+          "kind": "talk",
+          "site": "command",
+          "requires": [
+            "N1_04"
+          ],
+          "count": 1,
+          "scene": "scoutorder",
+          "seconds": 3,
+          "purpose": "Một trinh sát đã không về đúng giờ; chỉ huy cần người đi tìm.",
+          "index": 10,
+          "playOrder": 10,
+          "credit": 0
+        },
+        {
+          "id": "D2_02",
+          "title": "Đến điểm mất liên lạc ở khu cầu",
+          "phase": 2,
+          "kind": "reach",
+          "site": "bridge",
+          "requires": [
+            "D2_01"
+          ],
+          "count": 1,
+          "scene": "",
+          "seconds": 3,
+          "purpose": "Điểm mất liên lạc ở khu cầu; có tuần tra địch ngoài làng.",
+          "index": 11,
+          "playOrder": 11,
+          "credit": 0
+        },
+        {
+          "id": "D2_03",
+          "title": "Tìm và giúp Tâm bị thương gần khu cầu",
+          "phase": 2,
+          "kind": "talk",
+          "site": "scout",
+          "requires": [
+            "D2_02"
+          ],
+          "count": 1,
+          "scene": "scoutfound",
+          "seconds": 3,
+          "purpose": "Tìm dấu vết của Tâm gần cầu, tránh hoặc đối phó tổ tuần tra.",
+          "index": 12,
+          "playOrder": 12,
+          "credit": 0
+        },
+        {
+          "id": "D2_04",
+          "title": "Đưa Tâm bị thương về gặp anh Thành",
+          "phase": 2,
+          "kind": "escortScout",
+          "site": "command",
+          "requires": [
+            "D2_03"
+          ],
+          "count": 1,
+          "scene": "scoutreturn",
+          "seconds": 3,
+          "purpose": "Dìu Tâm về chốt với 1,8 m/s, chỉ dùng K54. Địch phục kích xuất hiện lần lượt ở hai bờ ruộng trước cầu, tối đa 5 lính. Lên cầu sẽ dừng các lượt chưa xuất hiện.",
+          "index": 13,
+          "playOrder": 13,
+          "credit": 0
+        },
+        {
+          "id": "D2_05",
+          "title": "Lấy cuộn dây và ăng-ten trong kho kín, mang về trạm",
+          "phase": 2,
+          "kind": "wire",
+          "site": "store",
+          "requires": [
+            "D2_04"
+          ],
+          "count": 1,
+          "scene": "",
+          "seconds": 3,
+          "purpose": "Mang cuộn dây và ăng-ten từ kho về trạm, chuẩn bị leo thang lên cây dừa để lắp.",
+          "index": 14,
+          "playOrder": 14,
+          "credit": 0
+        },
+        {
+          "id": "D2_06",
+          "title": "Leo thang gắn ăng-ten lên cây dừa theo tín hiệu của Hùng",
+          "phase": 2,
+          "kind": "antenna",
+          "site": "radio",
+          "requires": [
+            "D2_05"
+          ],
+          "count": 1,
+          "scene": "antenna",
+          "seconds": 3,
+          "purpose": "Leo thang lên cây dừa, chỉnh hướng và cột dây cố định ăng-ten. Ăng-ten ở lại trên cây sau khi lắp để duy trì liên lạc.",
+          "index": 15,
+          "playOrder": 15,
+          "credit": 0
+        },
+        {
+          "id": "D2_07",
+          "title": "Báo cáo liên lạc với đơn vị pháo cho anh Thành",
+          "phase": 2,
+          "kind": "talk",
+          "site": "command",
+          "requires": [
+            "D2_06"
+          ],
+          "count": 1,
+          "scene": "artillery",
+          "seconds": 3,
+          "purpose": "Xác lập chi viện từ sớm; pháo vẫn cần tọa độ và dân ra khỏi vùng bắn.",
+          "index": 16,
+          "playOrder": 16,
+          "credit": 15
+        },
+        {
+          "id": "N2_01",
+          "title": "Đứng xa dùng ống nhòm quan sát tổ tuần tra ngoài đồng",
+          "phase": 3,
+          "kind": "binocular",
+          "site": "bridge",
+          "requires": [
+            "D2_07"
+          ],
+          "count": 1,
+          "scene": "",
+          "seconds": 2,
+          "purpose": "Quan sát ánh đèn của tổ tuần tra từ xa, không cần áp sát lính.",
+          "index": 17,
+          "playOrder": 17,
+          "credit": 0
+        },
+        {
+          "id": "N2_02",
+          "title": "Báo dấu hiệu đèn pin qua bộ đàm",
+          "phase": 3,
+          "kind": "patrolReport",
+          "site": "bridge",
+          "requires": [
+            "N2_01"
+          ],
+          "count": 1,
+          "scene": "lights",
+          "seconds": 3,
+          "purpose": "Báo dấu hiệu bất thường để chỉ huy chuẩn bị, chưa phát động giao tranh.",
+          "index": 18,
+          "playOrder": 18,
+          "credit": 0
+        },
+        {
+          "id": "N2_03",
+          "title": "Xuống hầm kiểm tra kho vật tư",
+          "phase": 3,
+          "kind": "inspectDoor",
+          "site": "store",
+          "requires": [
+            "N2_02"
+          ],
+          "count": 1,
+          "scene": "",
+          "seconds": 3,
+          "purpose": "Mở nắp, dùng thang xuống kho và xác nhận vật tư vẫn an toàn sau lượt tuần tra.",
+          "index": 19,
+          "playOrder": 19,
+          "credit": 0
+        },
+        {
+          "id": "N2_04",
+          "title": "Chọn hướng kiểm tra đường sơ tán",
+          "phase": 3,
+          "kind": "inspectRoute",
+          "site": "dock",
+          "requires": [
+            "N2_03"
+          ],
+          "count": 1,
+          "scene": "",
+          "seconds": 3,
+          "purpose": "Khảo sát đường ruộng, đường qua sông hoặc đường trong làng. Báo cáo chỉ huy để chọn một tuyến an toàn cho người dân; không cần kiểm tra đủ ba hướng.",
+          "index": 20,
+          "playOrder": 20,
+          "credit": 0
+        },
+        {
+          "id": "N2_05",
+          "title": "Về đúng điểm hẹn với Hùng",
+          "phase": 3,
+          "kind": "cinematic",
+          "site": "radio",
+          "requires": [
+            "N2_04"
+          ],
+          "count": 1,
+          "scene": "reconcile",
+          "seconds": 48,
+          "purpose": "Trở về điểm hẹn, khép ca trực cùng Hùng.",
+          "index": 21,
+          "playOrder": 21,
+          "credit": 15
+        },
+        {
+          "id": "D3_01",
+          "title": "Chuyển thuốc và đạn từ kho tới chỗ trú bến nam: hai chuyến",
+          "phase": 4,
+          "kind": "carry",
+          "site": "southStore",
+          "requires": [
+            "N2_05"
+          ],
+          "count": 2,
+          "scene": "",
+          "seconds": 3,
+          "purpose": "Đưa thuốc và đạn tới chỗ trú trước khi trời tối.",
+          "index": 22,
+          "playOrder": 22,
+          "credit": 0
+        },
+        {
+          "id": "D3_02",
+          "title": "Cất thùng lựu đạn và khối bộc phá vào hốc bờ đất",
+          "phase": 4,
+          "kind": "demolition",
+          "site": "ditch",
+          "requires": [
+            "D3_01"
+          ],
+          "count": 1,
+          "scene": "demolition",
+          "seconds": 3,
+          "purpose": "Cất bộc phá ở vị trí có thể lấy nhanh khi đường bến bị chặn.",
+          "index": 23,
+          "playOrder": 23,
+          "credit": 0
+        },
+        {
+          "id": "D3_03",
+          "title": "Cùng chú Bảy vá chỗ rò trên hai chiếc thuyền",
+          "phase": 4,
+          "kind": "repair",
+          "site": "dock",
+          "requires": [
+            "D3_02"
+          ],
+          "count": 2,
+          "scene": "boats",
+          "seconds": 3,
+          "purpose": "Hai chiếc thuyền cần sẵn sàng chở người bị thương và người dân.",
+          "index": 24,
+          "playOrder": 24,
+          "credit": 0
+        },
+        {
+          "id": "D3_04",
+          "title": "Cùng Hùng phân công giúp ba gia đình",
+          "phase": 4,
+          "kind": "families",
+          "site": "family",
+          "requires": [
+            "D3_03"
+          ],
+          "count": 3,
+          "scene": "families",
+          "seconds": 3,
+          "purpose": "Để từng nhà biết phải đi đâu nếu nghe báo động.",
+          "index": 25,
+          "playOrder": 25,
+          "credit": 0
+        },
+        {
+          "id": "D3_05",
+          "title": "Ngồi lại bên Hùng trong bữa chiều",
+          "phase": 4,
+          "kind": "cinematic",
+          "site": "family",
+          "requires": [
+            "D3_04"
+          ],
+          "count": 1,
+          "scene": "supper",
+          "seconds": 54,
+          "purpose": "Bữa chiều trước ca trực đêm.",
+          "index": 26,
+          "playOrder": 26,
+          "credit": 0
+        },
+        {
+          "id": "D3_06",
+          "title": "Báo cáo anh Thành",
+          "phase": 4,
+          "kind": "talk",
+          "site": "family",
+          "requires": [
+            "D3_05"
+          ],
+          "count": 1,
+          "scene": "day3report",
+          "seconds": 3,
+          "purpose": "Báo cáo việc chuẩn bị đã xong rồi nhận ca trực đêm.",
+          "index": 27,
+          "playOrder": 27,
+          "credit": 25
+        },
+        {
+          "id": "N3_00",
+          "title": "Đổi ca với anh Lực rồi nghỉ",
+          "phase": 5,
+          "kind": "cinematic",
+          "site": "rest",
+          "requires": [
+            "D3_06"
+          ],
+          "count": 1,
+          "scene": "attack",
+          "seconds": 14,
+          "purpose": "Đổi ca trước khi địch bất ngờ đánh vào làng.",
+          "index": 28,
+          "playOrder": 28,
+          "credit": 0
+        },
+        {
+          "id": "N3_01",
+          "title": "Lấy lại trang bị và số đạn đã cất trong kho",
+          "phase": 5,
+          "kind": "gear",
+          "site": "store",
+          "requires": [
+            "N3_00"
+          ],
+          "count": 1,
+          "scene": "",
+          "seconds": 3,
+          "purpose": "Lấy lại đúng số đạn đã cất và trang bị chiến đấu.",
+          "index": 29,
+          "playOrder": 29,
+          "credit": 0
+        },
+        {
+          "id": "N3_02",
+          "title": "Phá cửa sau, đưa ông Sáu và chị Lành ra ngõ",
+          "phase": 5,
+          "kind": "rescueFamily",
+          "site": "family",
+          "requires": [
+            "N3_01"
+          ],
+          "count": 1,
+          "scene": "fire",
+          "seconds": 3,
+          "purpose": "Đưa cả ông Sáu và chị Lành qua cửa sau tới bến nam.",
+          "index": 30,
+          "playOrder": 30,
+          "credit": 0
+        },
+        {
+          "id": "N3_03",
+          "title": "Tìm bé Tí ở chuồng trâu và đưa về với chị Lành",
+          "phase": 5,
+          "kind": "rescueChild",
+          "site": "child",
+          "requires": [
+            "N3_02"
+          ],
+          "count": 1,
+          "scene": "child",
+          "seconds": 3,
+          "purpose": "Bé Tí bị lạc khi sơ tán; đưa em trở về với mẹ.",
+          "index": 31,
+          "playOrder": 31,
+          "credit": 0
+        },
+        {
+          "id": "N3_04",
+          "title": "Giữ tuyến sơ tán cho hai chuyến thuyền đầu",
+          "phase": 5,
+          "kind": "defend",
+          "site": "lane1",
+          "requires": [
+            "N3_03"
+          ],
+          "count": 1,
+          "scene": "",
+          "seconds": 40,
+          "purpose": "Dọn đường rồi giữ khu vực cho hai chuyến thuyền đầu đi qua.",
+          "index": 32,
+          "playOrder": 32,
+          "credit": 0
+        },
+        {
+          "id": "N3_05A",
+          "title": "Giữ ngõ thứ nhất đến khi sơ tán đạt 70%",
+          "phase": 5,
+          "kind": "defend",
+          "site": "lane1",
+          "requires": [
+            "N3_04"
+          ],
+          "count": 1,
+          "scene": "",
+          "seconds": 35,
+          "purpose": "Giữ từng tuyến đủ lâu để dân không bị dồn lại ngoài đường.",
+          "index": 33,
+          "playOrder": 33,
+          "credit": 0
+        },
+        {
+          "id": "N3_05B",
+          "title": "Lùi về gốc me, giữ tuyến đến mốc 80%",
+          "phase": 5,
+          "kind": "defend",
+          "site": "lane2",
+          "requires": [
+            "N3_05A"
+          ],
+          "count": 1,
+          "scene": "",
+          "seconds": 35,
+          "purpose": "Lùi có trật tự; tiến độ sơ tán không mất khi Nam rời khu vực tránh đạn.",
+          "index": 34,
+          "playOrder": 34,
+          "credit": 0
+        },
+        {
+          "id": "N3_05C",
+          "title": "Lùi về ngõ đình, giữ tuyến đến mốc 90%",
+          "phase": 5,
+          "kind": "defend",
+          "site": "lane3",
+          "requires": [
+            "N3_05B"
+          ],
+          "count": 1,
+          "scene": "",
+          "seconds": 35,
+          "purpose": "Giữ ngõ đình cho nhóm dân cuối rời vùng giao tranh.",
+          "index": 35,
+          "playOrder": 35,
+          "credit": 0
+        },
+        {
+          "id": "N3_WOUND",
+          "title": "Nằm xuống khi xe tăng khai hỏa",
+          "phase": 5,
+          "kind": "cinematic",
+          "site": "lane3",
+          "requires": [
+            "N3_05C"
+          ],
+          "count": 1,
+          "scene": "wound",
+          "seconds": 12,
+          "purpose": "Xe tăng khai hỏa, Nam bị thương vai trái.",
+          "index": 36,
+          "playOrder": 36,
+          "credit": 0
+        },
+        {
+          "id": "N3_CRAWL",
+          "title": "Đi khom vào chỗ nấp của anh Lực",
+          "phase": 5,
+          "kind": "crawl",
+          "site": "cover",
+          "requires": [
+            "N3_WOUND"
+          ],
+          "count": 1,
+          "scene": "alive",
+          "seconds": 5,
+          "purpose": "Đi khom tới chỗ nấp của anh Lực để tránh hỏa lực xe tăng.",
+          "index": 37,
+          "playOrder": 37,
+          "credit": 0
+        },
+        {
+          "id": "N3_06",
+          "title": "Dọn cây đổ chắn đường tổ cứu thương tới bến",
+          "phase": 5,
+          "kind": "clear",
+          "site": "fallen",
+          "requires": [
+            "N3_CRAWL"
+          ],
+          "count": 1,
+          "scene": "coordinates",
+          "seconds": 6,
+          "purpose": "Dọn vật cản cho tổ cứu thương; pháo chưa thể bắn sát nhóm dân cuối.",
+          "index": 38,
+          "playOrder": 38,
+          "credit": 0
+        },
+        {
+          "id": "N3_07",
+          "title": "Cùng Hùng nhìn ra chuyến thuyền cuối",
+          "phase": 5,
+          "kind": "cinematic",
+          "site": "ditch",
+          "requires": [
+            "N3_06"
+          ],
+          "count": 1,
+          "scene": "farewell",
+          "seconds": 120,
+          "purpose": "Hùng nhận máy đàm và bàn với Nam cách mở đường.",
+          "index": 39,
+          "playOrder": 39,
+          "credit": 0
+        },
+        {
+          "id": "N3_08",
+          "title": "Yểm trợ Hùng",
+          "phase": 5,
+          "kind": "coverFire",
+          "site": "ditch",
+          "requires": [
+            "N3_07"
+          ],
+          "count": 1,
+          "scene": "",
+          "seconds": 75,
+          "purpose": "Giữ hỏa lực về phía địch trong khi Hùng tiếp cận chiếc xe tăng.",
+          "index": 40,
+          "playOrder": 40,
+          "credit": 0
+        },
+        {
+          "id": "N3_09",
+          "title": "Hùng gài bộc phá; quân ta phản công",
+          "phase": 5,
+          "kind": "cinematic",
+          "site": "ditch",
+          "requires": [
+            "N3_08"
+          ],
+          "count": 1,
+          "scene": "sacrifice",
+          "seconds": 70,
+          "purpose": "Hùng gài bộc phá; pháo bắn ra rìa làng, quân ta phản công. Nam ngồi lại bên bờ đất.",
+          "index": 41,
+          "playOrder": 41,
+          "credit": 35
+        },
+        {
+          "id": "DAWN",
+          "title": "Bình minh: chỗ trực còn trống",
+          "phase": 6,
+          "kind": "cinematic",
+          "site": "ditch",
+          "requires": [
+            "N3_09"
+          ],
+          "count": 1,
+          "scene": "dawn",
+          "seconds": 120,
+          "purpose": "Bình minh tại ngôi làng vừa được giữ lại.",
+          "index": 42,
+          "playOrder": 42,
+          "credit": 0
+        }
+      ]
+    }
+  ],
+  "adaptive": {
+    "lowAmmo": 30,
+    "ammoBoost": 2,
+    "lowHealth": 0.75,
+    "medkitBoost": 3,
+    "medkitPity": 3
+  },
+  "tierOdds": [
+    52,
+    38,
+    8,
+    2
+  ],
+  "repair": {
+    "fieldFraction": 0.35,
+    "fieldSeconds": 3,
+    "salvageSeconds": 3,
+    "benchQuarterParts": 1,
+    "benchOilFrom": 0.5,
+    "benchDiscountLevel": 3,
+    "salvageBonusLevel": 2
+  },
+  "balance": {
+    "playerHP": 100,
+    "stamina": 300,
+    "walkSpeed": 4.2,
+    "sprintSpeed": 7,
+    "crouchSpeed": 2.3,
+    "staminaDrain": 12,
+    "staminaRecovery": 16,
+    "interactRange": 3.5,
+    "stoneRange": 20,
+    "stoneNoise": 14,
+    "guardDamageScale": 0.35,
+    "guardShotInterval": 1.6,
+    "guardM16": {
+      "burstRounds": 3,
+      "magazineRounds": 30,
+      "burstPause": 1.8,
+      "reloadSeconds": 3.2,
+      "staggerSeconds": 0.35,
+      "maxConcurrentBursts": 2
+    },
+    "detectionSeconds": 1.5,
+    "hiddenVisionScale": 0.32,
+    "crouchVisionScale": 0.6,
+    "waryDetectionScale": 0.75,
+    "medkitHeal": 45,
+    "followDistance": 3,
+    "hungHP": 150,
+    "searchSeconds": 8,
+    "suppressSeconds": 1.5,
+    "startingStones": 6,
+    "startingPistolRounds": 16,
+    "stoneCapacity": 15,
+    "testCraftingKit": false,
+    "guardDropAmmo": 30,
+    "guardDropMedkits": 1,
+    "guardAccuracy": {
+      "enabled": true,
+      "closeHit": 0.85,
+      "closeDistance": 5,
+      "farHit": 0.35,
+      "sprintingTarget": 0.55,
+      "walkingTarget": 0.8,
+      "crouchedTarget": 0.8,
+      "coverTarget": 0.6,
+      "movingShooter": 0.6,
+      "settleSeconds": 2.5,
+      "firstShot": 0.5,
+      "bossSkill": 1.25,
+      "minHit": 0.05,
+      "maxHit": 0.95,
+      "bossCurveDistances": [
+        5,
+        10,
+        15,
+        18
+      ],
+      "bossCurveHits": [
+        1,
+        0.89,
+        0.8,
+        0.72
+      ],
+      "bossMaxHit": 1
+    }
+  },
+  "skills": {
+    "shootingThresholds": [
+      0,
+      2,
+      7,
+      17,
+      37
+    ],
+    "stealthThresholds": [
+      0,
+      1,
+      3,
+      7,
+      17
+    ],
+    "engineeringThresholds": [
+      0,
+      2,
+      6,
+      12,
+      20
+    ],
+    "recoilMultipliers": [
+      1,
+      0.98,
+      0.9653,
+      0.9508205,
+      0.9270499875
+    ],
+    "reloadMultipliers": [
+      1,
+      0.99,
+      0.97515,
+      0.955647,
+      0.931755825
+    ],
+    "takedownMultipliers": [
+      1,
+      1.05,
+      1.092,
+      1.1466,
+      1.20393
+    ],
+    "repairBonusFractions": [
+      0,
+      0.2,
+      0.35,
+      0.5,
+      0.6
+    ],
+    "fieldRepairCaps": [
+      0.8,
+      0.85,
+      0.9,
+      0.95,
+      1
+    ]
+  },
+  "enemyTypes": [
+    {
+      "code": "m1_patrol",
+      "name": "Lính tuần tra",
+      "archetype": "rifleman",
+      "boss": false,
+      "maxHp": 100,
+      "weapon": "rifle_standard",
+      "lootTable": "lt_m1_patrol",
+      "dropMin": 0.15,
+      "dropMax": 0.35,
+      "sidearm": "",
+      "sidearmMin": 0,
+      "sidearmMax": 0
+    },
+    {
+      "code": "m1_camp_guard",
+      "name": "Lính gác trại",
+      "archetype": "rifleman",
+      "boss": false,
+      "maxHp": 100,
+      "weapon": "rifle_standard",
+      "lootTable": "lt_m1_camp_guard",
+      "dropMin": 0.15,
+      "dropMax": 0.35,
+      "sidearm": "",
+      "sidearmMin": 0,
+      "sidearmMax": 0
+    },
+    {
+      "code": "m1_operation_guard",
+      "name": "Lính canh điểm nhiệm vụ",
+      "archetype": "rifleman",
+      "boss": false,
+      "maxHp": 100,
+      "weapon": "rifle_standard",
+      "lootTable": "lt_m1_operation_guard",
+      "dropMin": 0.2,
+      "dropMax": 0.4,
+      "sidearm": "",
+      "sidearmMin": 0,
+      "sidearmMax": 0
+    },
+    {
+      "code": "m1_commander",
+      "name": "Chỉ huy địch",
+      "archetype": "boss",
+      "boss": true,
+      "maxHp": 300,
+      "weapon": "rifle_standard",
+      "lootTable": "lt_m1_commander",
+      "dropMin": 0.35,
+      "dropMax": 0.55,
+      "sidearm": "pistol_k54",
+      "sidearmMin": 0.6,
+      "sidearmMax": 0.8
+    }
+  ],
+  "authoringProjection": {
+    "items": [
+      {
+        "code": "ak_loading_pack",
+        "max_stack": 64,
+        "base_value": 3
+      },
+      {
+        "code": "ammo_556",
+        "max_stack": 99,
+        "base_value": 1
+      },
+      {
+        "code": "ammo_pistol",
+        "max_stack": 99,
+        "base_value": 2
+      },
+      {
+        "code": "ammo_recovered",
+        "max_stack": 64,
+        "base_value": 1
+      },
+      {
+        "code": "ammo_rifle",
+        "max_stack": 99,
+        "base_value": 1
+      },
+      {
+        "code": "ammo_shotgun",
+        "max_stack": 99
+      },
+      {
+        "code": "ammo_smg",
+        "max_stack": 99
+      },
+      {
+        "code": "ammo_sniper",
+        "max_stack": 99,
+        "base_value": 4
+      },
+      {
+        "code": "blast_charge",
+        "max_stack": 64,
+        "base_value": 20
+      },
+      {
+        "code": "carbine_scout"
+      },
+      {
+        "code": "cloth",
+        "max_stack": 64,
+        "base_value": 2
+      },
+      {
+        "code": "fuse_module",
+        "max_stack": 64,
+        "base_value": 15
+      },
+      {
+        "code": "grenade_f1",
+        "max_stack": 64,
+        "base_value": 30
+      },
+      {
+        "code": "gun_oil",
+        "max_stack": 64,
+        "base_value": 10
+      },
+      {
+        "code": "gunpowder",
+        "max_stack": 64,
+        "base_value": 5
+      },
+      {
+        "code": "herb",
+        "max_stack": 64,
+        "base_value": 3
+      },
+      {
+        "code": "knife",
+        "base_value": 10
+      },
+      {
+        "code": "m1_supply_cargo",
+        "base_value": 0
+      },
+      {
+        "code": "m1_supply_key",
+        "base_value": 0
+      },
+      {
+        "code": "medkit_small",
+        "max_stack": 64,
+        "base_value": 12
+      },
+      {
+        "code": "pistol_k54",
+        "max_stack": 1,
+        "base_value": 45
+      },
+      {
+        "code": "repair_kit",
+        "max_stack": 64,
+        "base_value": 30
+      },
+      {
+        "code": "rifle_m16",
+        "max_stack": 1,
+        "base_value": 60
+      },
+      {
+        "code": "rifle_mosin",
+        "max_stack": 1,
+        "base_value": 120
+      },
+      {
+        "code": "rifle_standard",
+        "base_value": 60
+      },
+      {
+        "code": "river_documents",
+        "base_value": 0
+      },
+      {
+        "code": "scope_lens",
+        "max_stack": 64,
+        "base_value": 25
+      },
+      {
+        "code": "scrap_metal",
+        "max_stack": 64,
+        "base_value": 3
+      },
+      {
+        "code": "shotgun_pump"
+      },
+      {
+        "code": "smg_compact"
+      },
+      {
+        "code": "smoke_bomb",
+        "max_stack": 64,
+        "base_value": 15
+      },
+      {
+        "code": "smoke_module",
+        "max_stack": 64,
+        "base_value": 12
+      },
+      {
+        "code": "stone",
+        "base_value": 0
+      },
+      {
+        "code": "supplies",
+        "base_value": 0
+      },
+      {
+        "code": "weapon_parts",
+        "max_stack": 64,
+        "base_value": 15
+      }
+    ],
+    "weapons": [
+      {
+        "item_code": "rifle_standard",
+        "damage": 24,
+        "fire_rate": 6.5,
+        "effective_range": 40,
+        "magazine_size": 30,
+        "reload_time_s": 2.4,
+        "ammo_item_code": "ammo_rifle",
+        "max_durability": 100,
+        "durability_per_use": 0.35,
+        "noise_radius": 18,
+        "is_suppressed": false
+      },
+      {
+        "item_code": "rifle_m16",
+        "damage": 22,
+        "fire_rate": 10,
+        "effective_range": 80,
+        "magazine_size": 30,
+        "reload_time_s": 2.4,
+        "ammo_item_code": "ammo_556",
+        "max_durability": 100,
+        "durability_per_use": 0.35,
+        "noise_radius": 18,
+        "is_suppressed": false
+      },
+      {
+        "item_code": "smg_compact",
+        "damage": 14,
+        "fire_rate": 11,
+        "effective_range": 22,
+        "magazine_size": 35,
+        "reload_time_s": 1.8,
+        "ammo_item_code": "ammo_smg",
+        "max_durability": 90,
+        "durability_per_use": 0.1,
+        "noise_radius": 14,
+        "is_suppressed": false
+      },
+      {
+        "item_code": "shotgun_pump",
+        "damage": 60,
+        "fire_rate": 1.2,
+        "effective_range": 12,
+        "magazine_size": 6,
+        "reload_time_s": 3,
+        "ammo_item_code": "ammo_shotgun",
+        "max_durability": 120,
+        "durability_per_use": 0.4,
+        "noise_radius": 24,
+        "is_suppressed": false
+      },
+      {
+        "item_code": "pistol_k54",
+        "damage": 22,
+        "fire_rate": 3,
+        "effective_range": 25,
+        "magazine_size": 8,
+        "reload_time_s": 1.8,
+        "ammo_item_code": "ammo_pistol",
+        "max_durability": 80,
+        "durability_per_use": 0.4,
+        "noise_radius": 16,
+        "is_suppressed": false
+      },
+      {
+        "item_code": "rifle_mosin",
+        "damage": 200,
+        "fire_rate": 0.7,
+        "effective_range": 200,
+        "magazine_size": 5,
+        "reload_time_s": 5,
+        "ammo_item_code": "ammo_sniper",
+        "max_durability": 110,
+        "durability_per_use": 1,
+        "noise_radius": 30,
+        "is_suppressed": false
+      },
+      {
+        "item_code": "carbine_scout",
+        "damage": 20,
+        "fire_rate": 5,
+        "effective_range": 32,
+        "magazine_size": 20,
+        "reload_time_s": 2,
+        "ammo_item_code": "ammo_rifle",
+        "max_durability": 100,
+        "durability_per_use": 0.1,
+        "noise_radius": 16,
+        "is_suppressed": false
+      }
+    ],
+    "loot_tables": [
+      {
+        "code": "lt_c3_field_ak",
+        "rolls_min": 0,
+        "rolls_max": 0
+      },
+      {
+        "code": "lt_m1_patrol",
+        "rolls_min": 1,
+        "rolls_max": 1
+      },
+      {
+        "code": "lt_m1_camp_guard",
+        "rolls_min": 1,
+        "rolls_max": 2
+      },
+      {
+        "code": "lt_m1_operation_guard",
+        "rolls_min": 2,
+        "rolls_max": 2
+      },
+      {
+        "code": "lt_m1_commander",
+        "rolls_min": 3,
+        "rolls_max": 3
+      },
+      {
+        "code": "lt_m1_chest_c1",
+        "rolls_min": 2,
+        "rolls_max": 2
+      },
+      {
+        "code": "lt_m1_chest_c2",
+        "rolls_min": 2,
+        "rolls_max": 3
+      },
+      {
+        "code": "lt_m1_chest_c3",
+        "rolls_min": 3,
+        "rolls_max": 3
+      },
+      {
+        "code": "lt_m1_mosin_cache",
+        "rolls_min": 0,
+        "rolls_max": 0
+      },
+      {
+        "code": "lt_c3_field_approach",
+        "rolls_min": 0,
+        "rolls_max": 0
+      },
+      {
+        "code": "lt_c3_field_medic",
+        "rolls_min": 0,
+        "rolls_max": 0
+      },
+      {
+        "code": "lt_m1_supply_reward",
+        "rolls_min": 0,
+        "rolls_max": 0
+      },
+      {
+        "code": "lt_m1_base_start",
+        "rolls_min": 0,
+        "rolls_max": 0
+      },
+      {
+        "code": "lt_m1_base_stock",
+        "rolls_min": 0,
+        "rolls_max": 0
+      }
+    ],
+    "loot_table_entries": [
+      {
+        "loot_table_code": "lt_c3_field_ak",
+        "item_code": "ammo_rifle",
+        "tier": 5,
+        "weight": 1,
+        "min_qty": 30,
+        "max_qty": 30
+      },
+      {
+        "loot_table_code": "lt_c3_field_ak",
+        "item_code": "ak_loading_pack",
+        "tier": 5,
+        "weight": 1,
+        "min_qty": 2,
+        "max_qty": 2
+      },
+      {
+        "loot_table_code": "lt_m1_patrol",
+        "item_code": "ammo_rifle",
+        "tier": 5,
+        "weight": 1,
+        "min_qty": 6,
+        "max_qty": 12
+      },
+      {
+        "loot_table_code": "lt_m1_patrol",
+        "item_code": "ammo_rifle",
+        "tier": 1,
+        "weight": 50,
+        "min_qty": 5,
+        "max_qty": 10
+      },
+      {
+        "loot_table_code": "lt_m1_patrol",
+        "item_code": "cloth",
+        "tier": 1,
+        "weight": 25,
+        "min_qty": 1,
+        "max_qty": 2
+      },
+      {
+        "loot_table_code": "lt_m1_patrol",
+        "item_code": "scrap_metal",
+        "tier": 1,
+        "weight": 25,
+        "min_qty": 1,
+        "max_qty": 1
+      },
+      {
+        "loot_table_code": "lt_m1_patrol",
+        "item_code": "medkit_small",
+        "tier": 2,
+        "weight": 45,
+        "min_qty": 1,
+        "max_qty": 1
+      },
+      {
+        "loot_table_code": "lt_m1_patrol",
+        "item_code": "gunpowder",
+        "tier": 2,
+        "weight": 35,
+        "min_qty": 1,
+        "max_qty": 2
+      },
+      {
+        "loot_table_code": "lt_m1_patrol",
+        "item_code": "herb",
+        "tier": 2,
+        "weight": 20,
+        "min_qty": 1,
+        "max_qty": 2
+      },
+      {
+        "loot_table_code": "lt_m1_patrol",
+        "item_code": "gun_oil",
+        "tier": 3,
+        "weight": 50,
+        "min_qty": 1,
+        "max_qty": 1
+      },
+      {
+        "loot_table_code": "lt_m1_patrol",
+        "item_code": "weapon_parts",
+        "tier": 3,
+        "weight": 50,
+        "min_qty": 1,
+        "max_qty": 1
+      },
+      {
+        "loot_table_code": "lt_m1_patrol",
+        "item_code": "repair_kit",
+        "tier": 4,
+        "weight": 60,
+        "min_qty": 1,
+        "max_qty": 1
+      },
+      {
+        "loot_table_code": "lt_m1_patrol",
+        "item_code": "smoke_module",
+        "tier": 4,
+        "weight": 40,
+        "min_qty": 1,
+        "max_qty": 1
+      },
+      {
+        "loot_table_code": "lt_m1_camp_guard",
+        "item_code": "ammo_rifle",
+        "tier": 5,
+        "weight": 1,
+        "min_qty": 8,
+        "max_qty": 14
+      },
+      {
+        "loot_table_code": "lt_m1_camp_guard",
+        "item_code": "ammo_rifle",
+        "tier": 1,
+        "weight": 45,
+        "min_qty": 6,
+        "max_qty": 12
+      },
+      {
+        "loot_table_code": "lt_m1_camp_guard",
+        "item_code": "cloth",
+        "tier": 1,
+        "weight": 20,
+        "min_qty": 1,
+        "max_qty": 2
+      },
+      {
+        "loot_table_code": "lt_m1_camp_guard",
+        "item_code": "scrap_metal",
+        "tier": 1,
+        "weight": 25,
+        "min_qty": 1,
+        "max_qty": 2
+      },
+      {
+        "loot_table_code": "lt_m1_camp_guard",
+        "item_code": "herb",
+        "tier": 1,
+        "weight": 10,
+        "min_qty": 1,
+        "max_qty": 1
+      },
+      {
+        "loot_table_code": "lt_m1_camp_guard",
+        "item_code": "medkit_small",
+        "tier": 2,
+        "weight": 40,
+        "min_qty": 1,
+        "max_qty": 1
+      },
+      {
+        "loot_table_code": "lt_m1_camp_guard",
+        "item_code": "gunpowder",
+        "tier": 2,
+        "weight": 40,
+        "min_qty": 1,
+        "max_qty": 2
+      },
+      {
+        "loot_table_code": "lt_m1_camp_guard",
+        "item_code": "ammo_pistol",
+        "tier": 2,
+        "weight": 20,
+        "min_qty": 4,
+        "max_qty": 8
+      },
+      {
+        "loot_table_code": "lt_m1_camp_guard",
+        "item_code": "gun_oil",
+        "tier": 3,
+        "weight": 40,
+        "min_qty": 1,
+        "max_qty": 1
+      },
+      {
+        "loot_table_code": "lt_m1_camp_guard",
+        "item_code": "weapon_parts",
+        "tier": 3,
+        "weight": 40,
+        "min_qty": 1,
+        "max_qty": 1
+      },
+      {
+        "loot_table_code": "lt_m1_camp_guard",
+        "item_code": "smoke_module",
+        "tier": 3,
+        "weight": 20,
+        "min_qty": 1,
+        "max_qty": 1
+      },
+      {
+        "loot_table_code": "lt_m1_camp_guard",
+        "item_code": "repair_kit",
+        "tier": 4,
+        "weight": 45,
+        "min_qty": 1,
+        "max_qty": 1
+      },
+      {
+        "loot_table_code": "lt_m1_camp_guard",
+        "item_code": "fuse_module",
+        "tier": 4,
+        "weight": 30,
+        "min_qty": 1,
+        "max_qty": 1
+      },
+      {
+        "loot_table_code": "lt_m1_camp_guard",
+        "item_code": "ammo_sniper",
+        "tier": 4,
+        "weight": 25,
+        "min_qty": 2,
+        "max_qty": 3
+      },
+      {
+        "loot_table_code": "lt_m1_operation_guard",
+        "item_code": "ammo_rifle",
+        "tier": 5,
+        "weight": 1,
+        "min_qty": 10,
+        "max_qty": 16
+      },
+      {
+        "loot_table_code": "lt_m1_operation_guard",
+        "item_code": "ammo_rifle",
+        "tier": 1,
+        "weight": 50,
+        "min_qty": 8,
+        "max_qty": 14
+      },
+      {
+        "loot_table_code": "lt_m1_operation_guard",
+        "item_code": "scrap_metal",
+        "tier": 1,
+        "weight": 30,
+        "min_qty": 1,
+        "max_qty": 2
+      },
+      {
+        "loot_table_code": "lt_m1_operation_guard",
+        "item_code": "cloth",
+        "tier": 1,
+        "weight": 20,
+        "min_qty": 1,
+        "max_qty": 2
+      },
+      {
+        "loot_table_code": "lt_m1_operation_guard",
+        "item_code": "medkit_small",
+        "tier": 2,
+        "weight": 40,
+        "min_qty": 1,
+        "max_qty": 1
+      },
+      {
+        "loot_table_code": "lt_m1_operation_guard",
+        "item_code": "gunpowder",
+        "tier": 2,
+        "weight": 35,
+        "min_qty": 2,
+        "max_qty": 2
+      },
+      {
+        "loot_table_code": "lt_m1_operation_guard",
+        "item_code": "ammo_pistol",
+        "tier": 2,
+        "weight": 25,
+        "min_qty": 6,
+        "max_qty": 8
+      },
+      {
+        "loot_table_code": "lt_m1_operation_guard",
+        "item_code": "smoke_bomb",
+        "tier": 2,
+        "weight": 20,
+        "min_qty": 1,
+        "max_qty": 1
+      },
+      {
+        "loot_table_code": "lt_m1_operation_guard",
+        "item_code": "weapon_parts",
+        "tier": 3,
+        "weight": 20,
+        "min_qty": 1,
+        "max_qty": 1
+      },
+      {
+        "loot_table_code": "lt_m1_operation_guard",
+        "item_code": "gun_oil",
+        "tier": 3,
+        "weight": 25,
+        "min_qty": 1,
+        "max_qty": 1
+      },
+      {
+        "loot_table_code": "lt_m1_operation_guard",
+        "item_code": "smoke_module",
+        "tier": 3,
+        "weight": 15,
+        "min_qty": 1,
+        "max_qty": 1
+      },
+      {
+        "loot_table_code": "lt_m1_operation_guard",
+        "item_code": "smoke_bomb",
+        "tier": 3,
+        "weight": 40,
+        "min_qty": 1,
+        "max_qty": 1
+      },
+      {
+        "loot_table_code": "lt_m1_operation_guard",
+        "item_code": "repair_kit",
+        "tier": 4,
+        "weight": 35,
+        "min_qty": 1,
+        "max_qty": 1
+      },
+      {
+        "loot_table_code": "lt_m1_operation_guard",
+        "item_code": "fuse_module",
+        "tier": 4,
+        "weight": 25,
+        "min_qty": 1,
+        "max_qty": 1
+      },
+      {
+        "loot_table_code": "lt_m1_operation_guard",
+        "item_code": "blast_charge",
+        "tier": 4,
+        "weight": 15,
+        "min_qty": 1,
+        "max_qty": 1
+      },
+      {
+        "loot_table_code": "lt_m1_operation_guard",
+        "item_code": "ammo_sniper",
+        "tier": 4,
+        "weight": 25,
+        "min_qty": 3,
+        "max_qty": 4
+      },
+      {
+        "loot_table_code": "lt_m1_operation_guard",
+        "item_code": "grenade_f1",
+        "tier": 4,
+        "weight": 30,
+        "min_qty": 1,
+        "max_qty": 1
+      },
+      {
+        "loot_table_code": "lt_m1_commander",
+        "item_code": "ammo_pistol",
+        "tier": 5,
+        "weight": 1,
+        "min_qty": 8,
+        "max_qty": 16
+      },
+      {
+        "loot_table_code": "lt_m1_commander",
+        "item_code": "medkit_small",
+        "tier": 5,
+        "weight": 1,
+        "min_qty": 1,
+        "max_qty": 1
+      },
+      {
+        "loot_table_code": "lt_m1_commander",
+        "item_code": "ammo_rifle",
+        "tier": 1,
+        "weight": 100,
+        "min_qty": 10,
+        "max_qty": 20
+      },
+      {
+        "loot_table_code": "lt_m1_commander",
+        "item_code": "gunpowder",
+        "tier": 2,
+        "weight": 50,
+        "min_qty": 2,
+        "max_qty": 3
+      },
+      {
+        "loot_table_code": "lt_m1_commander",
+        "item_code": "medkit_small",
+        "tier": 2,
+        "weight": 50,
+        "min_qty": 1,
+        "max_qty": 1
+      },
+      {
+        "loot_table_code": "lt_m1_commander",
+        "item_code": "weapon_parts",
+        "tier": 3,
+        "weight": 50,
+        "min_qty": 1,
+        "max_qty": 2
+      },
+      {
+        "loot_table_code": "lt_m1_commander",
+        "item_code": "gun_oil",
+        "tier": 3,
+        "weight": 50,
+        "min_qty": 1,
+        "max_qty": 2
+      },
+      {
+        "loot_table_code": "lt_m1_commander",
+        "item_code": "grenade_f1",
+        "tier": 4,
+        "weight": 40,
+        "min_qty": 1,
+        "max_qty": 1
+      },
+      {
+        "loot_table_code": "lt_m1_commander",
+        "item_code": "repair_kit",
+        "tier": 4,
+        "weight": 30,
+        "min_qty": 1,
+        "max_qty": 1
+      },
+      {
+        "loot_table_code": "lt_m1_commander",
+        "item_code": "scope_lens",
+        "tier": 4,
+        "weight": 30,
+        "min_qty": 1,
+        "max_qty": 1
+      },
+      {
+        "loot_table_code": "lt_m1_chest_c1",
+        "item_code": "gun_oil",
+        "tier": 5,
+        "weight": 1,
+        "min_qty": 1,
+        "max_qty": 1
+      },
+      {
+        "loot_table_code": "lt_m1_chest_c1",
+        "item_code": "ammo_pistol",
+        "tier": 5,
+        "weight": 1,
+        "min_qty": 16,
+        "max_qty": 16
+      },
+      {
+        "loot_table_code": "lt_m1_chest_c1",
+        "item_code": "medkit_small",
+        "tier": 5,
+        "weight": 1,
+        "min_qty": 2,
+        "max_qty": 2
+      },
+      {
+        "loot_table_code": "lt_m1_chest_c1",
+        "item_code": "smoke_bomb",
+        "tier": 5,
+        "weight": 1,
+        "min_qty": 1,
+        "max_qty": 1
+      },
+      {
+        "loot_table_code": "lt_m1_chest_c1",
+        "item_code": "grenade_f1",
+        "tier": 5,
+        "weight": 1,
+        "min_qty": 1,
+        "max_qty": 1
+      },
+      {
+        "loot_table_code": "lt_m1_chest_c1",
+        "item_code": "gunpowder",
+        "tier": 5,
+        "weight": 1,
+        "min_qty": 2,
+        "max_qty": 2
+      },
+      {
+        "loot_table_code": "lt_m1_chest_c1",
+        "item_code": "ammo_rifle",
+        "tier": 1,
+        "weight": 45,
+        "min_qty": 15,
+        "max_qty": 25
+      },
+      {
+        "loot_table_code": "lt_m1_chest_c1",
+        "item_code": "cloth",
+        "tier": 1,
+        "weight": 25,
+        "min_qty": 2,
+        "max_qty": 3
+      },
+      {
+        "loot_table_code": "lt_m1_chest_c1",
+        "item_code": "scrap_metal",
+        "tier": 1,
+        "weight": 30,
+        "min_qty": 2,
+        "max_qty": 3
+      },
+      {
+        "loot_table_code": "lt_m1_chest_c1",
+        "item_code": "medkit_small",
+        "tier": 2,
+        "weight": 35,
+        "min_qty": 1,
+        "max_qty": 1
+      },
+      {
+        "loot_table_code": "lt_m1_chest_c1",
+        "item_code": "gunpowder",
+        "tier": 2,
+        "weight": 40,
+        "min_qty": 1,
+        "max_qty": 2
+      },
+      {
+        "loot_table_code": "lt_m1_chest_c1",
+        "item_code": "ammo_pistol",
+        "tier": 2,
+        "weight": 25,
+        "min_qty": 8,
+        "max_qty": 8
+      },
+      {
+        "loot_table_code": "lt_m1_chest_c1",
+        "item_code": "gun_oil",
+        "tier": 3,
+        "weight": 50,
+        "min_qty": 1,
+        "max_qty": 1
+      },
+      {
+        "loot_table_code": "lt_m1_chest_c1",
+        "item_code": "weapon_parts",
+        "tier": 3,
+        "weight": 50,
+        "min_qty": 1,
+        "max_qty": 1
+      },
+      {
+        "loot_table_code": "lt_m1_chest_c1",
+        "item_code": "repair_kit",
+        "tier": 4,
+        "weight": 60,
+        "min_qty": 1,
+        "max_qty": 1
+      },
+      {
+        "loot_table_code": "lt_m1_chest_c1",
+        "item_code": "smoke_module",
+        "tier": 4,
+        "weight": 40,
+        "min_qty": 1,
+        "max_qty": 1
+      },
+      {
+        "loot_table_code": "lt_m1_chest_c2",
+        "item_code": "ak_loading_pack",
+        "tier": 5,
+        "weight": 1,
+        "min_qty": 2,
+        "max_qty": 2
+      },
+      {
+        "loot_table_code": "lt_m1_chest_c2",
+        "item_code": "ammo_rifle",
+        "tier": 5,
+        "weight": 1,
+        "min_qty": 60,
+        "max_qty": 60
+      },
+      {
+        "loot_table_code": "lt_m1_chest_c2",
+        "item_code": "smoke_module",
+        "tier": 5,
+        "weight": 1,
+        "min_qty": 1,
+        "max_qty": 1
+      },
+      {
+        "loot_table_code": "lt_m1_chest_c2",
+        "item_code": "weapon_parts",
+        "tier": 5,
+        "weight": 1,
+        "min_qty": 1,
+        "max_qty": 1
+      },
+      {
+        "loot_table_code": "lt_m1_chest_c2",
+        "item_code": "medkit_small",
+        "tier": 5,
+        "weight": 1,
+        "min_qty": 3,
+        "max_qty": 3
+      },
+      {
+        "loot_table_code": "lt_m1_chest_c2",
+        "item_code": "smoke_bomb",
+        "tier": 5,
+        "weight": 1,
+        "min_qty": 2,
+        "max_qty": 2
+      },
+      {
+        "loot_table_code": "lt_m1_chest_c2",
+        "item_code": "grenade_f1",
+        "tier": 5,
+        "weight": 1,
+        "min_qty": 1,
+        "max_qty": 1
+      },
+      {
+        "loot_table_code": "lt_m1_chest_c2",
+        "item_code": "gunpowder",
+        "tier": 5,
+        "weight": 1,
+        "min_qty": 3,
+        "max_qty": 3
+      },
+      {
+        "loot_table_code": "lt_m1_chest_c2",
+        "item_code": "cloth",
+        "tier": 1,
+        "weight": 35,
+        "min_qty": 2,
+        "max_qty": 3
+      },
+      {
+        "loot_table_code": "lt_m1_chest_c2",
+        "item_code": "herb",
+        "tier": 1,
+        "weight": 30,
+        "min_qty": 2,
+        "max_qty": 2
+      },
+      {
+        "loot_table_code": "lt_m1_chest_c2",
+        "item_code": "scrap_metal",
+        "tier": 1,
+        "weight": 35,
+        "min_qty": 2,
+        "max_qty": 3
+      },
+      {
+        "loot_table_code": "lt_m1_chest_c2",
+        "item_code": "medkit_small",
+        "tier": 2,
+        "weight": 50,
+        "min_qty": 1,
+        "max_qty": 1
+      },
+      {
+        "loot_table_code": "lt_m1_chest_c2",
+        "item_code": "ammo_pistol",
+        "tier": 2,
+        "weight": 25,
+        "min_qty": 8,
+        "max_qty": 8
+      },
+      {
+        "loot_table_code": "lt_m1_chest_c2",
+        "item_code": "gunpowder",
+        "tier": 2,
+        "weight": 25,
+        "min_qty": 2,
+        "max_qty": 2
+      },
+      {
+        "loot_table_code": "lt_m1_chest_c2",
+        "item_code": "gun_oil",
+        "tier": 3,
+        "weight": 50,
+        "min_qty": 1,
+        "max_qty": 1
+      },
+      {
+        "loot_table_code": "lt_m1_chest_c2",
+        "item_code": "weapon_parts",
+        "tier": 3,
+        "weight": 25,
+        "min_qty": 1,
+        "max_qty": 1
+      },
+      {
+        "loot_table_code": "lt_m1_chest_c2",
+        "item_code": "smoke_module",
+        "tier": 3,
+        "weight": 25,
+        "min_qty": 1,
+        "max_qty": 1
+      },
+      {
+        "loot_table_code": "lt_m1_chest_c2",
+        "item_code": "repair_kit",
+        "tier": 4,
+        "weight": 50,
+        "min_qty": 1,
+        "max_qty": 1
+      },
+      {
+        "loot_table_code": "lt_m1_chest_c2",
+        "item_code": "grenade_f1",
+        "tier": 4,
+        "weight": 30,
+        "min_qty": 1,
+        "max_qty": 1
+      },
+      {
+        "loot_table_code": "lt_m1_chest_c2",
+        "item_code": "blast_charge",
+        "tier": 4,
+        "weight": 20,
+        "min_qty": 1,
+        "max_qty": 1
+      },
+      {
+        "loot_table_code": "lt_m1_chest_c3",
+        "item_code": "ammo_sniper",
+        "tier": 5,
+        "weight": 1,
+        "min_qty": 10,
+        "max_qty": 10
+      },
+      {
+        "loot_table_code": "lt_m1_chest_c3",
+        "item_code": "scope_lens",
+        "tier": 5,
+        "weight": 1,
+        "min_qty": 1,
+        "max_qty": 1
+      },
+      {
+        "loot_table_code": "lt_m1_chest_c3",
+        "item_code": "blast_charge",
+        "tier": 5,
+        "weight": 1,
+        "min_qty": 1,
+        "max_qty": 1
+      },
+      {
+        "loot_table_code": "lt_m1_chest_c3",
+        "item_code": "repair_kit",
+        "tier": 5,
+        "weight": 1,
+        "min_qty": 1,
+        "max_qty": 1
+      },
+      {
+        "loot_table_code": "lt_m1_chest_c3",
+        "item_code": "medkit_small",
+        "tier": 5,
+        "weight": 1,
+        "min_qty": 1,
+        "max_qty": 1
+      },
+      {
+        "loot_table_code": "lt_m1_chest_c3",
+        "item_code": "ammo_rifle",
+        "tier": 1,
+        "weight": 60,
+        "min_qty": 20,
+        "max_qty": 30
+      },
+      {
+        "loot_table_code": "lt_m1_chest_c3",
+        "item_code": "scrap_metal",
+        "tier": 1,
+        "weight": 40,
+        "min_qty": 2,
+        "max_qty": 3
+      },
+      {
+        "loot_table_code": "lt_m1_chest_c3",
+        "item_code": "medkit_small",
+        "tier": 2,
+        "weight": 40,
+        "min_qty": 1,
+        "max_qty": 1
+      },
+      {
+        "loot_table_code": "lt_m1_chest_c3",
+        "item_code": "gunpowder",
+        "tier": 2,
+        "weight": 35,
+        "min_qty": 2,
+        "max_qty": 3
+      },
+      {
+        "loot_table_code": "lt_m1_chest_c3",
+        "item_code": "ammo_sniper",
+        "tier": 2,
+        "weight": 25,
+        "min_qty": 3,
+        "max_qty": 5
+      },
+      {
+        "loot_table_code": "lt_m1_chest_c3",
+        "item_code": "weapon_parts",
+        "tier": 3,
+        "weight": 45,
+        "min_qty": 1,
+        "max_qty": 2
+      },
+      {
+        "loot_table_code": "lt_m1_chest_c3",
+        "item_code": "gun_oil",
+        "tier": 3,
+        "weight": 35,
+        "min_qty": 1,
+        "max_qty": 1
+      },
+      {
+        "loot_table_code": "lt_m1_chest_c3",
+        "item_code": "smoke_module",
+        "tier": 3,
+        "weight": 20,
+        "min_qty": 1,
+        "max_qty": 1
+      },
+      {
+        "loot_table_code": "lt_m1_chest_c3",
+        "item_code": "grenade_f1",
+        "tier": 4,
+        "weight": 45,
+        "min_qty": 1,
+        "max_qty": 1
+      },
+      {
+        "loot_table_code": "lt_m1_chest_c3",
+        "item_code": "fuse_module",
+        "tier": 4,
+        "weight": 30,
+        "min_qty": 1,
+        "max_qty": 1
+      },
+      {
+        "loot_table_code": "lt_m1_chest_c3",
+        "item_code": "repair_kit",
+        "tier": 4,
+        "weight": 25,
+        "min_qty": 1,
+        "max_qty": 1
+      },
+      {
+        "loot_table_code": "lt_m1_mosin_cache",
+        "item_code": "rifle_mosin",
+        "tier": 5,
+        "weight": 1,
+        "min_qty": 1,
+        "max_qty": 1
+      },
+      {
+        "loot_table_code": "lt_m1_mosin_cache",
+        "item_code": "ammo_sniper",
+        "tier": 5,
+        "weight": 1,
+        "min_qty": 5,
+        "max_qty": 5
+      },
+      {
+        "loot_table_code": "lt_c3_field_approach",
+        "item_code": "medkit_small",
+        "tier": 5,
+        "weight": 1,
+        "min_qty": 3,
+        "max_qty": 3
+      },
+      {
+        "loot_table_code": "lt_c3_field_approach",
+        "item_code": "smoke_bomb",
+        "tier": 5,
+        "weight": 1,
+        "min_qty": 2,
+        "max_qty": 2
+      },
+      {
+        "loot_table_code": "lt_c3_field_approach",
+        "item_code": "grenade_f1",
+        "tier": 5,
+        "weight": 1,
+        "min_qty": 1,
+        "max_qty": 1
+      },
+      {
+        "loot_table_code": "lt_c3_field_medic",
+        "item_code": "medkit_small",
+        "tier": 5,
+        "weight": 1,
+        "min_qty": 2,
+        "max_qty": 2
+      },
+      {
+        "loot_table_code": "lt_c3_field_medic",
+        "item_code": "smoke_bomb",
+        "tier": 5,
+        "weight": 1,
+        "min_qty": 1,
+        "max_qty": 1
+      },
+      {
+        "loot_table_code": "lt_m1_supply_reward",
+        "item_code": "ak_loading_pack",
+        "tier": 5,
+        "weight": 1,
+        "min_qty": 2,
+        "max_qty": 2
+      },
+      {
+        "loot_table_code": "lt_m1_supply_reward",
+        "item_code": "medkit_small",
+        "tier": 5,
+        "weight": 1,
+        "min_qty": 2,
+        "max_qty": 2
+      },
+      {
+        "loot_table_code": "lt_m1_supply_reward",
+        "item_code": "ammo_rifle",
+        "tier": 5,
+        "weight": 1,
+        "min_qty": 30,
+        "max_qty": 30
+      },
+      {
+        "loot_table_code": "lt_m1_supply_reward",
+        "item_code": "smoke_bomb",
+        "tier": 5,
+        "weight": 1,
+        "min_qty": 1,
+        "max_qty": 1
+      },
+      {
+        "loot_table_code": "lt_m1_supply_reward",
+        "item_code": "grenade_f1",
+        "tier": 5,
+        "weight": 1,
+        "min_qty": 1,
+        "max_qty": 1
+      },
+      {
+        "loot_table_code": "lt_m1_base_start",
+        "item_code": "ammo_rifle",
+        "tier": 5,
+        "weight": 1,
+        "min_qty": 60,
+        "max_qty": 60
+      },
+      {
+        "loot_table_code": "lt_m1_base_start",
+        "item_code": "medkit_small",
+        "tier": 5,
+        "weight": 1,
+        "min_qty": 2,
+        "max_qty": 2
+      },
+      {
+        "loot_table_code": "lt_m1_base_start",
+        "item_code": "smoke_bomb",
+        "tier": 5,
+        "weight": 1,
+        "min_qty": 1,
+        "max_qty": 1
+      },
+      {
+        "loot_table_code": "lt_m1_base_start",
+        "item_code": "herb",
+        "tier": 5,
+        "weight": 1,
+        "min_qty": 2,
+        "max_qty": 2
+      },
+      {
+        "loot_table_code": "lt_m1_base_start",
+        "item_code": "cloth",
+        "tier": 5,
+        "weight": 1,
+        "min_qty": 4,
+        "max_qty": 4
+      },
+      {
+        "loot_table_code": "lt_m1_base_stock",
+        "item_code": "ak_loading_pack",
+        "tier": 5,
+        "weight": 1,
+        "min_qty": 1,
+        "max_qty": 1
+      },
+      {
+        "loot_table_code": "lt_m1_base_stock",
+        "item_code": "grenade_f1",
+        "tier": 5,
+        "weight": 1,
+        "min_qty": 1,
+        "max_qty": 1
+      },
+      {
+        "loot_table_code": "lt_m1_base_stock",
+        "item_code": "ammo_556",
+        "tier": 5,
+        "weight": 1,
+        "min_qty": 15,
+        "max_qty": 15
+      },
+      {
+        "loot_table_code": "lt_m1_base_stock",
+        "item_code": "ammo_rifle",
+        "tier": 5,
+        "weight": 1,
+        "min_qty": 15,
+        "max_qty": 15
+      },
+      {
+        "loot_table_code": "lt_m1_base_stock",
+        "item_code": "ammo_pistol",
+        "tier": 5,
+        "weight": 1,
+        "min_qty": 8,
+        "max_qty": 8
+      },
+      {
+        "loot_table_code": "lt_m1_base_stock",
+        "item_code": "ammo_sniper",
+        "tier": 5,
+        "weight": 1,
+        "min_qty": 5,
+        "max_qty": 5
+      },
+      {
+        "loot_table_code": "lt_m1_base_stock",
+        "item_code": "medkit_small",
+        "tier": 5,
+        "weight": 1,
+        "min_qty": 1,
+        "max_qty": 1
+      },
+      {
+        "loot_table_code": "lt_m1_base_stock",
+        "item_code": "repair_kit",
+        "tier": 5,
+        "weight": 1,
+        "min_qty": 1,
+        "max_qty": 1
+      },
+      {
+        "loot_table_code": "lt_m1_base_stock",
+        "item_code": "gun_oil",
+        "tier": 5,
+        "weight": 1,
+        "min_qty": 1,
+        "max_qty": 1
+      },
+      {
+        "loot_table_code": "lt_m1_base_stock",
+        "item_code": "weapon_parts",
+        "tier": 5,
+        "weight": 1,
+        "min_qty": 1,
+        "max_qty": 1
+      },
+      {
+        "loot_table_code": "lt_m1_base_stock",
+        "item_code": "smoke_bomb",
+        "tier": 5,
+        "weight": 1,
+        "min_qty": 1,
+        "max_qty": 1
+      }
+    ],
+    "crafting_recipes": [
+      {
+        "code": "recover_ammo_556",
+        "output_item_code": "ammo_recovered",
+        "output_quantity": 1,
+        "craft_time_s": 3
+      },
+      {
+        "code": "assemble_ammo_ak",
+        "output_item_code": "ammo_rifle",
+        "output_quantity": 10,
+        "craft_time_s": 5
+      },
+      {
+        "code": "craft_medkit_small",
+        "output_item_code": "medkit_small",
+        "output_quantity": 1,
+        "craft_time_s": 4
+      },
+      {
+        "code": "craft_repair_kit",
+        "output_item_code": "repair_kit",
+        "output_quantity": 1,
+        "craft_time_s": 6
+      },
+      {
+        "code": "craft_ammo_pistol",
+        "output_item_code": "ammo_pistol",
+        "output_quantity": 8,
+        "craft_time_s": 3
+      },
+      {
+        "code": "craft_ammo_rifle",
+        "output_item_code": "ammo_rifle",
+        "output_quantity": 10,
+        "craft_time_s": 5
+      },
+      {
+        "code": "craft_ammo_556",
+        "output_item_code": "ammo_556",
+        "output_quantity": 10,
+        "craft_time_s": 5
+      },
+      {
+        "code": "craft_ammo_sniper",
+        "output_item_code": "ammo_sniper",
+        "output_quantity": 5,
+        "craft_time_s": 6
+      },
+      {
+        "code": "craft_smoke_bomb",
+        "output_item_code": "smoke_bomb",
+        "output_quantity": 1,
+        "craft_time_s": 4
+      },
+      {
+        "code": "craft_grenade_f1",
+        "output_item_code": "grenade_f1",
+        "output_quantity": 1,
+        "craft_time_s": 6
+      }
+    ],
+    "crafting_recipe_ingredients": [
+      {
+        "recipe_code": "recover_ammo_556",
+        "item_code": "ammo_556",
+        "quantity": 10
+      },
+      {
+        "recipe_code": "assemble_ammo_ak",
+        "item_code": "ammo_recovered",
+        "quantity": 2
+      },
+      {
+        "recipe_code": "assemble_ammo_ak",
+        "item_code": "ak_loading_pack",
+        "quantity": 1
+      },
+      {
+        "recipe_code": "craft_medkit_small",
+        "item_code": "cloth",
+        "quantity": 2
+      },
+      {
+        "recipe_code": "craft_medkit_small",
+        "item_code": "herb",
+        "quantity": 1
+      },
+      {
+        "recipe_code": "craft_repair_kit",
+        "item_code": "scrap_metal",
+        "quantity": 3
+      },
+      {
+        "recipe_code": "craft_repair_kit",
+        "item_code": "gun_oil",
+        "quantity": 1
+      },
+      {
+        "recipe_code": "craft_ammo_pistol",
+        "item_code": "gunpowder",
+        "quantity": 1
+      },
+      {
+        "recipe_code": "craft_ammo_pistol",
+        "item_code": "scrap_metal",
+        "quantity": 1
+      },
+      {
+        "recipe_code": "craft_ammo_rifle",
+        "item_code": "gunpowder",
+        "quantity": 2
+      },
+      {
+        "recipe_code": "craft_ammo_rifle",
+        "item_code": "scrap_metal",
+        "quantity": 1
+      },
+      {
+        "recipe_code": "craft_ammo_556",
+        "item_code": "gunpowder",
+        "quantity": 2
+      },
+      {
+        "recipe_code": "craft_ammo_556",
+        "item_code": "scrap_metal",
+        "quantity": 1
+      },
+      {
+        "recipe_code": "craft_ammo_sniper",
+        "item_code": "gunpowder",
+        "quantity": 3
+      },
+      {
+        "recipe_code": "craft_ammo_sniper",
+        "item_code": "scrap_metal",
+        "quantity": 1
+      },
+      {
+        "recipe_code": "craft_smoke_bomb",
+        "item_code": "smoke_module",
+        "quantity": 1
+      },
+      {
+        "recipe_code": "craft_smoke_bomb",
+        "item_code": "cloth",
+        "quantity": 1
+      },
+      {
+        "recipe_code": "craft_grenade_f1",
+        "item_code": "blast_charge",
+        "quantity": 1
+      },
+      {
+        "recipe_code": "craft_grenade_f1",
+        "item_code": "fuse_module",
+        "quantity": 1
+      },
+      {
+        "recipe_code": "craft_grenade_f1",
+        "item_code": "scrap_metal",
+        "quantity": 1
+      }
+    ],
+    "maps": [
+      {
+        "code": "map00_tutorial",
+        "scene_key": "Map00_Tutorial"
+      },
+      {
+        "code": "map01",
+        "scene_key": "Map 1"
+      },
+      {
+        "code": "map02",
+        "scene_key": "Map 2"
+      }
+    ],
+    "map_loot_tables": [
+      {
+        "map_code": "map01",
+        "container_tag": "c3_field_ak_v1",
+        "loot_table_code": "lt_c3_field_ak"
+      },
+      {
+        "map_code": "map01",
+        "container_tag": "c3_field_approach_v1",
+        "loot_table_code": "lt_c3_field_approach"
+      },
+      {
+        "map_code": "map01",
+        "container_tag": "c3_field_medic_v1",
+        "loot_table_code": "lt_c3_field_medic"
+      },
+      {
+        "map_code": "map01",
+        "container_tag": "camp_chest_c1",
+        "loot_table_code": "lt_m1_chest_c1"
+      },
+      {
+        "map_code": "map01",
+        "container_tag": "camp_chest_c2",
+        "loot_table_code": "lt_m1_chest_c2"
+      },
+      {
+        "map_code": "map01",
+        "container_tag": "camp_chest_c3",
+        "loot_table_code": "lt_m1_chest_c3"
+      },
+      {
+        "map_code": "map01",
+        "container_tag": "c3_mosin_cache",
+        "loot_table_code": "lt_m1_mosin_cache"
+      },
+      {
+        "map_code": "map01",
+        "container_tag": "base_start_crate",
+        "loot_table_code": "lt_m1_base_start"
+      },
+      {
+        "map_code": "map01",
+        "container_tag": "base_requisition",
+        "loot_table_code": "lt_m1_base_stock"
+      },
+      {
+        "map_code": "map01",
+        "container_tag": "supply_delivery_reward",
+        "loot_table_code": "lt_m1_supply_reward"
+      }
+    ]
+  },
+  "databaseAudit": [
+    {
+      "table": "users",
+      "decision": "Keep",
+      "reason": "Authentication, roles and content authors/reviewers; unrelated to game item inventory.",
+      "evidence": "ShadowVale.DAL/Repositories/UserRepository.cs"
+    },
+    {
+      "table": "refresh_tokens",
+      "decision": "Keep",
+      "reason": "Active login sessions and token rotation. Cleanup must follow session expiry policy.",
+      "evidence": "ShadowVale.DAL/Repositories/RefreshTokenRepository.cs"
+    },
+    {
+      "table": "content_versions",
+      "decision": "Keep",
+      "reason": "Version lifecycle, bundle snapshots, publish/review and telemetry attribution.",
+      "evidence": "ShadowVale.DAL/Repositories/ContentVersionRepository.cs"
+    },
+    {
+      "table": "content_publication_history",
+      "decision": "Keep",
+      "reason": "Publication audit and rollback history; not a duplicate of the current published version.",
+      "evidence": "ShadowVale.DAL/Repositories/ContentVersionRepository.cs"
+    },
+    {
+      "table": "items",
+      "decision": "Keep",
+      "reason": "Parent catalog and foreign keys for weapons, ammo, loot, ingredients and rewards.",
+      "evidence": "ShadowVale.BLL/Services/ContentBundleBuilder.cs"
+    },
+    {
+      "table": "weapons",
+      "decision": "Keep; nest under items",
+      "reason": "Weapon stats and ammo reference; published values are applied by PublishedContent in Unity.",
+      "evidence": "Unity: _Project/Map01/Runtime/PublishedContent.cs"
+    },
+    {
+      "table": "consumables",
+      "decision": "Keep; partial runtime support",
+      "reason": "Content subtype; generic stamina/cures/extra effects have no demonstrated Map 1 consumer. Do not claim all fields are applied.",
+      "evidence": "Unity: _Project/Map01/Runtime/Map01Inventory.cs"
+    },
+    {
+      "table": "skills",
+      "decision": "Keep; verify field binding",
+      "reason": "Shooting, engineering and stealth exist. Local SkillBalance remains a separate source requiring field-level verification.",
+      "evidence": "Unity: Resources/Skills/SkillBalance.json"
+    },
+    {
+      "table": "loot_tables",
+      "decision": "Keep",
+      "reason": "Runtime roll ranges and parent of weighted/guaranteed drop entries.",
+      "evidence": "Unity: _Project/Map01/Runtime/Map01Loot.cs"
+    },
+    {
+      "table": "loot_table_entries",
+      "decision": "Keep; nest under loot tables",
+      "reason": "Essential item/tier/weight/quantity relation, not redundant data. Tier odds and adaptive rules are currently local.",
+      "evidence": "Unity: _Project/Map01/Runtime/Map01Loot.cs"
+    },
+    {
+      "table": "maps",
+      "decision": "Keep",
+      "reason": "Scene/code metadata and parent of loot/enemy placement relations. Not a replacement for scene geometry.",
+      "evidence": "ShadowVale.BLL/Services/ContentBundleBuilder.cs"
+    },
+    {
+      "table": "map_loot_tables",
+      "decision": "Keep; nest under maps",
+      "reason": "Container tag to loot table assignments are applied to Map 1 by PublishedContent.",
+      "evidence": "Unity: _Project/Map01/Runtime/PublishedContent.cs"
+    },
+    {
+      "table": "enemy_types",
+      "decision": "Keep; partial runtime support",
+      "reason": "Published archetype values and loot bindings have consumers. Do not treat generic FSM JSON as fully supported.",
+      "evidence": "Unity: _Project/Map01/Runtime/PublishedContent.cs"
+    },
+    {
+      "table": "enemy_placements",
+      "decision": "Retain; integration gap",
+      "reason": "Authoring relation exists, but actual scene spawns are not proven to follow these rows. Empty is not proof of redundancy.",
+      "evidence": "ShadowVale.BLL/Services/ContentBundleBuilder.cs; Unity scene/layout spawning"
+    },
+    {
+      "table": "crafting_recipes",
+      "decision": "Keep",
+      "reason": "Output, quantity and bench time are applied in Unity. Field time/max batch remain local; skill/station metadata is not enforced.",
+      "evidence": "Unity: _Project/Map01/Runtime/PublishedContent.cs; Map01Inventory.FieldCraft.cs"
+    },
+    {
+      "table": "crafting_recipe_ingredients",
+      "decision": "Keep; nest under recipes",
+      "reason": "Runtime consumes/trades inputs via HasInputs/TryCraft; essential many-to-many relation.",
+      "evidence": "Unity: _Project/Map01/Runtime/Map01Inventory.cs"
+    },
+    {
+      "table": "quests",
+      "decision": "Retain; integration gap",
+      "reason": "Web quest metadata is not the mission state machine. Map 1 stages and Map 2 chapter tasks are tracked from Unity sources.",
+      "evidence": "Unity: Map01Quest.cs; Resources/Story/Map02Chapter.json"
+    },
+    {
+      "table": "quest_rewards",
+      "decision": "Retain; integration gap",
+      "reason": "Valid versioned reward relation; gameplay grants some rewards via local scripts/logistics, not this generic relation.",
+      "evidence": "ShadowVale.BLL/Services/ContentBundleBuilder.cs; Unity Map01Logistics.cs"
+    },
+    {
+      "table": "players",
+      "decision": "Keep",
+      "reason": "Anonymous player identity referenced by sessions; distinct from web users.",
+      "evidence": "ShadowVale.DAL/Repositories/GameSessionRepository.cs"
+    },
+    {
+      "table": "game_sessions",
+      "decision": "Keep",
+      "reason": "Primary analytics denominator, play source, content attribution and accumulated weapon stats.",
+      "evidence": "ShadowVale.DAL/Repositories/AnalyticsRepository.cs"
+    },
+    {
+      "table": "telemetry_events",
+      "decision": "Keep; plan retention",
+      "reason": "Mission funnel, spatial events and mission outcomes. Archival requires an agreed analytics retention period.",
+      "evidence": "ShadowVale.DAL/Repositories/AnalyticsRepository.cs"
+    },
+    {
+      "table": "solver_configurations",
+      "decision": "Keep",
+      "reason": "Solver assignment and comparison configuration, referenced by sessions/results.",
+      "evidence": "ShadowVale.DAL/Repositories/SolverConfigurationRepository.cs"
+    },
+    {
+      "table": "coordination_results",
+      "decision": "Keep; plan retention",
+      "reason": "AI solver latency, objective score and fallback analysis; distinct from gameplay events.",
+      "evidence": "ShadowVale.DAL/Repositories/AnalyticsRepository.cs"
+    }
+  ],
+  "limitations": [
+    "Snapshot of checked-out Unity sources, not proof of the configuration a running player loaded. Published values can override local defaults at scene load.",
+    "Trade stock, adaptive loot, field craft settings and mission flow remain local game content. Web tracks them read-only; publishing authoring rows does not change these rules.",
+    "Loot chance is per random roll before adaptive boosts, guard ammo replacement and medkit pity. Tier 5 entries are guaranteed per container; multiple rolls can repeat items.",
+    "Weapon definitions include unused catalog weapons. Playable marks the inventory whitelist; scripted knife stats are intentionally absent.",
+    "Tutorial objectives and scene geometry are not exported. Database assessment is based on source references, not live row counts or production query history."
+  ]
+}

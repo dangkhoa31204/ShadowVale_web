@@ -1766,6 +1766,14 @@
           "string"
         ],
         "format": "double"
+      },
+      "mapCode": {
+        "type": "string",
+        "default": ""
+      },
+      "objectiveCode": {
+        "type": "string",
+        "default": ""
       }
     }
   },
