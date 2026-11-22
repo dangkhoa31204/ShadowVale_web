@@ -1,4 +1,4 @@
-# Unity → Supabase và Admin authoring — 22/11/2026
+# Unity → Supabase và Designer authoring — 22/11/2026
 
 ## Kết quả trên Supabase thật
 
@@ -28,7 +28,7 @@ Dao scripted vẫn nằm ở Unity source reference; không tạo chỉ số dao
 
 ## Một nguồn chỉnh sửa
 
-**Database content** là nơi CRUD qua API hiện có vào các bảng Supabase. **Unity source reference** là snapshot để import/đối chiếu, không phải bộ bảng editable thứ hai.
+**Drafts** là nơi CRUD qua API hiện có vào các bảng Supabase. **Unity catalog** là snapshot để import/đối chiếu, không phải bộ bảng editable thứ hai.
 
 - Vật phẩm, súng và consumable: `items` cùng bảng subtype `weapons`/`consumables`.
 - Loot và lượng rơi: `loot_tables`/`loot_table_entries`; container gắn vào map qua `map_loot_tables`.
@@ -37,9 +37,11 @@ Dao scripted vẫn nằm ở Unity source reference; không tạo chỉ số dao
 - Trade stock và các luật còn thiếu cột riêng: dùng JSON có cấu trúc trong **`maps.layout.game_rules`**. Không thêm bảng mới trùng catalog.
 - Giá mua/giá trị súng dùng `items.base_value`; không lưu thêm giá trùng trong từng trade offer.
 
-Backend đã cho phép Admin authoring. Frontend được cập nhật để Admin mở Content management và chỉnh Draft/Rejected của các tác giả. Approved, InReview, Published và Archived vẫn chỉ đọc. Designer vẫn chỉnh draft của mình; Analyst không được authoring. Luồng giữ nguyên: **Draft → Validate → Submit → Approve → Publish**, có revision và lịch sử publication.
+Designer là người tạo, import, chỉnh sửa, xóa bản nháp, validate và submit. Frontend chỉ cho Designer mở Content authoring và chỉnh Draft/Rejected của mình. Backend chặn Admin tại mọi endpoint ghi nội dung, kể cả gọi API trực tiếp. Admin xem nội dung, approve/reject, publish và rollback; Analyst không được authoring. Approved, InReview, Published và Archived vẫn chỉ đọc. Luồng giữ nguyên: **Draft → Validate → Submit → Approve → Publish**, có revision và lịch sử publication.
 
-Sau khi triển khai FE/BE mới: đăng nhập Admin → **Content management → Database content → #15 Unity import**. Sửa item/weapon/loot/crafting bằng các form có sẵn. Trong **Maps → Trade and game rules** có form thêm/sửa/xóa stock, số đạn kèm, điểm nộp vật liệu, tier odds và adaptive values. Repair/field crafting đầy đủ ở Advanced JSON → layout.game_rules. Validation backend chặn cấu trúc sai, khoảng giá trị sai, mã item/ammo/recipe/mục tiêu không tồn tại và credit ID trùng trước khi publish.
+Sau khi triển khai FE/BE mới: đăng nhập Designer → **Content authoring → Unity catalog → Import Unity as new draft** để tạo bản nháp thuộc Designer, rồi sửa trong **Content authoring → Drafts**. Draft #15 là dữ liệu đã import trước khi đổi phân quyền, có tác giả Admin; thay đổi code này không tự đổi tác giả hay publish bản đó. Sửa item/weapon/loot/crafting bằng các form có sẵn. Trong **Maps → Trade and game rules** có form thêm/sửa/xóa stock, số đạn kèm, điểm nộp vật liệu, tier odds và adaptive values. Repair/field crafting đầy đủ ở Advanced JSON → layout.game_rules. Validation backend chặn cấu trúc sai, khoảng giá trị sai, mã item/ammo/recipe/mục tiêu không tồn tại và credit ID trùng trước khi publish.
+
+Unity catalog chỉ nằm trong Content authoring của Designer, không có mục sidebar riêng hoặc liên kết trong Analytics. Admin và Analyst không được truy cập API catalog/comparison; đường dẫn cũ chỉ redirect Designer sang tab Unity. Analytics dùng mã telemetry ghi trong phiên chơi.
 
 Nút **Import Unity as new draft** tạo một Draft rỗng rồi ghi qua authoring API, không clone bundle test đang live. Nếu gián đoạn, UI giữ Draft ID để retry vào cùng draft; các row đã ghi được đọc lại để không tạo trùng. Tạo import mới không tự publish hoặc thay bản live.
 
@@ -77,7 +79,7 @@ Script SQL read-only `backend/shadowvale_be/docs/database/content-usage-audit.sq
 
 ## Kiểm chứng và triển khai
 
-- **55 frontend tests** qua, gồm Admin authoring, khóa version live và import retry không tạo Draft trùng.
+- **55 frontend tests** qua sau khi đổi phân quyền: Admin không được sửa/submit bản nháp, không được chuyển tới Unity catalog; Designer dùng catalog trong Content authoring.
 - **12 Node tests** qua: schema bundle/rules, FK nội bộ, xác suất loot, field crafting và coverage các bảng.
 - **7 Unity EditMode tests** của PublishedContent qua, gồm giá/credit/field rule mới, stock rỗng và fallback bundle cũ.
 - TypeScript, ESLint các file thay đổi và Vite production build qua.

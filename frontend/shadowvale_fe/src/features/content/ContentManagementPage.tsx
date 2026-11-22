@@ -12,12 +12,12 @@ export function ContentManagementPage() {
   const published = !draftId && params.get('view') === 'published';
   const unity = !draftId && params.get('view') === 'unity';
   return <div className="sv-page">
-    <PageHeading title="Content management" description="Author game content, submit it for review and track published content bundles." />
+    <PageHeading title="Content authoring" description="Edit drafts, submit changes for review and compare with Unity content." />
     <Tabs value={unity ? 'unity' : published ? 'published' : 'author'} onValueChange={value => navigate(value === 'author' ? '/admin/content' : '/admin/content?view=' + value)}>
-      <TabsList variant="line" aria-label="Content management">
-        <TabsTrigger value="author">Database content</TabsTrigger>
-        <TabsTrigger value="published">Published content</TabsTrigger>
-        <TabsTrigger value="unity">Unity source reference</TabsTrigger>
+      <TabsList variant="line" aria-label="Content authoring">
+        <TabsTrigger value="author">Drafts</TabsTrigger>
+        <TabsTrigger value="published">Published</TabsTrigger>
+        <TabsTrigger value="unity">Unity catalog</TabsTrigger>
       </TabsList>
     </Tabs>
     {unity ? <GameCatalogPage embedded /> : published ? <ContentVersions embedded /> : <ContentPage embedded />}

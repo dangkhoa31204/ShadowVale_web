@@ -16,7 +16,7 @@ export async function applyCommand(state: Workspace, command: Command, actor: Us
   };
   const authorOnly = (draft: Draft) => {
     requirePermission('author');
-    if (actor.role !== 'admin' && draft.authorId !== actor.id) throw new Error('Only the author or an Admin can edit this content version.');
+    if (draft.authorId !== actor.id) throw new Error('Only the author can edit this content version.');
   };
   const archiveActive = () => {
     const active = next.releases.find(release => release.id === next.activeReleaseId);

@@ -7999,7 +7999,7 @@
           "ContentVersions"
         ],
         "summary": "POST /api/content-versions (DESIGNER)",
-        "description": "Available to both Designer and Admin. Creates an empty Draft or clones all content when parentVersionId is provided. Returns version metadata; weapon editing is a separate operation.",
+        "description": "Designer only. Creates an empty Draft or clones all content when parentVersionId is provided. Returns version metadata; weapon editing is a separate operation.",
         "requestBody": {
           "content": {
             "application/json": {
@@ -8249,8 +8249,8 @@
         "tags": [
           "ContentVersions"
         ],
-        "summary": "PUT /api/content-versions/{id} (ADMIN)",
-        "description": "Available to both Designer and Admin. Updates label, changelog, and schemaVersion only; requires Draft status and current revision. Does not update weapon stats.",
+        "summary": "PUT /api/content-versions/{id} (DESIGNER)",
+        "description": "Designer only. Updates label, changelog, and schemaVersion only; requires Draft status and current revision. Does not update weapon stats.",
         "parameters": [
           {
             "name": "id",
@@ -8389,8 +8389,8 @@
         "tags": [
           "ContentVersions"
         ],
-        "summary": "DELETE /api/content-versions/{id} (ADMIN)",
-        "description": "Available to both Designer and Admin. Soft-deletes a Draft by setting Archived; preserves its content. Requires the current revision.",
+        "summary": "DELETE /api/content-versions/{id} (DESIGNER)",
+        "description": "Designer only. Soft-deletes a Draft by setting Archived; preserves its content. Requires the current revision.",
         "parameters": [
           {
             "name": "id",
@@ -8662,8 +8662,8 @@
         "tags": [
           "ContentVersions"
         ],
-        "summary": "POST /api/content-versions/{id}/validate (ADMIN)",
-        "description": "Available to both Designer and Admin. Validates the complete Draft snapshot and returns isValid, errors, and the incremented revision. Does not submit the version for review.",
+        "summary": "POST /api/content-versions/{id}/validate (DESIGNER)",
+        "description": "Designer only. Validates the complete Draft snapshot and returns isValid, errors, and the incremented revision. Does not submit the version for review.",
         "parameters": [
           {
             "name": "id",
@@ -8805,7 +8805,7 @@
           "ContentVersions"
         ],
         "summary": "POST /api/content-versions/{id}/submit (DESIGNER)",
-        "description": "Available to both Designer and Admin. Requires Draft status, the current revision, and an unchanged validated bundle/checksum. Revalidates the bundle, sets InReview and submittedAt, and returns the incremented revision. Submitted content is locked for editing.",
+        "description": "Designer only. Requires Draft status, the current revision, and an unchanged validated bundle/checksum. Revalidates the bundle, sets InReview and submittedAt, and returns the incremented revision. Submitted content is locked for editing.",
         "parameters": [
           {
             "name": "id",

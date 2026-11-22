@@ -8,7 +8,7 @@ namespace ShadowVale.API.Controllers;
 
 [ApiController]
 [Route("api/game-catalog")]
-[Authorize(Roles = $"{AppRoles.Admin},{AppRoles.Analyst},{AppRoles.Designer}")]
+[Authorize(Roles = AppRoles.Designer)]
 public class GameCatalogController(GameCatalogService catalog) : ControllerBase
 {
     [HttpGet]

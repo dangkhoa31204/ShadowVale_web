@@ -107,7 +107,7 @@ function DraftEditor({ draft, enums }: { draft: Draft; enums?: EnumsDto }) {
       validationRef.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
     }
   }, [showValidation]);
-  const owner = user?.role === 'admin' || user?.role === 'designer' && draft.authorId === user.id;
+  const owner = user?.role === 'designer' && draft.authorId === user.id;
   const editable = (draft.status === 'draft' || (!isDemoMode && draft.status === 'rejected')) && owner;
   const record = bundle[category][selected];
   const categoryInfo = collections.find(collection => collection.key === category)!;

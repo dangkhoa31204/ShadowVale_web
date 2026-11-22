@@ -29,8 +29,9 @@ public class ContentVersionsController(IContentVersionService service) : Control
         Respond(await service.GetByIdAsync(id, ct));
 
     [HttpPost]
+    [Authorize(Roles = AppRoles.Designer)]
     [EndpointSummary("POST /api/content-versions (DESIGNER)")]
-    [EndpointDescription("Available to both Designer and Admin. Creates an empty Draft or clones all content when parentVersionId is provided. Returns version metadata; weapon editing is a separate operation.")]
+    [EndpointDescription("Designer only. Creates an empty Draft or clones all content when parentVersionId is provided. Returns version metadata; weapon editing is a separate operation.")]
     public async Task<ActionResult<ContentVersionDto>> Create(CreateContentVersionRequest request, CancellationToken ct)
     {
         var version = await service.CreateAsync(request, User.GetUserId(), ct);
@@ -46,28 +47,32 @@ public class ContentVersionsController(IContentVersionService service) : Control
         CancellationToken ct) => Respond(await service.CompareAsync(id, targetId.GetValueOrDefault(), ct));
 
     [HttpPut("{id:guid}")]
-    [EndpointSummary("PUT /api/content-versions/{id} (ADMIN)")]
-    [EndpointDescription("Available to both Designer and Admin. Updates label, changelog, and schemaVersion only; requires Draft status and current revision. Does not update weapon stats.")]
+    [Authorize(Roles = AppRoles.Designer)]
+    [EndpointSummary("PUT /api/content-versions/{id} (DESIGNER)")]
+    [EndpointDescription("Designer only. Updates label, changelog, and schemaVersion only; requires Draft status and current revision. Does not update weapon stats.")]
     public async Task<ActionResult<ContentVersionDto>> Update(Guid id, UpdateContentVersionRequest request,
         CancellationToken ct) => Respond(await service.UpdateAsync(id, request, ct));
 
     [HttpPost("{id:guid}/validate")]
-    [EndpointSummary("POST /api/content-versions/{id}/validate (ADMIN)")]
-    [EndpointDescription("Available to both Designer and Admin. Validates the complete Draft snapshot and returns isValid, errors, and the incremented revision. Does not submit the version for review.")]
+    [Authorize(Roles = AppRoles.Designer)]
+    [EndpointSummary("POST /api/content-versions/{id}/validate (DESIGNER)")]
+    [EndpointDescription("Designer only. Validates the complete Draft snapshot and returns isValid, errors, and the incremented revision. Does not submit the version for review.")]
     public async Task<ActionResult<ContentValidationResultDto>> Validate(Guid id,
         ValidateContentVersionRequest request, CancellationToken ct) => Respond(await service.ValidateAsync(id, request, ct));
 
     [HttpPost("{id:guid}/submit")]
+    [Authorize(Roles = AppRoles.Designer)]
     [EndpointSummary("POST /api/content-versions/{id}/submit (DESIGNER)")]
-    [EndpointDescription("Available to both Designer and Admin. Requires Draft status, the current revision, and an unchanged validated bundle/checksum. Revalidates the bundle, sets InReview and submittedAt, and returns the incremented revision. Submitted content is locked for editing.")]
+    [EndpointDescription("Designer only. Requires Draft status, the current revision, and an unchanged validated bundle/checksum. Revalidates the bundle, sets InReview and submittedAt, and returns the incremented revision. Submitted content is locked for editing.")]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     public async Task<ActionResult<ContentVersionDto>> Submit(Guid id, SubmitContentVersionRequest request,
         CancellationToken ct) => Respond(await service.SubmitAsync(id, request, ct));
 
     [HttpDelete("{id:guid}")]
-    [EndpointSummary("DELETE /api/content-versions/{id} (ADMIN)")]
-    [EndpointDescription("Available to both Designer and Admin. Soft-deletes a Draft by setting Archived; preserves its content. Requires the current revision.")]
+    [Authorize(Roles = AppRoles.Designer)]
+    [EndpointSummary("DELETE /api/content-versions/{id} (DESIGNER)")]
+    [EndpointDescription("Designer only. Soft-deletes a Draft by setting Archived; preserves its content. Requires the current revision.")]
     public async Task<IActionResult> Delete(Guid id, [FromBody] DeleteContentVersionRequest request,
         CancellationToken ct)
     {

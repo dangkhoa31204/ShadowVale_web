@@ -41,8 +41,8 @@ try {
   const existing=(await client.query('SELECT id,version_no,status FROM shadowvale.content_versions WHERE changelog LIKE $1',['%'+marker+'%'])).rows;
   if(existing.length) {await client.query('ROLLBACK');transaction=false;console.log(JSON.stringify({created:false,existing}));}
   else {
-    const authors=(await client.query("SELECT id FROM shadowvale.users WHERE is_active AND role='Admin'")).rows;
-    if(authors.length!==1)throw new Error('Import requires exactly one active Admin; select an author explicitly before importing into this database.');
+    const authors=(await client.query("SELECT id FROM shadowvale.users WHERE is_active AND role='Designer'")).rows;
+    if(authors.length!==1)throw new Error('Import requires exactly one active Designer. Sign in as a Designer and import through the web when several authors exist.');
     const liveBefore=(await client.query("SELECT id,bundle_checksum,revision FROM shadowvale.content_versions WHERE status='Published'")).rows;
     const versionId=crypto.randomUUID();
     const version=(await client.query("INSERT INTO shadowvale.content_versions (id,label,changelog,status,revision,schema_version,authored_by_id,created_at,updated_at) VALUES ($1,$2,$3,'Draft',1,'1.0',$4,now(),now()) RETURNING id,version_no,status",[versionId,`Unity import ${new Date().toISOString().slice(0,10)}`,marker+'\n'+catalog.importNotes.join('\n'),authors[0].id])).rows[0];
