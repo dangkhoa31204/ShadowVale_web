@@ -15,7 +15,7 @@ Quyền sửa solver áp dụng cả frontend và endpoint backend. Các API sol
 
 ## Sai lệch đã xác định
 
-Hiện `weapons` chứa 28 hàng: 24 hàng thử nghiệm/lịch sử và 4 súng gameplay trong Draft #15 (AK47, M16, K54, Mosin). Shotgun/SMG/carbine chỉ là định nghĩa trong JSON mẫu cũ, chưa được triển khai. Đã loại ba định nghĩa này khỏi bản nháp và khỏi các lần import mới; vẫn bảo toàn metadata nguồn để truy vết. Không xóa lịch sử hoặc thay Published #9.
+Sau lần [dọn item test](TEST_ITEM_CLEANUP_2026-11-22.md), `weapons` chứa 18 hàng: 14 hàng test lịch sử và 4 súng gameplay trong Draft #15 (AK47, M16, K54, Mosin). Shotgun/SMG/carbine chỉ là định nghĩa trong JSON mẫu cũ, chưa được triển khai. Đã loại ba định nghĩa này khỏi bản nháp và khỏi các lần import mới; vẫn bảo toàn metadata nguồn để truy vết. Không xóa lịch sử hoặc thay Published #9.
 
 Bộ import cũ chỉ lấy `Map01Content.json`. AK47 thực tế được tạo từ `W_AK47.prefab`; `Map01RifleVisual` giữ baseline của prefab khi dùng AK và dùng hằng số `Map01M16` khi đổi sang M16. Vì vậy số trong JSON không phản ánh đúng AK runtime.
 
