@@ -1,5 +1,5 @@
 url: http://127.0.0.1:15174/login?redirect=%2Fadmin%2Freleases
-name: Designer content management groups authoring and published bundles
+name: Designer content authoring groups drafts published content and Unity catalog
 ---
 - launchApp:
     clearState: true
@@ -11,11 +11,15 @@ name: Designer content management groups authoring and published bundles
 - inputText: UiTest123!
 - tapOn:
     id: login-submit
-- assertVisible: Content management
+- assertVisible: Content authoring
 - assertVisible: Published content bundles
 - assertNotVisible: Versions
-- tapOn: Author content
+- tapOn: Drafts
 - assertVisible: Create content version
-- tapOn: Published content
+- tapOn: Published
 - assertVisible: Published content bundles
 - takeScreenshot: content-management-published
+- tapOn: Unity catalog
+- assertVisible: Import from Unity
+- assertVisible: Import Unity as new draft
+- takeScreenshot: content-authoring-unity

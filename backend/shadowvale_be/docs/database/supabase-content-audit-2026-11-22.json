@@ -1,0 +1,43 @@
+{
+  "observedAt": "2026-11-22T10:22:36.209Z",
+  "schemas": [
+    "shadowvale",
+    "public"
+  ],
+  "readOnlyAudit": true,
+  "applicationTableCount": 23,
+  "migrationTable": "shadowvale.__ef_migrations_history",
+  "unmappedApplicationTables": [],
+  "importedDraft": {
+    "id": "a1c53061-65ce-4896-a940-e7526109d2c2",
+    "version_no": "15",
+    "status": "Draft",
+    "revision": "1",
+    "validated_at": null,
+    "bundle_not_published": true
+  },
+  "importedCounts": {
+    "items": 34,
+    "skills": 3,
+    "loot_tables": 17,
+    "maps": 3,
+    "enemy_types": 8,
+    "crafting_recipes": 10,
+    "quests": 2,
+    "weapons": 7,
+    "consumables": 4,
+    "loot_table_entries": 148,
+    "map_loot_tables": 10,
+    "crafting_recipe_ingredients": 20,
+    "quest_rewards": 0,
+    "enemy_placements": 0
+  },
+  "importRulesMatch": true,
+  "published": [
+    {
+      "version_no": "9",
+      "status": "Published",
+      "items": 4
+    }
+  ]
+}

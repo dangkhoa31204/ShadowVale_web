@@ -347,6 +347,42 @@ public class ContentApiTests(ApiFixture api) : IntegrationTest(api)
     }
 
     [DbFact]
+    public async Task Admin_CanReadContent_ButCannotAuthorOrSubmit_EvenThroughDirectApiCalls()
+    {
+        var designer = await Api.CreateUserClientAsync(UserRole.Designer);
+        var admin = await Api.CreateUserClientAsync(UserRole.Admin);
+        var version = await CreateVersion(designer);
+        await FillAsync(designer, version.Id);
+        var before = await GetVersion(admin, version.Id);
+        var url = $"{Versions}/{version.Id}";
+
+        (await admin.GetAsync(Versions)).StatusCode.ShouldBe(HttpStatusCode.OK);
+        (await admin.PostAsJsonAsync(Versions, new CreateContentVersionRequest { Label = "Forbidden clone", ParentVersionId = version.Id }))
+            .StatusCode.ShouldBe(HttpStatusCode.Forbidden);
+        (await admin.PutAsJsonAsync(url, new { label = "Forbidden edit", revision = before.Revision })).StatusCode.ShouldBe(HttpStatusCode.Forbidden);
+        foreach (var action in new[] { "validate", "submit" })
+            (await admin.PostAsJsonAsync($"{url}/{action}", new { revision = before.Revision })).StatusCode.ShouldBe(HttpStatusCode.Forbidden);
+        (await Delete(admin, version.Id)).StatusCode.ShouldBe(HttpStatusCode.Forbidden);
+
+        foreach (var resource in new[] { "items", "skills", "loot-tables", "enemy-types", "maps", "recipes", "quests" })
+        {
+            var rows = await Read<JsonElement>(await admin.GetAsync($"{url}/{resource}"));
+            var id = rows.EnumerateArray().First().GetProperty("id").GetGuid();
+            var rowUrl = $"{url}/{resource}/{id}";
+            (await admin.GetAsync(rowUrl)).StatusCode.ShouldBe(HttpStatusCode.OK);
+            (await admin.PostAsJsonAsync($"{url}/{resource}", new { })).StatusCode.ShouldBe(HttpStatusCode.Forbidden);
+            (await admin.PutAsJsonAsync(rowUrl, new { })).StatusCode.ShouldBe(HttpStatusCode.Forbidden);
+            (await admin.DeleteAsync(rowUrl)).StatusCode.ShouldBe(HttpStatusCode.Forbidden);
+        }
+        var after = await GetVersion(admin, version.Id);
+        after.Revision.ShouldBe(before.Revision);
+        after.Label.ShouldBe(before.Label);
+        after.Status.ShouldBe("Draft");
+        await ValidateAndSubmit(designer, version.Id);
+        (await ApproveAndPublish(admin, version.Id)).Status.ShouldBe("Published");
+    }
+
+    [DbFact]
     public async Task Roles_AnalystCannotReachContent_AndAnonymousIsRejected()
     {
         var analyst = await Api.CreateUserClientAsync(UserRole.Analyst);
@@ -363,22 +399,23 @@ public class ContentApiTests(ApiFixture api) : IntegrationTest(api)
     [DbFact]
     public async Task Publish_OnlyApprovedVersions_And_Delete_OnlyDrafts()
     {
+        var designer = await Api.CreateUserClientAsync(UserRole.Designer);
         var admin = await Api.CreateUserClientAsync(UserRole.Admin);
-        var version = await CreateVersion(admin);
-        await FillAsync(admin, version.Id);
+        var version = await CreateVersion(designer);
+        await FillAsync(designer, version.Id);
 
         (await Act(admin, version.Id, "publish", new { reason = "Too early" })).StatusCode.ShouldBe(HttpStatusCode.Conflict);
 
-        await ValidateAndSubmit(admin, version.Id);
+        await ValidateAndSubmit(designer, version.Id);
         await ApproveAndPublish(admin, version.Id);
 
-        (await Delete(admin, version.Id)).StatusCode.ShouldBe(HttpStatusCode.Conflict);
+        (await Delete(designer, version.Id)).StatusCode.ShouldBe(HttpStatusCode.Conflict);
 
         // Deleting a validated draft archives it; its content is kept
-        var draft = await CreateVersion(admin, "scratch");
-        await FillAsync(admin, draft.Id);
-        (await Read<ContentValidationResultDto>(await Act(admin, draft.Id, "validate"))).IsValid.ShouldBeTrue();
-        (await Delete(admin, draft.Id)).StatusCode.ShouldBe(HttpStatusCode.NoContent);
+        var draft = await CreateVersion(designer, "scratch");
+        await FillAsync(designer, draft.Id);
+        (await Read<ContentValidationResultDto>(await Act(designer, draft.Id, "validate"))).IsValid.ShouldBeTrue();
+        (await Delete(designer, draft.Id)).StatusCode.ShouldBe(HttpStatusCode.NoContent);
         (await GetVersion(admin, draft.Id)).Status.ShouldBe("Archived");
 
         // A deleted draft was never live, so there is nothing to roll back to
@@ -388,10 +425,11 @@ public class ContentApiTests(ApiFixture api) : IntegrationTest(api)
     [DbFact]
     public async Task Delete_unvalidated_draft_archives_without_requiring_a_bundle()
     {
+        var designer = await Api.CreateUserClientAsync(UserRole.Designer);
         var admin = await Api.CreateUserClientAsync(UserRole.Admin);
-        var draft = await CreateVersion(admin, "unvalidated scratch");
+        var draft = await CreateVersion(designer, "unvalidated scratch");
         draft.Revision.ShouldBe(0);
-        (await Delete(admin, draft.Id)).StatusCode.ShouldBe(HttpStatusCode.NoContent);
+        (await Delete(designer, draft.Id)).StatusCode.ShouldBe(HttpStatusCode.NoContent);
         var archived = await GetVersion(admin, draft.Id);
         archived.Status.ShouldBe("Archived");
         archived.Revision.ShouldBe(1);

@@ -1,10 +1,12 @@
 import { axiosClient } from '../../services/api/axiosClient';
+import type { ContentBundle } from './types';
 
 export interface CatalogItem { code: string; name: string; type: string; maxStack: number | null; weight: number | null; baseValue: number | null; inRuntimeInventory: boolean }
 export interface CatalogWeapon { id: string; name: string; playable: boolean; scripted?: boolean; damage?: number; fire_rate?: number; range?: number; magazine_size?: number; ammo_type?: string; reload_seconds?: number; durability_max?: number; durability_per_shot?: number }
 export interface CatalogObjective { id: string; index: number; title: string; requires: string[]; count: number; playOrder: number; phase?: number; kind?: string; site?: string; purpose?: string; seconds?: number; credit?: number }
 export interface CatalogMap { code: string; name: string; scene: string; nodeCount: number; objectiveCount: number; bounds: { minX: number; maxX: number; minZ: number; maxZ: number }; escapeRoutes: unknown[]; spawnGroups: unknown[]; containers: { tag: string; lootTable: string }[]; fieldCaches: { id: string; label: string; x: number; z: number; minStage: number }[]; note: string }
 export interface GameCatalog {
+  authoringBundle?: ContentBundle; importNotes?: string[];
   schemaVersion: number; generatedAt: string; unityCommit: string | null; sourceHash: string;
   sources: { path: string; sha256: string }[]; limitations: string[];
   items: CatalogItem[]; weapons: CatalogWeapon[];

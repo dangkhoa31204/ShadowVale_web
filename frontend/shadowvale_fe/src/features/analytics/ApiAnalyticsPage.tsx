@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -18,7 +17,6 @@ import { errorMessage } from '../../services/api/errors';
 import type { HeatmapDto, AiComparisonRowDto } from '../../services/api/contracts';
 import { Empty, PageHeading, Panel, panelTable } from '../shared/ui';
 import { NumericControl } from '../shared/NumericControl';
-import { gameCatalogApi, type GameCatalog } from '../content/gameCatalogApi';
 type Gameplay=Awaited<ReturnType<typeof analyticsApi.gameplay>>;
 type Data={gameplay?:Gameplay;heatmap?:HeatmapDto;comparison?:AiComparisonRowDto[]};
 const num=(v:unknown)=>v===null||v===undefined?'—':Number(v).toLocaleString('en-GB',{maximumFractionDigits:2});
@@ -26,18 +24,12 @@ const pct=(v:unknown)=>v===null||v===undefined?'—':(Number(v)*100).toFixed(1)+
 function MetricsTable({headers,rows}:{headers:string[];rows:React.ReactNode[][]}){
  return rows.length?<Table className={cn(panelTable,'tabular-nums')}><TableHeader><TableRow>{headers.map(h=><TableHead key={h}>{h}</TableHead>)}</TableRow></TableHeader><TableBody>{rows.map((row,i)=><TableRow key={i}>{row.map((v,j)=><TableCell key={j}>{v}</TableCell>)}</TableRow>)}</TableBody></Table>:<Empty title="No data for these filters"/>;}
 // Proposal distributions: mission completion funnel, weapon usage and stealth vs combat.
-function GameplayPanels({data,catalog}:{data:Gameplay;catalog?:GameCatalog}){
+function GameplayPanels({data}:{data:Gameplay}){
   const playstyle=data.playstyle;
-  const objectiveLabel=(r:Gameplay['funnel']['objectives'][number])=>{
-    const code=r.objectiveCode;
-    const quest=catalog?.quests.find(q=>q.mapCode===r.mapCode);
-    const objective=code?quest?.objectives.find(o=>o.id===code):undefined;
-    return [r.mapCode,objective?.title||code||'Objective '+r.objectiveIndex].filter(Boolean).join(' · ');
-  };
-  const weaponLabel=(code:string)=>catalog?.items.find(i=>i.code===code)?.name||code;
+  const objectiveLabel=(r:Gameplay['funnel']['objectives'][number])=>[r.mapCode,r.objectiveCode||'Objective '+r.objectiveIndex].filter(Boolean).join(' · ');
   return <>
-    <Panel title="Mission funnel" description="Sessions per map/objective and share of started sessions. Labels use the current Unity source snapshot; historical wording can differ."><HorizontalBars unit="Sessions" rows={[{label:'Started',value:Number(data.funnel.sessionsStarted),detail:num(data.funnel.sessionsStarted)},...data.funnel.objectives.map(r=>({label:[r.mapCode,r.objectiveCode||'Objective '+r.objectiveIndex].filter(Boolean).join(' · '),value:Number(r.sessions),detail:num(r.sessions)+' · '+pct(r.shareOfStarted)})),{label:'Completed',value:Number(data.funnel.missionsCompleted),detail:num(data.funnel.missionsCompleted)+' · '+pct(data.funnel.completionRate)}]}/><details className="px-6 pb-5 text-sm"><summary className="cursor-pointer">Mission names and progression</summary><MetricsTable headers={['Map / objective','Index','Sessions','Share of started']} rows={data.funnel.objectives.map(r=>[objectiveLabel(r),r.objectiveIndex,num(r.sessions),pct(r.shareOfStarted)])}/></details></Panel>
-    <Panel title="Weapon usage" description="Shots per weapon · current Unity item names"><HorizontalBars unit="Shots" rows={data.weapons.weapons.map(r=>({label:weaponLabel(r.weapon),value:Number(r.shots),detail:num(r.shots)+' shots · '+r.weapon}))}/></Panel>
+    <Panel title="Mission funnel" description="Sessions per map/objective and share of started sessions. Codes identify the map and objective recorded in each session."><HorizontalBars unit="Sessions" rows={[{label:'Started',value:Number(data.funnel.sessionsStarted),detail:num(data.funnel.sessionsStarted)},...data.funnel.objectives.map(r=>({label:[r.mapCode,r.objectiveCode||'Objective '+r.objectiveIndex].filter(Boolean).join(' · '),value:Number(r.sessions),detail:num(r.sessions)+' · '+pct(r.shareOfStarted)})),{label:'Completed',value:Number(data.funnel.missionsCompleted),detail:num(data.funnel.missionsCompleted)+' · '+pct(data.funnel.completionRate)}]}/><details className="px-6 pb-5 text-sm"><summary className="cursor-pointer">Mission names and progression</summary><MetricsTable headers={['Map / objective','Index','Sessions','Share of started']} rows={data.funnel.objectives.map(r=>[objectiveLabel(r),r.objectiveIndex,num(r.sessions),pct(r.shareOfStarted)])}/></details></Panel>
+    <Panel title="Weapon usage" description="Shots per weapon code recorded in telemetry"><HorizontalBars unit="Shots" rows={data.weapons.weapons.map(r=>({label:r.weapon,value:Number(r.shots),detail:num(r.shots)+' shots · '+r.weapon}))}/></Panel>
     <Panel title="Stealth and combat" description="Finished sessions by stealth ratio"><HorizontalBars unit="Sessions" rows={playstyle.stealthRatioHistogram.map(r=>({label:pct(r.from)+'–'+pct(r.to),value:Number(r.sessions),detail:num(r.sessions)+' · '+pct(Number(r.sessions)/Math.max(1,Number(playstyle.finishedSessions)))}))}/></Panel>
   </>;
 }
@@ -59,7 +51,6 @@ export function ApiAnalyticsPage(){
   const [version,setVersion]=useState(''),[map,setMap]=useState(''),[family,setFamily]=useState(''),[solver,setSolver]=useState(''),[group,setGroup]=useState('configuration');
   const [cell,setCell]=useState(5),[cellError,setCellError]=useState(''),[event,setEvent]=useState('player_death');
   const enums=useQuery({queryKey:['enums'],queryFn:contentApi.enums,staleTime:Infinity});
-  const catalog=useQuery({queryKey:['game-catalog'],queryFn:({signal})=>gameCatalogApi.get(signal),staleTime:60_000});
   // Published versions only: telemetry can only come from a version the game downloaded. Same list for every role.
   const versions=useQuery({queryKey:['analytics-content-versions'],queryFn:({signal})=>analyticsApi.contentVersions(signal)});
   const solvers=useQuery({queryKey:['solver-configurations'],queryFn:({signal})=>analyticsApi.solvers(signal)});
@@ -91,7 +82,7 @@ export function ApiAnalyticsPage(){
         <Field><FieldLabel htmlFor="an-from">From</FieldLabel><Input id="an-from" type="date" value={from} onChange={e=>setFrom(e.target.value)}/></Field>
         <Field><FieldLabel htmlFor="an-to">To</FieldLabel><Input id="an-to" type="date" value={to} onChange={e=>setTo(e.target.value)}/></Field>
         <Field><FieldLabel htmlFor="an-version">Content version</FieldLabel><NativeSelect id="an-version" className="w-full" value={version} onChange={e=>setVersion(e.target.value)}><NativeSelectOption value="">All versions</NativeSelectOption>{versions.data?.map(v=><NativeSelectOption key={v.id} value={v.id}>#{v.versionNo} · {v.label}{v.isLive?' (live)':''}</NativeSelectOption>)}</NativeSelect></Field>
-        <Field><FieldLabel htmlFor="an-map">Map code</FieldLabel><Input id="an-map" list="unity-map-codes" value={map} onChange={e=>setMap(e.target.value)} placeholder="e.g. map01"/><datalist id="unity-map-codes">{catalog.data?.maps.map(m=><option key={m.code} value={m.code}>{m.name}</option>)}</datalist></Field>
+        <Field><FieldLabel htmlFor="an-map">Map code</FieldLabel><Input id="an-map" value={map} onChange={e=>setMap(e.target.value)} placeholder="e.g. map01"/></Field>
         <Field><FieldLabel htmlFor="an-family">Solver family</FieldLabel><NativeSelect id="an-family" className="w-full" value={family} onChange={e=>setFamily(e.target.value)}><NativeSelectOption value="">All families</NativeSelectOption>{enums.data?.solverFamilies.map(v=><NativeSelectOption key={v} value={v}>{v}</NativeSelectOption>)}</NativeSelect></Field>
         <Field><FieldLabel htmlFor="an-solver">Solver configuration</FieldLabel><NativeSelect id="an-solver" className="w-full" value={solver} onChange={e=>setSolver(e.target.value)}><NativeSelectOption value="">All configurations</NativeSelectOption>{solvers.data?.map(s=><NativeSelectOption value={s.id} key={s.id}>{s.name}</NativeSelectOption>)}</NativeSelect></Field>
       </div>
@@ -103,7 +94,7 @@ export function ApiAnalyticsPage(){
       :analytics.error?<Alert variant="destructive"><AlertDescription className="flex items-center justify-between gap-4">{errorMessage(analytics.error)}<Button variant="outline" size="sm" onClick={()=>void analytics.refetch()}>Retry</Button></AlertDescription></Alert>
       :!data?<div className="flex items-center justify-center gap-2 p-10 text-sm text-muted-foreground" role="status"><Spinner/>Loading analytics…</div>
       :<div className={cn('sv-page transition-opacity',analytics.isPlaceholderData&&'opacity-60')} aria-busy={analytics.isFetching}>
-        {data.gameplay&&<GameplayPanels data={data.gameplay} catalog={catalog.data}/>}
+        {data.gameplay&&<GameplayPanels data={data.gameplay}/>}
         {data.heatmap&&<Panel title="Difficulty heatmap"><Heatmap data={data.heatmap}/></Panel>}
         {data.comparison&&<Panel title="AI comparison" description="Capture rate per solver group">
           {data.comparison.length>0&&<HorizontalBars unit="Capture rate (%)" rows={data.comparison.map(r=>({label:(new Set(data.comparison!.map(x=>x.contentVersionId)).size>1?(r.contentVersionLabel||'—')+' · ':'')+r.groupLabel,value:Number(r.captureRate||0)*100,detail:pct(r.captureRate)}))}/>}
@@ -111,7 +102,5 @@ export function ApiAnalyticsPage(){
         </Panel>}
       </div>}
     </>}
-    <p className="text-sm"><Link className="underline" to="/admin/game-catalog">Inspect Unity weapons, drop rates, crafting, trade, maps and missions</Link></p>
-    {catalog.error&&<p className="text-sm text-muted-foreground">Unity catalog could not be loaded; telemetry codes remain visible.</p>}
   </div>;
 }

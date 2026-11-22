@@ -1,9 +1,10 @@
 import type { RouteObject } from 'react-router-dom';
+import { Navigate } from 'react-router-dom';
 import { InternalLayout } from '../layouts/InternalLayout';
 import { ProtectedRoute } from './guards/ProtectedRoute';
 import { permissions, type Permission } from '../features/auth/access';
 import { HomeRedirect } from '../features/auth/RoleHome';
-import { Content, GameCatalog, Reviews, Releases, Analytics, Users, ChangePassword } from './routePages';
+import { Content, Reviews, Releases, Analytics, Users, ChangePassword } from './routePages';
 function guard(permission: Permission, element: React.ReactNode) {
   return <ProtectedRoute allowedRoles={permissions[permission]}>{element}</ProtectedRoute>;
 }
@@ -19,6 +20,6 @@ export const adminRoutes: RouteObject = {
     { path: 'users', element: guard('users', <Users />) },
     { path: 'change-password', element: <ChangePassword /> },
     { path: 'analytics', element: guard('analytics', <Analytics />) },
-    { path: 'game-catalog', element: guard('analytics', <GameCatalog />) },
+    { path: 'game-catalog', element: guard('author', <Navigate to="/admin/content?view=unity" replace />) },
   ],
 };

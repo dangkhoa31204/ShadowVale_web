@@ -10,16 +10,15 @@ export const can = (role: Role, permission: Permission) =>
 export const homeForRole = (role: Role) => role === 'analyst' ? '/admin/analytics' : role === 'admin' ? '/admin/reviews' : '/admin/content';
 export const safeRedirect = (value: string | null, role: Role) => {
   const pathname = value?.split(/[?#]/, 1)[0];
-  const routes = [...navigationForRole(role), { path: '/admin/change-password' }, ...(can(role, 'versions') ? [{ path: '/admin/releases' }] : []), ...(can(role, 'analytics') ? [{ path: '/admin/analytics' }] : [])];
+  const routes = [...navigationForRole(role), { path: '/admin/change-password' }, ...(can(role, 'versions') ? [{ path: '/admin/releases' }] : []), ...(can(role, 'author') ? [{ path: '/admin/game-catalog' }] : []), ...(can(role, 'analytics') ? [{ path: '/admin/analytics' }] : [])];
   return value && !value.includes('\\') && routes.some(n => pathname === n.path || pathname?.startsWith(n.path + '/')) ? value : homeForRole(role);
 };
 export const navigation: { label: string; path: string; icon: string; permission?: Permission; group: string }[] = [
-  { label: 'Content management', path: '/admin/content', icon: 'edit_note', permission: 'author', group: 'Workspace' },
+  { label: 'Content authoring', path: '/admin/content', icon: 'edit_note', permission: 'author', group: 'Workspace' },
   { label: 'Review content', path: '/admin/reviews', icon: 'fact_check', permission: 'review', group: 'Workspace' },
   { label: 'Versions', path: '/admin/releases', icon: 'deployed_code', permission: 'versions', group: 'Workspace' },
   { label: 'Users', path: '/admin/users', icon: 'group', permission: 'users', group: 'Workspace' },
   { label: 'Analytics', path: '/admin/analytics', icon: 'monitoring', permission: 'analytics', group: 'Insights' },
-  { label: 'Unity game catalog', path: '/admin/game-catalog', icon: 'inventory_2', permission: 'analytics', group: 'Insights' },
 ];
 export const navigationForRole = (role: Role) => navigation
   .filter(n => !n.permission || can(role, n.permission))

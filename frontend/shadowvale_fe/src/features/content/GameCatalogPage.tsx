@@ -1,6 +1,6 @@
 import { useState, type ReactNode } from 'react';
-import { Link } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { Link, useNavigate } from 'react-router-dom';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,6 +10,10 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Empty, PageHeading, Panel, panelTable } from '../shared/ui';
 import { errorMessage } from '../../services/api/errors';
 import { gameCatalogApi } from './gameCatalogApi';
+import { useAuth } from '../../hooks/useAuth';
+import { can } from '../auth/access';
+import { contentApi, UnityImportError } from './contentApi';
+import { useWorkspace } from './workspaceContext';
 
 const sections = [['weapons', 'Weapons'], ['ammo', 'Ammo & items'], ['loot', 'Drop rates'], ['crafting', 'Crafting'], ['trade', 'Trade'], ['maps', 'Maps'], ['quests', 'Missions'], ['database', 'Database audit']] as const;
 type Section = typeof sections[number][0];
@@ -20,19 +24,26 @@ function DataTable({ headers, rows }: { headers: string[]; rows: ReactNode[][] }
 }
 
 export function GameCatalogPage({ embedded = false }: { embedded?: boolean }) {
+  const {user}=useAuth(),{reload}=useWorkspace(),navigate=useNavigate();
+  const [importId,setImportId]=useState<string>();
   const [section, setSection] = useState<Section>('weapons');
   const [search, setSearch] = useState('');
   const catalog = useQuery({ queryKey: ['game-catalog'], queryFn: ({ signal }) => gameCatalogApi.get(signal), staleTime: 60_000 });
   const comparison = useQuery({ queryKey: ['game-catalog-comparison'], queryFn: ({ signal }) => gameCatalogApi.compare(signal), staleTime: 30_000 });
   const data = catalog.data;
+  const importDraft=useMutation({mutationFn:async()=>{
+    if(!data?.authoringBundle)throw new Error('The API does not have an importable Unity bundle yet. Deploy the updated API.');
+    return contentApi.importUnity(data.authoringBundle,data.sourceHash,importId);
+  },onSuccess:async id=>{setImportId(id);await reload();navigate('/admin/content/'+id);},onError:error=>{if(error instanceof UnityImportError)setImportId(error.draftId);}});
   const match = (...values: unknown[]) => values.some(v => String(v ?? '').toLocaleLowerCase().includes(search.trim().toLocaleLowerCase()));
   const name = (code: string) => data?.items.find(i => i.code === code)?.name ?? code;
   const item = (code: string) => <span>{name(code)}<code className="block text-xs text-muted-foreground">{code}</code></span>;
   const refresh = <Button variant="outline" disabled={catalog.isFetching || comparison.isFetching} onClick={() => { void catalog.refetch(); void comparison.refetch(); }}>Refresh</Button>;
   return <div className="sv-page">
-    {!embedded && <PageHeading title="Unity game catalog" description="Track shipped game content and compare local defaults with the published version." action={refresh} />}
+    {!embedded && <PageHeading title="Unity catalog" description="Compare Unity source data or import it into a draft for editing." action={refresh} />}
     {embedded && <div className="flex justify-end">{refresh}</div>}
     {catalog.error ? <Alert variant="destructive"><AlertDescription>{errorMessage(catalog.error)}</AlertDescription></Alert> : !data ? <p role="status">Loading Unity catalog…</p> : <>
+      {user&&can(user.role,'author')&&<Panel title="Import from Unity" description="Reference data from Unity source files. Import into a draft to edit; publishing requires Admin review."><div className="flex flex-wrap gap-3 p-6"><Button disabled={importDraft.isPending||!data.authoringBundle} onClick={()=>importDraft.mutate()}>{importDraft.isPending?'Importing…':importId?'Resume import into same draft':'Import Unity as new draft'}</Button></div>{importDraft.error&&<p role="alert" className="px-6 pb-6 text-sm text-destructive">{errorMessage(importDraft.error)}</p>}{!!data.importNotes?.length&&<details className="px-6 pb-6 text-sm"><summary className="cursor-pointer">Import coverage and defaults to review</summary><ul className="list-disc pl-5 pt-3 space-y-2">{data.importNotes.map(n=><li key={n}>{n}</li>)}</ul></details>}</Panel>}
       <Panel title="Source snapshot" description="Read-only Unity content. Authoring versions and player telemetry are tracked separately.">
         <div className="grid gap-3 p-6 text-sm">
           <p>{data.items.length} items · {data.weapons.filter(w => w.playable).length} playable weapons · {data.recipes.length} recipes · {data.maps.length} maps · {data.quests.reduce((n, q) => n + q.objectives.length, 0)} mission objectives</p>
@@ -58,7 +69,7 @@ export function GameCatalogPage({ embedded = false }: { embedded?: boolean }) {
       </>}
       {section === 'crafting' && <Panel title="Assembly and crafting" description="Bench and field can both be available. Required skill metadata is not enforced by the current crafting runtime."><DataTable headers={['Recipe', 'Ingredients', 'Output', 'Workbench', 'Field', 'Skill metadata']} rows={data.recipes.filter(r => match(r.id, name(r.output_item_id), ...r.inputs.map(i => name(i.item_id)))).map(r => [<code>{r.id}</code>, <div className="space-y-2">{r.inputs.map(i => <div key={i.item_id}>{i.count} × {item(i.item_id)}</div>)}</div>, <span>{r.output_count} × {item(r.output_item_id)}</span>, r.benchAvailable ? `${r.craft_seconds} s` : 'Not listed', r.fieldAvailable ? `${r.field_seconds} s · max batch ${r.field_max_batch ?? 1}` : 'Unavailable', r.required_skill ? `${r.required_skill} ${r.required_skill_level} (not enforced)` : '—'])} /></Panel>}
       {section === 'trade' && <>
-        <Alert><AlertDescription>Camp quartermaster configuration; read-only from Unity. Player balances, inventory and transaction history are local saves and are not uploaded as trade records.</AlertDescription></Alert>
+        <Alert><AlertDescription>Edit imported trade offers in Drafts → Maps → Trade and game rules; edit prices under Items → Base value. Player balances and transaction history remain local saves.</AlertDescription></Alert>
         <Panel title="Quartermaster stock"><DataTable headers={['Map', 'Weapon (100% condition)', 'Bundled ammo', 'Logistics points']} rows={data.trade.offers.filter(o => match(o.mapCode, o.gun, name(o.gun), o.ammo)).map(o => [o.mapCode, item(o.gun), <span>{o.rounds} × {item(o.ammo)}</span>, o.price])} /></Panel>
         <Panel title="Material turn-in"><DataTable headers={['Material (1 unit)', 'Points']} rows={data.trade.materials.filter(m => match(m.id, name(m.id))).map(m => [item(m.id), m.points])} /></Panel>
         <Panel title="Weapon turn-in and operation credits"><div className="p-6 text-sm">Weapon credit = round(base value × lerp({data.trade.logistics.turnInFloor}, {data.trade.logistics.turnInCeiling}, condition fraction)). Only unequipped guns can be turned in. Map 1 operation credits: {data.trade.logistics.operationCredit.join(', ')}. Map 2 task credits appear under Missions.</div></Panel>

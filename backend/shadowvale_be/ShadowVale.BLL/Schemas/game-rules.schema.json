@@ -1,0 +1,12 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#", "type": "object", "additionalProperties": false,
+  "properties": {
+    "trade_offers": {"type":"array","maxItems":100,"items":{"type":"object","additionalProperties":false,"required":["gun","ammo","rounds"],"properties":{"gun":{"type":"string"},"ammo":{"type":"string"},"rounds":{"type":"integer","minimum":1,"maximum":9999}}}},
+    "tier_odds": {"type":"array","minItems":4,"maxItems":4,"items":{"type":"number","minimum":0,"maximum":100000}},
+    "adaptive": {"type":"object","additionalProperties":false,"properties":{"lowAmmo":{"type":"integer","minimum":0},"ammoBoost":{"type":"number","exclusiveMinimum":0},"lowHealth":{"type":"number","minimum":0,"maximum":1},"medkitBoost":{"type":"number","exclusiveMinimum":0},"medkitPity":{"type":"integer","minimum":1}}},
+    "repair": {"type":"object","additionalProperties":false,"properties":{"fieldFraction":{"type":"number","minimum":0,"maximum":1},"fieldSeconds":{"type":"number","exclusiveMinimum":0},"salvageSeconds":{"type":"number","exclusiveMinimum":0},"benchQuarterParts":{"type":"integer","minimum":1},"benchOilFrom":{"type":"number","minimum":0,"maximum":1},"benchDiscountLevel":{"type":"integer","minimum":0},"salvageBonusLevel":{"type":"integer","minimum":0}}},
+    "logistics": {"type":"object","additionalProperties":false,"properties":{"turnInFloor":{"type":"number","minimum":0,"maximum":1},"turnInCeiling":{"type":"number","minimum":0,"maximum":1},"operationCredit":{"type":"array","minItems":4,"maxItems":4,"items":{"type":"integer","minimum":0}},"materialTrade":{"type":"array","items":{"$ref":"#/definitions/credit"}},"mapTwoRewards":{"type":"array","items":{"$ref":"#/definitions/credit"}}}},
+    "field_crafting": {"type":"object","additionalProperties":{"type":"object","additionalProperties":false,"required":["seconds","max_batch"],"properties":{"seconds":{"type":"number","minimum":0,"maximum":600},"max_batch":{"type":"integer","minimum":1,"maximum":1000}}}}
+  },
+  "definitions": {"credit":{"type":"object","additionalProperties":false,"required":["id","points"],"properties":{"id":{"type":"string","minLength":1},"points":{"type":"integer","minimum":0,"maximum":1000000}}}}
+}

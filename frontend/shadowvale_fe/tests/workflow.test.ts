@@ -91,11 +91,11 @@ test('author submits, admin approves and publish seals an immutable snapshot wit
   published.drafts[0].bundle.weapons[0].damage = 999;
   assert.equal(original.drafts[0].bundle.weapons[0].damage, 24);
 });
-test('admin can navigate to review, publishing, users, analytics and Unity catalog', async () => {
-  assert.deepEqual(navigationForRole('admin').map(n => n.path), ['/admin/reviews', '/admin/releases', '/admin/users', '/admin/analytics', '/admin/game-catalog']);
+test('admin can review and publish but cannot author content or access the Unity catalog', async () => {
+  assert.deepEqual(navigationForRole('admin').map(n => n.path), ['/admin/reviews', '/admin/releases', '/admin/users', '/admin/analytics']);
   assert.equal(homeForRole('admin'), '/admin/reviews'); assert.equal(homeForRole('designer'), '/admin/content');
   assert.equal(safeRedirect('/admin/dashboard', 'admin'), '/admin/reviews');
-  for (const permission of ['author'] as const) assert.equal(can('admin', permission), false);
+  assert.equal(can('admin', 'author'), false);
   assert.equal(can('admin', 'analytics'), true); assert.equal(safeRedirect('/admin/analytics', 'admin'), '/admin/analytics');
   assert.equal(can('designer', 'solverEdit'), false);
   for (const path of ['/admin/content', '/admin/content/d1']) assert.equal(safeRedirect(path, 'admin'), '/admin/reviews');
@@ -103,12 +103,17 @@ test('admin can navigate to review, publishing, users, analytics and Unity catal
   assert.equal(safeRedirect('/admin/users', 'admin'), '/admin/users');
   assert.equal(safeRedirect('/admin/users', 'designer'), '/admin/content');
   for (const role of ['admin', 'designer', 'analyst'] as const) {
-    assert.equal(safeRedirect('/admin/game-catalog', role), '/admin/game-catalog');
+    assert.equal(safeRedirect('/admin/game-catalog', role), role === 'designer' ? '/admin/game-catalog' : homeForRole(role));
     assert.equal(safeRedirect('/admin/profile', role), homeForRole(role));
     assert.equal(safeRedirect('/admin/change-password', role), '/admin/change-password');
   }
-  await assert.rejects(applyCommand(state(), { type: 'createDraft', title: 'Admin draft' }, admin, validate), /role/);
-  await assert.rejects(applyCommand(state(), { type: 'submitDraft', id: 'd1', revision: 1 }, admin, validate), /role/);
+  await assert.rejects(applyCommand(state(), { type: 'createDraft', title: 'Admin draft' }, admin, validate), /Your role/);
+  for (const actor of [admin, analyst]) {
+    await assert.rejects(applyCommand(state(), { type: 'submitDraft', id: 'd1', revision: 1 }, actor, validate), /Your role/);
+    await assert.rejects(applyCommand(state(), { type: 'saveDraft', id: 'd1', revision: 1, title: 'Changed', bundle: state().drafts[0].bundle }, actor, validate), /Your role/);
+    const rejected = state(); rejected.drafts[0].status = 'rejected';
+    await assert.rejects(applyCommand(rejected, { type: 'editRejectedDraft', id: 'd1', revision: 1 }, actor, validate), /Your role/);
+  }
 });
 test('stale revisions, invalid bundles and duplicate version numbers are blocked', async () => {
   await assert.rejects(applyCommand(state(), { type: 'submitDraft', id: 'd1', revision: 0 }, designer, validate), /changed/);
@@ -165,8 +170,12 @@ test('review diffs match item_code and composite keys independently of order', (
 
 test('designer manages published content inside content management while legacy links remain valid', () => {
   const designerNavigation = navigationForRole('designer');
-  assert.equal(designerNavigation.find(n => n.path === '/admin/content')?.label, 'Content management');
+  assert.equal(designerNavigation.find(n => n.path === '/admin/content')?.label, 'Content authoring');
   assert.equal(designerNavigation.some(n => n.path === '/admin/releases'), false);
+  for (const role of ['designer', 'admin', 'analyst'] as const) {
+    assert.equal(navigationForRole(role).some(n => n.path === '/admin/game-catalog'), false);
+    assert.equal(safeRedirect('/admin/content?view=unity', role), role === 'designer' ? '/admin/content?view=unity' : homeForRole(role));
+  }
   assert.equal(navigationForRole('admin').find(n => n.path === '/admin/releases')?.label, 'Publish content');
   assert.equal(safeRedirect('/admin/releases', 'designer'), '/admin/releases');
   assert.equal(safeRedirect('/admin/content?view=published', 'designer'), '/admin/content?view=published');
