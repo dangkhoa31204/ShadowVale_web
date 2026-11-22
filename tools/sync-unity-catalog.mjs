@@ -4,6 +4,7 @@ import crypto from 'node:crypto';
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { authoringBundle } from './unity-authoring-bundle.mjs';
+import { resolveWeaponRuntime } from './unity-weapon-runtime.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const hash = value => crypto.createHash('sha256').update(value).digest('hex');
@@ -41,7 +42,7 @@ export function buildCatalog(assets) {
     return bytes.toString('utf8').replace(/^\uFEFF/, '');
   };
   const json = relative => JSON.parse(read(relative));
-  const content = json('_Project/Map01/Generated/Map01Content.json');
+  let content = json('_Project/Map01/Generated/Map01Content.json');
   const loot = json('_Project/Map01/Resources/Loot/Map01Loot.json');
   const balance = json('_Project/Map01/Map01Balance.json');
   const skills = json('Resources/Skills/SkillBalance.json');
@@ -59,6 +60,8 @@ export function buildCatalog(assets) {
   const objectives = strings(block(quest, 'Objectives'));
   if (stageIds.length !== objectives.length || !stageIds.length) throw new Error('Map 1 stage/objective mismatch');
   const m16 = read('_Project/Map01/Runtime/Map01M16.cs');
+  const runtimeWeapons = resolveWeaponRuntime(content, read('_Project/Prefabs/Items/W_AK47.prefab'), read('_Project/Prefabs/Player/Player.prefab'), m16);
+  content = runtimeWeapons.content;
   const m16Constants = Object.fromEntries([...m16.matchAll(/(\w+)\s*=\s*"([^"]+)"/g)].map(m => [`Map01M16.${m[1]}`, m[2]]));
   const trader = read('_Project/Map01/Runtime/CampTrader.cs');
   for (const source of ['Map01Loot.cs', 'Map01Logistics.cs', 'Map01Inventory.Condition.cs', 'PublishedContent.cs']) read(`_Project/Map01/Runtime/${source}`);
@@ -119,11 +122,13 @@ export function buildCatalog(assets) {
   let unityCommit = null;
   try { unityCommit = execFileSync('git', ['-C', path.dirname(assets), 'rev-parse', 'HEAD'], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim(); } catch { /* hashes still identify the source */ }
   const sourceList = [...sources.values()].sort((a, b) => a.path.localeCompare(b.path));
-  const imported = authoringBundle({items,content,loot,balance,skills,recipes,quests,graphs,tradeOffers});
-  projection.items=projection.items.filter(i=>i.code!=='knife');
+  const imported = authoringBundle({items,content,loot,balance,skills,recipes,quests,graphs,tradeOffers,playable});
+  imported.notes.push('Rifle damage/range/fire rate resolve Unity prefab and M16 runtime constants; magazine/reload resolve Player prefab. Generated JSON alone is not the effective rifle configuration. Skills, lethal-hit rules and enemy difficulty modifiers remain runtime behavior.');
+  projection.items=projection.items.filter(i=>imported.bundle.items.some(row=>row.code===i.code));
+  projection.weapons=projection.weapons.filter(w=>imported.bundle.weapons.some(row=>row.item_code===w.item_code));
   projection.maps=imported.bundle.maps.map(m=>({code:m.code,scene_key:m.scene_key,layout:m.layout}));
   return { schemaVersion: 1, generatedAt: new Date().toISOString(), unityCommit, sourceHash: hash(JSON.stringify(sourceList)), sources: sourceList,
-    authoringBundle: imported.bundle, importNotes: imported.notes,
+    authoringBundle: imported.bundle, importNotes: imported.notes, weaponRuntimeOverrides: runtimeWeapons.overrides,
     items, weapons, lootTables, recipes, trade: { offers: tradeOffers, materials: loot.logistics.materialTrade, logistics: loot.logistics },
     maps, quests, adaptive: loot.adaptive, tierOdds: loot.tierOdds, repair: loot.repair, balance, skills,
     enemyTypes: loot.enemyTypes, authoringProjection: projection,

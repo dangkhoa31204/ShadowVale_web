@@ -54,6 +54,7 @@ export function mockApi() {
     if (!['admin','designer','analyst'].includes(role)) return send({status:401,message:'UI test session required.'},401);
     if (route === '/auth/me') return send(user(role));
     if (route.startsWith('/game-catalog') && role !== 'designer') return send({status:403,message:'Designer access required.'},403);
+    if (route.startsWith('/solver-configurations') && req.method !== 'GET' && role !== 'designer') return send({status:403,message:'Designer access required.'},403);
     if (route.startsWith('/content-versions') && req.method !== 'GET' && role !== 'designer' && !/\/(approve|reject|publish|rollback)$/.test(route)) return send({status:403,message:'Designer access required.'},403);
     if (route === '/game-catalog') return send(catalog);
     if (route === '/game-catalog/comparison') return send({ status: 'nothing_published', differences: [] });

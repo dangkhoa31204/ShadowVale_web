@@ -1,3 +1,5 @@
+> Phân quyền cập nhật 22/11/2026: Designer sửa nội dung game và cấu hình AI/solver. Admin duyệt, publish/rollback và quản lý tài khoản; Analyst đọc analytics/cấu hình. Chi tiết đồng bộ weapons: `../../docs/WEAPON_DB_SYNC_2026-11-22.md`.
+
 # ShadowVale Backend
 
 ASP.NET Core Web API (.NET 10), 3 lớp, PostgreSQL trên Supabase.
@@ -127,7 +129,7 @@ User management validation and session behavior:
 
 ## Content versions (Admin / Designer)
 
-API này dùng JWT, cho phép role `Admin` và `Designer`:
+API này dùng JWT. Admin và Designer được đọc; chỉ Designer được tạo/sửa/xóa Draft, validate và submit. Admin approve/reject/publish/rollback:
 
 - `GET /api/content-versions?search=&status=Draft&page=1&pageSize=20`: danh sách metadata, không tải toàn bộ bundle.
 - `GET /api/content-versions/{id}`: `{ version, bundle }`, bundle dựng từ các bảng của đúng phiên bản.
@@ -192,7 +194,7 @@ Test update: compare V1 -> V2, then V2 validate -> submit -> approve -> publish;
 To test rejection without losing the update scenario, clone V2 before submission, validate and submit the
 clone, then reject it with a note. A Rejected version returns to Draft on its first content edit.
 Use Analyst/Designer on Admin endpoints for 403; stale revisions and repeated/wrong-state actions for 409.
-Current submit also permits Admin, useful when a Designer account is not available.
+Only Designer can author, validate and submit; Admin reviews and publishes.
 
 Numeric canonicalization ignores decimal scale (30 and 30.00), so PostgreSQL numeric precision does not
 invalidate an unchanged snapshot. Draft bundles created with an older canonicalization should be validated
@@ -225,7 +227,7 @@ FE phải dùng revision mới sau approve để publish; stale revision/sai tr�
 version không tồn tại trả 404, dữ liệu sai hoặc bundle không hợp lệ trả 400.
 
 `POST /api/content-versions/{id}/submit` (DESIGNER): `{ "revision": 3 }`.
-JWT Designer hoặc Admin được gọi; Analyst nhận 403. Chỉ nhận Draft với revision hiện tại.
+Chỉ JWT Designer được gọi; Admin và Analyst nhận 403. Chỉ nhận Draft với revision hiện tại.
 Phải validate thành công trước, rồi dùng revision mới từ response validate để submit.
 Submit kiểm tra lại schema, tham chiếu, bundle/checksum và snapshot chưa thay đổi;
 chuyển sang `InReview`, lưu `SubmittedAt`, xóa thông tin review cũ và tăng revision trong cùng SaveChanges.
@@ -247,7 +249,7 @@ ContentVersion expected business errors use `ServiceResult<T>` rather than throw
 
 ### Nội dung của một version (`/api/content-versions/{versionId}/...`)
 
-Role `Admin` và `Designer`. Mỗi nhóm có đủ `GET /` (danh sách), `GET /{id}`, `POST /`, `PUT /{id}`, `DELETE /{id}`:
+Admin và Designer được GET; chỉ Designer được POST/PUT/DELETE. Mỗi nhóm có đủ `GET /` (danh sách), `GET /{id}`, `POST /`, `PUT /{id}`, `DELETE /{id}`:
 `items` (kèm thông số weapon / consumable), `skills`, `loot-tables` (kèm entries), `enemy-types`, `maps` (kèm enemy
 placements và loot tables), `recipes` (kèm ingredients), `quests` (kèm rewards).
 
@@ -260,7 +262,7 @@ placements và loot tables), `recipes` (kèm ingredients), `quests` (kèm reward
 
 ## Cấu hình solver (`/api/solver-configurations`)
 
-Mỗi cấu hình là một thuật toán cùng bộ tham số. Cả 3 role xem được; chỉ Admin và Analyst sửa được.
+Mỗi cấu hình là một thuật toán cùng bộ tham số. Cả 3 role xem được; chỉ Designer sửa được theo phân quyền gameplay cập nhật.
 
 | Endpoint | Ghi chú |
 |---|---|

@@ -14,25 +14,37 @@ public class SolverConfigurationApiTests(ApiFixture api) : IntegrationTest(api)
 
     private static JsonElement Json(string json) => JsonDocument.Parse(json).RootElement.Clone();
 
-    [DbFact]
-    public async Task Designer_CanReadButNotChange()
+    [DbTheory]
+    [InlineData(UserRole.Admin)]
+    [InlineData(UserRole.Analyst)]
+    public async Task OtherRoles_CanReadButCannotChangeGameplayConfiguration(UserRole role)
     {
         var designer = await Api.CreateUserClientAsync(UserRole.Designer);
-
-        (await designer.GetAsync(Url)).StatusCode.ShouldBe(HttpStatusCode.OK);
-        var create = await designer.PostAsJsonAsync(Url, new CreateSolverConfigurationRequest
+        var reader = await Api.CreateUserClientAsync(role);
+        var created = await designer.PostAsJsonAsync(Url, new CreateSolverConfigurationRequest
         {
             Code = "greedy", Name = "Greedy", Algorithm = "Greedy", TimeBudgetMs = 120
         });
-        create.StatusCode.ShouldBe(HttpStatusCode.Forbidden);
+        created.StatusCode.ShouldBe(HttpStatusCode.Created);
+        var dto = (await created.Content.ReadFromJsonAsync<SolverConfigurationDto>())!;
+        (await reader.GetAsync(Url)).StatusCode.ShouldBe(HttpStatusCode.OK);
+        (await reader.GetAsync($"{Url}/{dto.Id}")).StatusCode.ShouldBe(HttpStatusCode.OK);
+        (await reader.PostAsJsonAsync(Url, new { })).StatusCode.ShouldBe(HttpStatusCode.Forbidden);
+        (await reader.PutAsJsonAsync($"{Url}/{dto.Id}", new { })).StatusCode.ShouldBe(HttpStatusCode.Forbidden);
+        (await reader.PostAsJsonAsync($"{Url}/{dto.Id}/clone", new { })).StatusCode.ShouldBe(HttpStatusCode.Forbidden);
+        (await reader.PatchAsJsonAsync($"{Url}/{dto.Id}/active", new { isActive = true })).StatusCode.ShouldBe(HttpStatusCode.Forbidden);
+        (await reader.DeleteAsync($"{Url}/{dto.Id}")).StatusCode.ShouldBe(HttpStatusCode.Forbidden);
+        var after = (await designer.GetFromJsonAsync<SolverConfigurationDto>($"{Url}/{dto.Id}"))!;
+        after.TimeBudgetMs.ShouldBe(120);
+        after.IsActive.ShouldBeFalse();
     }
 
     [DbFact]
-    public async Task Analyst_CreateActivateAndDelete()
+    public async Task Designer_CreateActivateAndDelete()
     {
-        var analyst = await Api.CreateUserClientAsync(UserRole.Analyst);
+        var designer = await Api.CreateUserClientAsync(UserRole.Designer);
 
-        var created = await analyst.PostAsJsonAsync(Url, new CreateSolverConfigurationRequest
+        var created = await designer.PostAsJsonAsync(Url, new CreateSolverConfigurationRequest
         {
             Code = "sqa_fast", Name = "SQA fast", Algorithm = "sqa", TimeBudgetMs = 120,
             Params = new() { ["sweeps"] = Json("200") }
@@ -43,19 +55,19 @@ public class SolverConfigurationApiTests(ApiFixture api) : IntegrationTest(api)
         dto.Family.ShouldBe("QuantumInspired");
         dto.Params.GetProperty("sweeps").GetInt32().ShouldBe(200);
 
-        var activated = await analyst.PatchAsJsonAsync($"{Url}/{dto.Id}/active", new SetSolverConfigurationActiveRequest { IsActive = true });
+        var activated = await designer.PatchAsJsonAsync($"{Url}/{dto.Id}/active", new SetSolverConfigurationActiveRequest { IsActive = true });
         (await activated.Content.ReadFromJsonAsync<SolverConfigurationDto>())!.IsAbArm.ShouldBeTrue();
 
-        (await analyst.DeleteAsync($"{Url}/{dto.Id}")).StatusCode.ShouldBe(HttpStatusCode.NoContent);
-        (await analyst.GetAsync($"{Url}/{dto.Id}")).StatusCode.ShouldBe(HttpStatusCode.NotFound);
+        (await designer.DeleteAsync($"{Url}/{dto.Id}")).StatusCode.ShouldBe(HttpStatusCode.NoContent);
+        (await designer.GetAsync($"{Url}/{dto.Id}")).StatusCode.ShouldBe(HttpStatusCode.NotFound);
     }
 
     [DbFact]
     public async Task Create_WithUnknownParam_Returns400WithField()
     {
-        var admin = await Api.CreateUserClientAsync(UserRole.Admin);
+        var designer = await Api.CreateUserClientAsync(UserRole.Designer);
 
-        var response = await admin.PostAsJsonAsync(Url, new CreateSolverConfigurationRequest
+        var response = await designer.PostAsJsonAsync(Url, new CreateSolverConfigurationRequest
         {
             Code = "qaoa_bad", Name = "QAOA", Algorithm = "Qaoa", TimeBudgetMs = 120,
             Params = new() { ["trotter"] = Json("8") }
@@ -68,11 +80,11 @@ public class SolverConfigurationApiTests(ApiFixture api) : IntegrationTest(api)
     [DbFact]
     public async Task Create_WithDuplicateCode_Returns409()
     {
-        var admin = await Api.CreateUserClientAsync(UserRole.Admin);
+        var designer = await Api.CreateUserClientAsync(UserRole.Designer);
         var request = new CreateSolverConfigurationRequest { Code = "ga", Name = "GA", Algorithm = "Genetic", TimeBudgetMs = 120 };
 
-        (await admin.PostAsJsonAsync(Url, request)).StatusCode.ShouldBe(HttpStatusCode.Created);
-        (await admin.PostAsJsonAsync(Url, request)).StatusCode.ShouldBe(HttpStatusCode.Conflict);
+        (await designer.PostAsJsonAsync(Url, request)).StatusCode.ShouldBe(HttpStatusCode.Created);
+        (await designer.PostAsJsonAsync(Url, request)).StatusCode.ShouldBe(HttpStatusCode.Conflict);
     }
 
     [DbFact]

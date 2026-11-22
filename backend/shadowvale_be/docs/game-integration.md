@@ -146,7 +146,7 @@ cần đang bật). Dữ liệu replay không bao giờ trộn với người ch
 
 ```
 dotnet run --project tools/ImportGameContent -- convert --unity "<repo game>/Assets" --out tools/ImportGameContent/game-content-v1.json
-SVL_TOKEN=<access token của Designer/Admin> dotnet run --project tools/ImportGameContent -- push --bundle tools/ImportGameContent/game-content-v1.json --api http://localhost:5079
+SVL_TOKEN=<access token của Designer> dotnet run --project tools/ImportGameContent -- push --bundle tools/ImportGameContent/game-content-v1.json --api http://localhost:5079
 ```
 
 `push` tạo một Draft qua các endpoint soạn content rồi validate. Submit, approve và publish vẫn làm trên web, để bản này

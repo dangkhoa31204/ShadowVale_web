@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-11-22T10:20:58.042Z",
+  "generatedAt": "2026-11-22T14:12:38.328Z",
   "unityCommit": "e09caff9b2eba70d6f3e93a4b5e2750437b5b473",
-  "sourceHash": "1852039f9d3e70b223b8d46d5924cfa862e07adb287c5694168c0477fc8f029e",
+  "sourceHash": "6531c1b76ca6c2807f02da03cecfdd97acedc1176ce4e061bb68bc56b8ebe8b4",
   "sources": [
     {
       "path": "_Project/Map01/Generated/Map01Content.json",
@@ -63,6 +63,14 @@
     {
       "path": "_Project/Map02/Runtime/Map02Mission.Telemetry.cs",
       "sha256": "51d115faaf7223bb03c724460044cc1ac0bada9c1ee57e6dbbbd57bd03e9d4a1"
+    },
+    {
+      "path": "_Project/Prefabs/Items/W_AK47.prefab",
+      "sha256": "96668357915ff30053047de49ce60098fd81dce1be29118f00032daa21d283cb"
+    },
+    {
+      "path": "_Project/Prefabs/Player/Player.prefab",
+      "sha256": "2eb1bfd9a2a250474f56c0d8fbd1407c3bcc4cc7ef1a6013c80aa0cb7d6ac1e9"
     },
     {
       "path": "_Project/Resources/TacticalGraphs/Map 1.nav_graph.json",
@@ -196,18 +204,6 @@
         "max_stack": 64,
         "weight": 0.4,
         "base_value": 20,
-        "icon_key": null,
-        "stats": {}
-      },
-      {
-        "code": "carbine_scout",
-        "name": "Scout Carbine",
-        "description": null,
-        "item_type": "weapon",
-        "rarity": "common",
-        "max_stack": 1,
-        "weight": 0,
-        "base_value": 0,
         "icon_key": null,
         "stats": {}
       },
@@ -489,30 +485,6 @@
         "stats": {}
       },
       {
-        "code": "shotgun_pump",
-        "name": "Pump Shotgun",
-        "description": null,
-        "item_type": "weapon",
-        "rarity": "common",
-        "max_stack": 1,
-        "weight": 0,
-        "base_value": 0,
-        "icon_key": null,
-        "stats": {}
-      },
-      {
-        "code": "smg_compact",
-        "name": "Compact SMG",
-        "description": null,
-        "item_type": "weapon",
-        "rarity": "common",
-        "max_stack": 1,
-        "weight": 0,
-        "base_value": 0,
-        "icon_key": null,
-        "stats": {}
-      },
-      {
         "code": "smoke_bomb",
         "name": "Bom khói",
         "description": null,
@@ -578,9 +550,9 @@
         "item_code": "rifle_standard",
         "item_type": "weapon",
         "weapon_class": "rifle",
-        "damage": 24,
-        "fire_rate": 6.5,
-        "effective_range": 40,
+        "damage": 30,
+        "fire_rate": 10,
+        "effective_range": 120,
         "magazine_size": 30,
         "reload_time_s": 2.4,
         "ammo_item_code": "ammo_rifle",
@@ -604,38 +576,6 @@
         "max_durability": 100,
         "durability_per_use": 0.35,
         "noise_radius": 18,
-        "is_suppressed": false
-      },
-      {
-        "item_code": "smg_compact",
-        "item_type": "weapon",
-        "weapon_class": "smg",
-        "damage": 14,
-        "fire_rate": 11,
-        "effective_range": 22,
-        "magazine_size": 35,
-        "reload_time_s": 1.8,
-        "ammo_item_code": "ammo_smg",
-        "ammo_type": "ammo",
-        "max_durability": 90,
-        "durability_per_use": 0.1,
-        "noise_radius": 14,
-        "is_suppressed": false
-      },
-      {
-        "item_code": "shotgun_pump",
-        "item_type": "weapon",
-        "weapon_class": "shotgun",
-        "damage": 60,
-        "fire_rate": 1.2,
-        "effective_range": 12,
-        "magazine_size": 6,
-        "reload_time_s": 3,
-        "ammo_item_code": "ammo_shotgun",
-        "ammo_type": "ammo",
-        "max_durability": 120,
-        "durability_per_use": 0.4,
-        "noise_radius": 24,
         "is_suppressed": false
       },
       {
@@ -668,22 +608,6 @@
         "max_durability": 110,
         "durability_per_use": 1,
         "noise_radius": 30,
-        "is_suppressed": false
-      },
-      {
-        "item_code": "carbine_scout",
-        "item_type": "weapon",
-        "weapon_class": "rifle",
-        "damage": 20,
-        "fire_rate": 5,
-        "effective_range": 32,
-        "magazine_size": 20,
-        "reload_time_s": 2,
-        "ammo_item_code": "ammo_rifle",
-        "ammo_type": "ammo",
-        "max_durability": 100,
-        "durability_per_use": 0.1,
-        "noise_radius": 16,
         "is_suppressed": false
       }
     ],
@@ -19141,7 +19065,7 @@
         "vision_angle_deg": 110,
         "hearing_range": 16,
         "accuracy": 0.85,
-        "weapon_item_code": "carbine_scout",
+        "weapon_item_code": null,
         "loot_table_code": "loot_tier_1",
         "fsm_params": {
           "alert_decay_seconds": 6,
@@ -19188,7 +19112,7 @@
         "vision_angle_deg": 80,
         "hearing_range": 10,
         "accuracy": 0.85,
-        "weapon_item_code": "shotgun_pump",
+        "weapon_item_code": null,
         "loot_table_code": "loot_tier_2",
         "fsm_params": {
           "alert_decay_seconds": 10,
@@ -19235,7 +19159,7 @@
         "vision_angle_deg": 120,
         "hearing_range": 18,
         "accuracy": 0.85,
-        "weapon_item_code": "smg_compact",
+        "weapon_item_code": null,
         "loot_table_code": "loot_tier_3",
         "fsm_params": {
           "alert_decay_seconds": 999,
@@ -20692,10 +20616,32 @@
   },
   "importNotes": [
     "Scripted knife is reference-only: omitted from editable rows because numeric weapon stats are not defined in the source.",
+    "Unimplemented weapon definitions are reference-only and excluded from database authoring: smg_compact, shotgun_pump, carbine_scout. Generated enemy links to these definitions are cleared; review prototype enemy metadata before publish.",
     "Missing local stack/weight/value uses schema defaults; inspect item metadata before publish. Consumable use times and generic effects are not inferred.",
     "Map game_rules contains trade stock, tier/adaptive/repair/logistics and field crafting in existing maps.layout JSON. No new tables.",
     "Enemy perception uses the corresponding grunt/commander archetype where only loot enemy metadata exists; review before publish.",
-    "Quest rows track Unity objectives; publishing quest metadata does not replace the mission state machine."
+    "Quest rows track Unity objectives; publishing quest metadata does not replace the mission state machine.",
+    "Rifle damage/range/fire rate resolve Unity prefab and M16 runtime constants; magazine/reload resolve Player prefab. Generated JSON alone is not the effective rifle configuration. Skills, lethal-hit rules and enemy difficulty modifiers remain runtime behavior."
+  ],
+  "weaponRuntimeOverrides": [
+    {
+      "code": "rifle_standard",
+      "field": "damage",
+      "generated": 24,
+      "runtime": 30
+    },
+    {
+      "code": "rifle_standard",
+      "field": "range",
+      "generated": 40,
+      "runtime": 120
+    },
+    {
+      "code": "rifle_standard",
+      "field": "fire_rate",
+      "generated": 6.5,
+      "runtime": 10
+    }
   ],
   "items": [
     {
@@ -21303,9 +21249,9 @@
       "id": "rifle_standard",
       "display_name": "Service Rifle",
       "class": "rifle",
-      "damage": 24,
-      "fire_rate": 6.5,
-      "range": 40,
+      "damage": 30,
+      "fire_rate": 10,
+      "range": 120,
       "ammo_type": "ammo_rifle",
       "magazine_size": 30,
       "reload_seconds": 2.4,
@@ -24360,9 +24306,6 @@
         "base_value": 20
       },
       {
-        "code": "carbine_scout"
-      },
-      {
         "code": "cloth",
         "max_stack": 64,
         "base_value": 2
@@ -24444,12 +24387,6 @@
         "base_value": 3
       },
       {
-        "code": "shotgun_pump"
-      },
-      {
-        "code": "smg_compact"
-      },
-      {
         "code": "smoke_bomb",
         "max_stack": 64,
         "base_value": 15
@@ -24476,9 +24413,9 @@
     "weapons": [
       {
         "item_code": "rifle_standard",
-        "damage": 24,
-        "fire_rate": 6.5,
-        "effective_range": 40,
+        "damage": 30,
+        "fire_rate": 10,
+        "effective_range": 120,
         "magazine_size": 30,
         "reload_time_s": 2.4,
         "ammo_item_code": "ammo_rifle",
@@ -24498,32 +24435,6 @@
         "max_durability": 100,
         "durability_per_use": 0.35,
         "noise_radius": 18,
-        "is_suppressed": false
-      },
-      {
-        "item_code": "smg_compact",
-        "damage": 14,
-        "fire_rate": 11,
-        "effective_range": 22,
-        "magazine_size": 35,
-        "reload_time_s": 1.8,
-        "ammo_item_code": "ammo_smg",
-        "max_durability": 90,
-        "durability_per_use": 0.1,
-        "noise_radius": 14,
-        "is_suppressed": false
-      },
-      {
-        "item_code": "shotgun_pump",
-        "damage": 60,
-        "fire_rate": 1.2,
-        "effective_range": 12,
-        "magazine_size": 6,
-        "reload_time_s": 3,
-        "ammo_item_code": "ammo_shotgun",
-        "max_durability": 120,
-        "durability_per_use": 0.4,
-        "noise_radius": 24,
         "is_suppressed": false
       },
       {
@@ -24550,19 +24461,6 @@
         "max_durability": 110,
         "durability_per_use": 1,
         "noise_radius": 30,
-        "is_suppressed": false
-      },
-      {
-        "item_code": "carbine_scout",
-        "damage": 20,
-        "fire_rate": 5,
-        "effective_range": 32,
-        "magazine_size": 20,
-        "reload_time_s": 2,
-        "ammo_item_code": "ammo_rifle",
-        "max_durability": 100,
-        "durability_per_use": 0.1,
-        "noise_radius": 16,
         "is_suppressed": false
       }
     ],

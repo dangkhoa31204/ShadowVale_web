@@ -220,8 +220,9 @@ test('role access starts each role on its screen and restricts solver mutations'
  for(const role of ['designer','analyst','admin'])assert.equal(api.can(role,'analytics'),true);
  assert.deepEqual(api.navigationForRole('admin').map(n=>n.path),['/admin/reviews','/admin/releases','/admin/users','/admin/analytics']);
  assert.equal(api.safeRedirect('/admin/analytics','admin'),'/admin/analytics');
- assert.equal(api.can('designer','solverEdit'),false);
- assert.equal(api.can('analyst','solverEdit'),true);
+ assert.equal(api.can('designer','solverEdit'),true);
+ assert.equal(api.can('analyst','solverEdit'),false);
+ assert.equal(api.can('admin','solverEdit'),false);
 });
 
 test('Unity import rebinds version identities and resumes a partial Draft without cloning live content or publishing',async()=>{

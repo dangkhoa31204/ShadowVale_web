@@ -14,6 +14,16 @@ test('importable Unity bundle fits existing schema without inventing knife stats
   const validate=ajv.compile(schema);assert.ok(validate(b),JSON.stringify(validate.errors));
   assert.ok(!b.items.some(i=>i.code==='knife'));assert.ok(b.weapons.some(w=>w.item_code==='rifle_m16'));
 });
+test('database authoring includes implemented guns only; legacy shotgun SMG and carbine remain reference-only',()=>{
+  const active=catalog.weapons.filter(w=>w.playable&&!w.scripted).map(w=>w.id).sort();
+  assert.deepEqual(b.weapons.map(w=>w.item_code).sort(),active);
+  for(const code of ['shotgun_pump','smg_compact','carbine_scout']){
+    assert.equal(catalog.weapons.find(w=>w.id===code).playable,false);
+    assert.ok(!b.items.some(i=>i.code===code));assert.ok(!b.weapons.some(w=>w.item_code===code));
+    assert.ok(!b.enemy_types.some(e=>e.weapon_item_code===code));
+  }
+  for(const e of b.enemy_types)if(e.weapon_item_code)assert.ok(active.includes(e.weapon_item_code));
+});
 test('every normalized relation resolves inside the imported version',()=>{
   const codes=key=>new Set(b[key].map(r=>r.code));
   const items=codes('items'),loot=codes('loot_tables'),maps=codes('maps'),recipes=codes('crafting_recipes');

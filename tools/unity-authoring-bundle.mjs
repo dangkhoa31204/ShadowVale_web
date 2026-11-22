@@ -1,21 +1,24 @@
 // Normalize Unity source data into the existing versioned tables; no second catalog schema is created.
 const snake = s => s.replace(/([a-z0-9])([A-Z])/g, '$1_$2').toLowerCase();
 const round = (n, places = 2) => Number(Number(n).toFixed(places));
-export function authoringBundle({ items, content, loot, balance, skills, recipes, quests, graphs, tradeOffers }) {
+export function authoringBundle({ items, content, loot, balance, skills, recipes, quests, graphs, tradeOffers, playable }) {
   const notes = ['Scripted knife is reference-only: omitted from editable rows because numeric weapon stats are not defined in the source.'];
-  const rows = items.filter(i => i.code !== 'knife').map(i => ({
+  const activeWeapons = new Set(playable.filter(code => code !== 'knife'));
+  const referenceOnly = new Set(content.weapons.filter(w => !activeWeapons.has(w.id)).map(w => w.id));
+  notes.push(`Unimplemented weapon definitions are reference-only and excluded from database authoring: ${[...referenceOnly].join(', ')}. Generated enemy links to these definitions are cleared; review prototype enemy metadata before publish.`);
+  const rows = items.filter(i => i.code !== 'knife' && !referenceOnly.has(i.code)).map(i => ({
     code: i.code, name: i.name, description: null, item_type: i.type === 'questitem' ? 'quest_item' : i.type,
     rarity: (i.loot?.rarity ?? 'common').toLowerCase(), max_stack: i.maxStack ?? (i.type === 'weapon' ? 1 : i.type === 'ammo' ? 99 : 64),
     weight: round(i.weight ?? 0), base_value: i.baseValue ?? 0, icon_key: null,
     stats: Object.fromEntries(Object.entries(i.loot ?? {}).filter(([k]) => !['code','type','rarity','baseValue','weight'].includes(k)).map(([k,v]) => [snake(k), v]))
   }));
-  const weapons = content.weapons.map(w => ({ item_code:w.id,item_type:'weapon',weapon_class:w.class === 'carbine' ? 'rifle' : w.class,
+  const weapons = content.weapons.filter(w => activeWeapons.has(w.id)).map(w => ({ item_code:w.id,item_type:'weapon',weapon_class:w.class === 'carbine' ? 'rifle' : w.class,
     damage:round(w.damage),fire_rate:round(w.fire_rate),effective_range:round(w.range),magazine_size:w.magazine_size,reload_time_s:round(w.reload_seconds),
     ammo_item_code:w.ammo_type,ammo_type:'ammo',max_durability:w.durability_max,durability_per_use:round(w.durability_per_shot,3),noise_radius:round(w.noise_radius),is_suppressed:w.suppressed }));
   const archetypes = Object.fromEntries(content.enemy_archetypes.map(a => [a.id,a]));
   const enemy = (code,name,archetype,a,hp,boss,weapon,table,extra={}) => ({code,name,archetype,is_boss:boss,max_hp:hp,
     move_speed:round(a.move_speed),vision_range:round(a.vision_range),vision_angle_deg:round(a.vision_angle),hearing_range:round(a.hearing_range),
-    accuracy:round(balance.guardAccuracy.closeHit,3),weapon_item_code:weapon??null,loot_table_code:table??null,
+    accuracy:round(balance.guardAccuracy.closeHit,3),weapon_item_code:activeWeapons.has(weapon)?weapon:null,loot_table_code:table??null,
     fsm_params:{alert_decay_seconds:a.alert_decay_seconds,retreat_hp_threshold:a.retreat_hp_threshold,accuracy:balance.guardAccuracy,...(a.boss?{boss:a.boss}:{}),...extra}});
   const enemies = content.enemy_archetypes.map(a => enemy(a.id,a.display_name,a.id,a,a.max_hp,a.is_boss,a.weapon_id,a.loot_table_id));
   for(const e of loot.enemyTypes) {

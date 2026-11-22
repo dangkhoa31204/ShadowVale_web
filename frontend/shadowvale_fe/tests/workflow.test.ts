@@ -97,7 +97,9 @@ test('admin can review and publish but cannot author content or access the Unity
   assert.equal(safeRedirect('/admin/dashboard', 'admin'), '/admin/reviews');
   assert.equal(can('admin', 'author'), false);
   assert.equal(can('admin', 'analytics'), true); assert.equal(safeRedirect('/admin/analytics', 'admin'), '/admin/analytics');
-  assert.equal(can('designer', 'solverEdit'), false);
+  assert.equal(can('designer', 'solverEdit'), true);
+  assert.equal(can('admin', 'solverEdit'), false);
+  assert.equal(can('analyst', 'solverEdit'), false);
   for (const path of ['/admin/content', '/admin/content/d1']) assert.equal(safeRedirect(path, 'admin'), '/admin/reviews');
   assert.equal(safeRedirect('/admin/releases', 'admin'), '/admin/releases');
   assert.equal(safeRedirect('/admin/users', 'admin'), '/admin/users');
