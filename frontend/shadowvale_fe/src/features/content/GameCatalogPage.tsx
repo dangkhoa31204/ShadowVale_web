@@ -12,7 +12,7 @@ import { errorMessage } from '../../services/api/errors';
 import { gameCatalogApi } from './gameCatalogApi';
 import { useAuth } from '../../hooks/useAuth';
 import { can } from '../auth/access';
-import { contentApi, UnityImportError } from './contentApi';
+import { contentApi } from './contentApi';
 import { useWorkspace } from './workspaceContext';
 
 const sections = [['weapons', 'Weapons'], ['ammo', 'Ammo & items'], ['loot', 'Drop rates'], ['crafting', 'Crafting'], ['trade', 'Trade'], ['maps', 'Maps'], ['quests', 'Missions'], ['database', 'Database audit']] as const;
@@ -25,16 +25,22 @@ function DataTable({ headers, rows }: { headers: string[]; rows: ReactNode[][] }
 
 export function GameCatalogPage({ embedded = false }: { embedded?: boolean }) {
   const {user}=useAuth(),{reload}=useWorkspace(),navigate=useNavigate();
-  const [importId,setImportId]=useState<string>();
   const [section, setSection] = useState<Section>('weapons');
   const [search, setSearch] = useState('');
   const catalog = useQuery({ queryKey: ['game-catalog'], queryFn: ({ signal }) => gameCatalogApi.get(signal), staleTime: 60_000 });
   const comparison = useQuery({ queryKey: ['game-catalog-comparison'], queryFn: ({ signal }) => gameCatalogApi.compare(signal), staleTime: 30_000 });
   const data = catalog.data;
-  const importDraft=useMutation({mutationFn:async()=>{
+  const canImport=!!user&&can(user.role,'author');
+  const unfinished=useQuery({
+    queryKey:['unfinished-unity-imports',data?.sourceHash,user?.id],
+    enabled:canImport&&!!data?.authoringBundle,
+    queryFn:()=>contentApi.unfinishedUnityImports(data!.authoringBundle!,data!.sourceHash,user!.id),
+  });
+  const importDraft=useMutation({mutationFn:async(draftId?:string)=>{
     if(!data?.authoringBundle)throw new Error('The API does not have an importable Unity bundle yet. Deploy the updated API.');
-    return contentApi.importUnity(data.authoringBundle,data.sourceHash,importId);
-  },onSuccess:async id=>{setImportId(id);await reload();navigate('/admin/content/'+id);},onError:error=>{if(error instanceof UnityImportError)setImportId(error.draftId);}});
+    return contentApi.importUnity(data.authoringBundle,data.sourceHash,draftId);
+  },onSuccess:async id=>{await reload();navigate('/admin/content/'+id);},
+  onError:()=>{void unfinished.refetch();}});
   const match = (...values: unknown[]) => values.some(v => String(v ?? '').toLocaleLowerCase().includes(search.trim().toLocaleLowerCase()));
   const name = (code: string) => data?.items.find(i => i.code === code)?.name ?? code;
   const item = (code: string) => <span>{name(code)}<code className="block text-xs text-muted-foreground">{code}</code></span>;
@@ -43,7 +49,21 @@ export function GameCatalogPage({ embedded = false }: { embedded?: boolean }) {
     {!embedded && <PageHeading title="Unity catalog" description="Compare Unity source data or import it into a draft for editing." action={refresh} />}
     {embedded && <div className="flex justify-end">{refresh}</div>}
     {catalog.error ? <Alert variant="destructive"><AlertDescription>{errorMessage(catalog.error)}</AlertDescription></Alert> : !data ? <p role="status">Loading Unity catalog…</p> : <>
-      {user&&can(user.role,'author')&&<Panel title="Import from Unity" description="Reference data from Unity source files. Import into a draft to edit; publishing requires Admin review."><div className="flex flex-wrap gap-3 p-6"><Button disabled={importDraft.isPending||!data.authoringBundle} onClick={()=>importDraft.mutate()}>{importDraft.isPending?'Importing…':importId?'Resume import into same draft':'Import Unity as new draft'}</Button></div>{importDraft.error&&<p role="alert" className="px-6 pb-6 text-sm text-destructive">{errorMessage(importDraft.error)}</p>}{!!data.importNotes?.length&&<details className="px-6 pb-6 text-sm"><summary className="cursor-pointer">Import coverage and defaults to review</summary><ul className="list-disc pl-5 pt-3 space-y-2">{data.importNotes.map(n=><li key={n}>{n}</li>)}</ul></details>}</Panel>}
+      {canImport&&<Panel title="Import from Unity" description="Import into a draft to edit. Publishing requires Admin review.">
+        <div className="flex flex-wrap gap-3 p-6">
+          {data.authoringBundle&&unfinished.isPending&&<p role="status">Checking for unfinished imports…</p>}
+          {unfinished.error&&<Button variant="outline" onClick={()=>void unfinished.refetch()}>Retry loading drafts</Button>}
+          {unfinished.data?.map(draft=><Button key={draft.id} disabled={importDraft.isPending} onClick={()=>importDraft.mutate(draft.id)}>
+            Resume import into Draft #{draft.versionNo}
+          </Button>)}
+          {!unfinished.data?.length&&<Button disabled={importDraft.isPending||!data.authoringBundle||unfinished.isPending||!!unfinished.error} onClick={()=>importDraft.mutate(undefined)}>
+            Import Unity as new draft
+          </Button>}
+          {importDraft.isPending&&<p role="status">Importing Unity content…</p>}
+        </div>
+        {(importDraft.error||unfinished.error)&&<p role="alert" className="px-6 pb-6 text-sm text-destructive">{errorMessage(importDraft.error||unfinished.error)}</p>}
+        {!!data.importNotes?.length&&<details className="px-6 pb-6 text-sm"><summary className="cursor-pointer">Import coverage and defaults to review</summary><ul className="list-disc pl-5 pt-3 space-y-2">{data.importNotes.map(n=><li key={n}>{n}</li>)}</ul></details>}
+      </Panel>}
       <Panel title="Source snapshot" description="Read-only Unity content. Authoring versions and player telemetry are tracked separately.">
         <div className="grid gap-3 p-6 text-sm">
           <p>{data.items.length} items · {data.weapons.filter(w => w.playable).length} playable weapons · {data.recipes.length} recipes · {data.maps.length} maps · {data.quests.reduce((n, q) => n + q.objectives.length, 0)} mission objectives</p>
