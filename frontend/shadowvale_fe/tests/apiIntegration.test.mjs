@@ -273,6 +273,28 @@ test('Unity import rebinds version identities and resumes a partial Draft withou
  assert.ok(!calls.some(c=>/\/(validate|submit|approve|publish)$/.test(c.url)));
 });
 
+test('map rules have one authoring home and update only their owning map', () => {
+ assert.equal(api.ruleTab('maps'), undefined);
+ assert.equal(api.ruleTab('items').section, 'trade');
+ assert.equal(api.ruleTab('loot_tables').section, 'loot');
+ assert.equal(api.ruleTab('crafting_recipes').section, 'crafting');
+ assert.equal(api.ruleTab('quests').section, 'missions');
+ const groups = Object.fromEntries(api.contentGroups.map(group => [group[0], group]));
+ assert.deepEqual(groups.maps, ['maps']);
+ assert.ok(groups.loot_tables.includes('map_loot_tables'));
+ assert.ok(groups.enemy_types.includes('enemy_placements'));
+ const bundle = api.entitiesToEditor(version, entities());
+ const first = { ...bundle.maps[0], code:'map01', layout:{ game_rules:{ difficulty:{ active_level:'hard' }, logistics:{ operationCredit:[1,2,3,4] } }, scene_metadata:true } };
+ const second = { ...bundle.maps[0], code:'map02', layout:{ game_rules:{ trade_offers:[] } } };
+ bundle.maps = [second, first];
+ const layout = { ...first.layout, game_rules:{ ...first.layout.game_rules, logistics:{ operationCredit:[5,2,3,4] } } };
+ const saved = api.updateDraftMapLayout(bundle,'map01',layout);
+ assert.deepEqual(saved.maps.map(map => map.layout), [second.layout, layout]);
+ assert.deepEqual(saved.maps[1].layout.game_rules.difficulty, { active_level:'hard' });
+ assert.equal(saved.maps[1].layout.scene_metadata, true);
+ assert.deepEqual(bundle.maps[1].layout.game_rules.logistics.operationCredit, [1,2,3,4]);
+});
+
 test('map difficulty keeps all levels and technical fields through a draft save and reload', async () => {
  const { v, data } = server();
  const current = await api.contentApi.editor(v.id);
@@ -386,11 +408,14 @@ test('existing weapon keys are locked even when the child has no API GUID; stats
 test('primary, composite and foreign keys use the same locks across content tables',()=>{
  const locked={items:['code','item_type'],loot_table_entries:['loot_table_code','item_code','tier'],
   map_loot_tables:['map_code','loot_table_code','container_tag'],enemy_placements:['id','map_code','enemy_type_code'],
-  crafting_recipes:['code','output_item_code','required_skill_code'],crafting_recipe_ingredients:['recipe_code','item_code'],
-  quest_rewards:['quest_code','item_code'],enemy_types:['code','weapon_item_code','loot_table_code']};
+  crafting_recipes:['code','required_skill_code'],crafting_recipe_ingredients:['recipe_code','item_code'],
+  quest_rewards:['quest_code','item_code'],enemy_types:['code','weapon_item_code']};
  for(const [collection,keys] of Object.entries(locked)) {
   const fields=api.recordEditorFields(collection,api.apiFields(collection),true);
   for(const key of keys)assert.equal(fields.find(f=>f.key===key)?.readOnly,true,collection+':'+key);
+ }
+ for (const [collection, key] of [['crafting_recipes', 'output_item_code'], ['enemy_types', 'loot_table_code']]) {
+  assert.equal(api.recordEditorFields(collection, api.apiFields(collection), true).find(field => field.key === key)?.readOnly, false);
  }
 });
 
@@ -438,4 +463,40 @@ test('hidden settings survive JSON edits without adding absent keys or allowing 
   assert.throws(() => api.restoreDesignerFields('enemy_types', examples[2][1], { ...api.designerRecord('enemy_types', examples[2][1]), accuracy: 0.1 }), /not available/);
   assert.throws(() => api.restoreDesignerFields('items', { code: 'new', item_type: 'material' }, { code: 'new', item_type: 'armor' }), /Armor/);
   assert.equal(api.restoreDesignerFields('items', { code: 'old', item_type: 'armor' }, { code: 'old', item_type: 'armor' }).item_type, 'armor');
+});
+
+test('loot preview matches Unity tier fallback and ignores guarantee rows for random rolls', () => {
+  const entries = [{ tier: 1, weight: 3 }, { tier: 1, weight: 1 }, { tier: 3, weight: 1 }, { tier: 5, weight: 100 }];
+  assert.deepEqual(api.lootChances(entries, { game_rules: { tier_odds: [40, 10, 15, 35] } }, [100, 0, 0, 0]), [.375, .125, .5, null]);
+  assert.deepEqual(api.lootChances(entries, {}, [0, 0, 0, 0]), [null, null, null, null]);
+});
+
+test('inline recipe ingredients serialize under the selected recipe and preserve other recipes', () => {
+  const bundle = api.entitiesToEditor(version, entities());
+  bundle.crafting_recipes = [{ code: 'first' }, { code: 'second' }];
+  bundle.crafting_recipe_ingredients = [{ recipe_code: 'first', item_code: 'ammo_small', quantity: 1 }, { recipe_code: 'second', item_code: 'ammo_small', quantity: 5 }];
+  const section = api.relatedSection('crafting_recipes');
+  const next = api.replaceRelatedRows(bundle, section, 'first', [{ recipe_code: 'first', item_code: 'ammo_small', quantity: 3 }]);
+  assert.deepEqual(api.editorToEntities(next).crafting_recipes.map(row => row.ingredients[0].quantity), [3, 5]);
+  assert.equal(bundle.crafting_recipe_ingredients[0].quantity, 1);
+});
+
+test('knife saves exact attack intervals and its melee profile in a single item update', () => {
+  const data = entities();
+  const rifle = data.items[1];
+  data.items.push({ ...rifle, id: 'knife-id', code: 'knife', name: 'Dao', stats: { melee_cooldown_s: .75, custom: 1 },
+    weapon: { ...rifle.weapon, class: 'Melee', damage: 45, fireRate: 1.33, effectiveRange: 2,
+      magazineSize: null, reloadTimeSeconds: null, ammoItemCode: null } });
+  const bundle = api.entitiesToEditor(version, data);
+  const edited = api.setKnifeAttackInterval(bundle, .86);
+  const payload = api.editorToEntities(edited);
+  const operations = api.planSave(api.editorToEntities(bundle), payload);
+  assert.equal(operations.length, 1);
+  const [op] = operations;
+  assert.equal(op.code, 'knife');
+  assert.deepEqual(op.data.stats, { melee_cooldown_s: .86, custom: 1 });
+  assert.equal(op.data.weapon.fireRate, 1.16);
+  assert.equal(op.data.weapon.ammoItemCode, null);
+  const reloaded = api.entitiesToEditor(version, payload);
+  assert.equal(reloaded.items.find(item => item.code === 'knife').stats.melee_cooldown_s, .86);
 });

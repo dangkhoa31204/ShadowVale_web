@@ -7,13 +7,17 @@ export function isExistingRecord(collection: CollectionKey, record: ContentRecor
 }
 
 export function recordEditorFields(collection: CollectionKey, fields: FieldDefinition[], existing: boolean): FieldDefinition[] {
-  return fields.map(field => ({
-    ...field,
-    readOnly: !!field.readOnly || existing && (
-      collectionIdentity[collection].includes(field.key) || !!field.reference ||
-      field.type === 'reference' || field.key === 'item_type'
-    ),
-  }));
+  return fields.map(field => {
+    const editableReference = collection === 'crafting_recipes' && field.key === 'output_item_code' ||
+      collection === 'enemy_types' && field.key === 'loot_table_code';
+    return {
+      ...field,
+      readOnly: !!field.readOnly || existing && (
+        collectionIdentity[collection].includes(field.key) ||
+        !editableReference && (!!field.reference || field.type === 'reference') || field.key === 'item_type'
+      ),
+    };
+  });
 }
 
 /** The raw editor must enforce the same locks as inputs/dropdowns. */

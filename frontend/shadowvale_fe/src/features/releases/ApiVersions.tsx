@@ -19,6 +19,7 @@ import { Modal } from '../shared/Modal';
 import { BundleSnapshot } from '../content/BundleDetails';
 import { ComparisonView, type Change } from '../content/DiffList';
 import { collections } from '../content/types';
+import { schemaFields } from '../content/schemaFields';
 import {
   bundledLayoutPresets, difficultyFields, difficultyLabels, difficultyLevels, jsonObject, readDifficulty,
 } from '../content/mapDifficulty';
@@ -30,12 +31,21 @@ export function Pager({page,setPage,total}: {page:number;setPage:(n:number)=>voi
   const pages=Math.max(1,Math.ceil(total/20));
   return <div className="flex items-center justify-center gap-4 border-t p-4 text-xs text-muted-foreground"><Button variant="outline" size="sm" disabled={page<=1} onClick={()=>setPage(page-1)}>Previous</Button><span>Page {page} / {pages} · {total} records</span><Button variant="outline" size="sm" disabled={page>=pages} onClick={()=>setPage(page+1)}>Next</Button></div>;
 }
-function changeName(path:string) {
+function changeInfo(path:string) {
   const parts=path.split('/').slice(1).map(p=>p.replaceAll('~1','/').replaceAll('~0','~'));
   const section=collections.find(c=>c.key===parts[0]);
   let identity=parts[1]||'';
   try {const value=JSON.parse(identity);if(Array.isArray(value))identity=value.join(' · ');} catch { /* A section-wide change has no code identity. */ }
-  return [section?.label||parts[0],identity,parts.slice(2).join(' · ')].filter(Boolean).join(' · ');
+  if (identity === 'knife' && parts[0] === 'weapons') {
+    if (parts[2] === 'damage') return { title: 'Dao · Sát thương mỗi đòn', unit: 'HP' };
+    if (parts[2] === 'effective_range') return { title: 'Dao · Tầm đánh', unit: 'm' };
+    if (parts[2] === 'melee_cooldown_s') return { title: 'Dao · Thời gian giữa hai đòn', unit: 's' };
+  }
+  const field = section && parts.length === 3 ? schemaFields[section.key].find(item => item.key === parts[2]) : undefined;
+  return {
+    title: [section?.label || parts[0], identity, field?.label || parts.slice(2).join(' · ')].filter(Boolean).join(' · '),
+    unit: field?.unit,
+  };
 }
 async function loadComparison(afterId:string,beforeId?:string,expectedRevision?:number){
   const [after,diff]=await Promise.all([contentApi.details(afterId),beforeId?contentApi.compare(beforeId,afterId):Promise.resolve(null)]);
@@ -43,7 +53,21 @@ async function loadComparison(afterId:string,beforeId?:string,expectedRevision?:
   const bundle=after.bundle as ContentBundle;
   if(!bundle || typeof bundle!=='object')throw new Error('Content is unavailable for this version. Refresh or ask the designer to save the content again.');
   const differences=diff?.differences||collections.flatMap(c=>(bundle[c.key]||[]).map((row,i)=>({path:'/'+c.key+'/'+String(row.code||row.item_code||i+1),before:null,after:row})));
-  const ordinaryChanges = differences.filter(d=>!d.path.startsWith('/maps/') || !d.path.split('/').includes('difficulty'));
+  const knifePath = '/weapons/["knife"]';
+  const ordinaryChanges = differences.flatMap(change => {
+    const path = change.path.replace(/^\/(items|weapons)\/knife(?=\/|$)/, '/$1/["knife"]');
+    if (path.startsWith('/maps/') && path.split('/').includes('difficulty') || path === knifePath + '/fire_rate') return [];
+    if (path === '/items/["knife"]/stats/melee_cooldown_s')
+      return [{ ...change, path: knifePath + '/melee_cooldown_s' }];
+    if (path === knifePath || path === '/items/["knife"]') {
+      const before = jsonObject(change.before), after = jsonObject(change.after);
+      if (path === knifePath)
+        return ['damage', 'effective_range'].map(field => ({ path: knifePath + '/' + field, before: before[field] ?? null, after: after[field] ?? null }));
+      const cooldown = [before, after].map(row => jsonObject(row.stats).melee_cooldown_s ?? null);
+      if (cooldown[0] !== cooldown[1]) return [change, { path: knifePath + '/melee_cooldown_s', before: cooldown[0], after: cooldown[1] }];
+    }
+    return [change];
+  });
   const difficultyChanges: Change[] = [];
   const includesDifficulty = bundle.maps.some(row => jsonObject(jsonObject(row.layout).game_rules).difficulty) ||
     differences.some(change => change.path.startsWith('/maps/') && change.path.split('/').includes('difficulty'));
@@ -58,23 +82,23 @@ async function loadComparison(afterId:string,beforeId?:string,expectedRevision?:
     const a = readDifficulty(old?.layout), b = readDifficulty(map.layout);
     const path = '/maps/' + String(map.code) + '/layout/game_rules/difficulty';
     const mapName = String(map.name || map.code);
-    const add = (field: string, label: string, before: string, after: string) => {
+    const add = (field: string, label: string, before: string | number, after: string | number) => {
       if (before === after) return;
       const key = path + '/' + field;
-      difficultyChanges.push({ key, path: key, title: mapName + ' · ' + label, kind: 'Updated', before, after });
+      difficultyChanges.push({ key, path: key, title: mapName + ' · ' + label, kind: 'Updated', before, after, unit: typeof after === 'number' ? '%' : undefined });
     };
     add('active_level', 'Mức áp dụng', difficultyLabels[a.active_level], difficultyLabels[b.active_level]);
     for (const level of difficultyLevels) {
       function display(value: ReturnType<typeof readDifficulty>, field: keyof typeof difficultyFields) {
         const setting = value.levels[level][field];
-        if (typeof setting === 'number') return setting + '%';
+        if (typeof setting === 'number') return setting;
         return bundledLayoutPresets[String(map.code)]?.find(preset=>preset.id===setting)?.name || setting;
       }
       for (const field of Object.keys(difficultyFields) as (keyof typeof difficultyFields)[])
         add(level + '/' + field, difficultyLabels[level] + ' · ' + difficultyFields[field], display(a, field), display(b, field));
     }
   }
-  const changes:Change[]=ordinaryChanges.map((d,i)=>({key:d.path+':'+i,path:d.path,title:changeName(d.path),kind:d.before===null?'Added':d.after===null?'Removed':'Updated',before:d.before,after:d.after}));
+  const changes:Change[]=ordinaryChanges.map((d,i)=>({key:d.path+':'+i,path:d.path,...changeInfo(d.path),kind:d.before===null?'Added':d.after===null?'Removed':'Updated',before:d.before,after:d.after}));
   return {bundle,changes:[...difficultyChanges,...changes],revision:Number(after.version.revision)};
 }
 export function ApiCompare({beforeId,afterId,onReady,expectedRevision}: {beforeId?:string;afterId:string;onReady?:(ready:boolean)=>void;expectedRevision?:number}) {

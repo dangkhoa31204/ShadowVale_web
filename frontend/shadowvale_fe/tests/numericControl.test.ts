@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { numericPrecision, parseNumericInput, sliderBounds, sliderValue } from '../src/features/shared/numericRules.ts';
+import { formatNumericChange, numericPrecision, parseNumericInput, sliderBounds, sliderValue } from '../src/features/shared/numericRules.ts';
 
 test('clearing a nullable value produces null, while clearing a required number remains invalid', () => {
   assert.deepEqual(parseNumericInput('', { nullable: true, min: 1 }), { valid: true, value: null });
@@ -29,4 +29,13 @@ test('slider expands to valid manually entered values and uses database precisio
   assert.deepEqual(sliderBounds(350, { min: 1, max: 2147483647, sliderMax: 100, step: 1 }), { min: 1, max: 350, step: 1 });
   assert.deepEqual(sliderBounds(-250, { min: -999999.999, max: 999999.999, sliderMin: -100, sliderMax: 100, step: 0.001 }), { min: -250, max: 100, step: 0.001 });
   assert.equal(sliderValue('0.30000000000000004', 0.001), 0.3);
+});
+
+test('numeric comparisons distinguish increases, decreases, unchanged and missing baselines', () => {
+  assert.deepEqual(formatNumericChange(30, 37), { direction: 'increase', delta: 7 });
+  assert.deepEqual(formatNumericChange(30, 24), { direction: 'decrease', delta: -6 });
+  assert.deepEqual(formatNumericChange(0.1, 0.3), { direction: 'increase', delta: 0.2 });
+  assert.deepEqual(formatNumericChange(0, 0), { direction: 'neutral', delta: 0 });
+  assert.deepEqual(formatNumericChange(null, 37), { direction: 'neutral', delta: null });
+  assert.deepEqual(formatNumericChange(37, null), { direction: 'neutral', delta: null });
 });

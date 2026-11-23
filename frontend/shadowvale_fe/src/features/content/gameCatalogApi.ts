@@ -2,8 +2,8 @@ import { axiosClient } from '../../services/api/axiosClient';
 import type { ContentBundle } from './types';
 import type { LayoutPreset } from './mapDifficulty';
 
-export interface CatalogItem { code: string; name: string; type: string; maxStack: number | null; weight: number | null; baseValue: number | null; inRuntimeInventory: boolean }
-export interface CatalogWeapon { id: string; name: string; playable: boolean; scripted?: boolean; damage?: number; fire_rate?: number; range?: number; magazine_size?: number; ammo_type?: string; reload_seconds?: number; durability_max?: number; durability_per_shot?: number }
+export interface CatalogItem { code: string; name: string; type: string; maxStack: number | null; weight: number | null; baseValue: number | null; inRuntimeInventory: boolean; loot?: object | null }
+export interface CatalogWeapon { id: string; name: string; playable: boolean; scripted?: boolean; class?: string; damage?: number; fire_rate?: number; range?: number; cooldown_seconds?: number; magazine_size?: number; ammo_type?: string; reload_seconds?: number; durability_max?: number; durability_per_shot?: number }
 export interface CatalogObjective { id: string; index: number; title: string; requires: string[]; count: number; playOrder: number; phase?: number; kind?: string; site?: string; purpose?: string; seconds?: number; credit?: number }
 export interface CatalogMap { code: string; name: string; scene: string; nodeCount: number; objectiveCount: number; bounds: { minX: number; maxX: number; minZ: number; maxZ: number }; escapeRoutes: unknown[]; spawnGroups: unknown[]; containers: { tag: string; lootTable: string }[]; fieldCaches: { id: string; label: string; x: number; z: number; minStage: number }[]; note: string }
 export interface GameCatalog {

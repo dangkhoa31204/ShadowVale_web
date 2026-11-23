@@ -19,3 +19,4 @@ export { isExistingRecord, recordEditorFields, assertReadOnlyFields } from '../s
 
 export * from '../src/features/content/designerPresentation';
 export { readDifficulty, withDifficulty, bundledLayoutPresets } from '../src/features/content/mapDifficulty';
+export { lootChances, relatedSection, replaceRelatedRows, setKnifeAttackInterval } from '../src/features/content/recordDetails';

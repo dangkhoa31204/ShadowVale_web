@@ -43,3 +43,10 @@ export function sliderBounds(value: number | null, rules: NumericRules) {
 export function sliderValue(raw: string, step: number) {
   return Number(Number(raw).toFixed(numericPrecision(step)));
 }
+
+export function formatNumericChange(before: number | null, after: number | null) {
+  if (before === null || after === null || !Number.isFinite(before) || !Number.isFinite(after))
+    return { direction: 'neutral', delta: null } as const;
+  const delta = Number((after - before).toPrecision(12));
+  return { direction: delta > 0 ? 'increase' : delta < 0 ? 'decrease' : 'neutral', delta } as const;
+}

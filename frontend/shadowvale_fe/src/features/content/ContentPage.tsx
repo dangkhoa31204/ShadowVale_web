@@ -19,7 +19,7 @@ import { validateBundle } from './workspaceService';
 import { Empty, Icon, PageHeading, Status } from '../shared/ui';
 import { useConfirm } from '../shared/confirmContext';
 import { NumericControl } from '../shared/NumericControl';
-import { contentGroups, designerFields, designerRecord, restoreDesignerFields } from './designerPresentation';
+import { contentGroups, designerFields, designerRecord, restoreDesignerFields, ruleTab, updateDraftMapLayout } from './designerPresentation';
 import { isDemoMode } from '../../config/environment';
 import { apiFields, validateEditor } from './apiModel';
 import { contentApi } from './contentApi';
@@ -28,6 +28,10 @@ import { editorFieldErrors } from './apiFieldErrors';
 import type { EnumsDto } from '../../services/api/contracts';
 import { isExistingRecord, recordEditorFields, assertReadOnlyFields } from './recordFieldPolicy';
 import { GameRulesEditor } from './GameRulesEditor';
+import { gameCatalogApi, type GameCatalog } from './gameCatalogApi';
+import { QuestObjectives, RelatedRows } from './RelatedContentEditor';
+import { EnemyDetails, MapTwoEnemyReference, ScriptedWeapons } from './UnityContentReference';
+import { detailLabel, enemyReadOnly, relatedSection, replaceRelatedRows, setKnifeAttackInterval } from './recordDetails';
 import { MapDifficultyEditor } from './MapDifficultyEditor';
 import { bundledLayoutPresets, jsonObject } from './mapDifficulty';
 
@@ -86,6 +90,7 @@ function DraftEditor({ draft, enums }: { draft: Draft; enums?: EnumsDto }) {
   const [bundle, setBundle] = useState<ContentBundle>(() => structuredClone(draft.bundle));
   const [label, setLabel] = useState(draft.label || draft.title), [changelog, setChangelog] = useState(draft.changelog || '');
   const [category, setCategory] = useState<CollectionKey>('weapons'), [selected, setSelected] = useState(0);
+  const [editingRules, setEditingRules] = useState(false), [tradeMapCode, setTradeMapCode] = useState('map01');
   const [dirty, setDirty] = useState(false), [parseError, setParseError] = useState(''), [search, setSearch] = useState('');
   const blocker = useBlocker(({ currentLocation, nextLocation }) => (dirty || !!parseError) && (currentLocation.pathname !== nextLocation.pathname || currentLocation.search !== nextLocation.search));
   const [apiError, setApiError] = useState('');
@@ -119,8 +124,18 @@ function DraftEditor({ draft, enums }: { draft: Draft; enums?: EnumsDto }) {
   const owner = user?.role === 'designer' && draft.authorId === user.id;
   const editable = (draft.status === 'draft' || (!isDemoMode && draft.status === 'rejected')) && owner;
   const record = bundle[category][selected];
+  const savedRecord = record && draft.bundle[category].find(row => recordIdentity(category, row) === recordIdentity(category, record));
   const categoryInfo = collections.find(collection => collection.key === category)!;
   const categoryGroup = contentGroups.find(group => group.includes(category))!;
+  const catalog = useQuery({ queryKey: ['game-catalog'], queryFn: ({ signal }) => gameCatalogApi.get(signal), staleTime: 60_000, enabled: !isDemoMode });
+  const related = relatedSection(category);
+  const visibleTabs = categoryGroup.filter(key => key !== relatedSection(categoryGroup[0])?.collection);
+  const settingsTab = ruleTab(categoryGroup[0]);
+  const sharedRulesMap = bundle.maps.find(map => map.code === 'map01');
+  const stockMaps = bundle.maps.filter(map => map.code === 'map01' || map.code === 'map02');
+  const stockMap = stockMaps.find(map => map.code === tradeMapCode) ?? stockMaps[0];
+  const savedSharedLayout = draft.bundle.maps.find(map => map.code === 'map01')?.layout;
+  const savedStockLayout = draft.bundle.maps.find(map => map.code === stockMap?.code)?.layout;
   useEffect(() => {
     if (!dirty && !parseError) return;
     const warn = (event: BeforeUnloadEvent) => { event.preventDefault(); };
@@ -128,15 +143,63 @@ function DraftEditor({ draft, enums }: { draft: Draft; enums?: EnumsDto }) {
   }, [dirty, parseError]);
   function chooseCategory(key: CollectionKey) {
     if (parseError) { toast.error('Resolve the field error before switching content.'); return; }
-    setCategory(key); setSelected(0); setSearch('');
+    setEditingRules(false); setCategory(key); setSelected(0); setSearch('');
+  }
+  function selectContentTab(value: string) {
+    if (value !== 'rules') { chooseCategory(value as CollectionKey); return; }
+    if (parseError) { toast.error('Resolve the field error before switching content.'); return; }
+    setEditingRules(true);
+  }
+  function changeRuleLayout(mapCode: string, layout: JsonValue) {
+    setBundle(current => updateDraftMapLayout(current, mapCode, layout));
+    setDirty(true);
   }
   function updateRecord(value: ContentRecord) {
-    setBundle(prev => ({ ...prev, [category]: prev[category].map((row, i) => i === selected ? value : row) })); setDirty(true);
+    if (related && record?.code !== value.code && bundle[category].some((row, index) => index !== selected && row.code === value.code)) {
+      toast.error('Mã này đã được sử dụng.');
+      return;
+    }
+    setBundle(prev => {
+      const next = { ...prev, [category]: prev[category].map((row, i) => i === selected ? value : row) };
+      if (!related || !record || record.code === value.code) return next;
+      const rows = prev[related.collection].filter(row => row[related.parentKey] === record.code).map(row => ({ ...row, [related.parentKey]: value.code }));
+      return replaceRelatedRows(next, related, record.code, rows);
+    });
+    setDirty(true);
+  }
+  function updateRelated(rows: ContentRecord[]) {
+    if (!related || !record) return;
+    setBundle(current => replaceRelatedRows(current, related, record.code, rows));
+    setDirty(true);
+  }
+  function updateKnifeCooldown(seconds: number) {
+    setBundle(current => setKnifeAttackInterval(current, seconds));
+    setDirty(true);
+  }
+  const importedKnife = catalog.data?.authoringBundle?.weapons.find(weapon => weapon.item_code === 'knife');
+  const importedKnifeItem = catalog.data?.authoringBundle?.items.find(item => item.code === 'knife');
+  const existingKnifeItem = bundle.items.find(item => item.code === 'knife');
+  function addKnife() {
+    if (!importedKnife || !importedKnifeItem || bundle.weapons.some(weapon => weapon.item_code === 'knife')) return;
+    setBundle(current => ({
+      ...current,
+      items: existingKnifeItem
+        ? current.items.map(item => item.code === 'knife' ? { ...item, stats: { ...jsonObject(importedKnifeItem.stats), ...jsonObject(item.stats) } } : item)
+        : [...current.items, importedKnifeItem],
+      weapons: [...current.weapons, importedKnife],
+    }));
+    setSelected(bundle.weapons.length); setSearch(''); setDirty(true);
   }
   function addRecord(duplicate = false) {
     try {
       const added = newRecord(category, bundle, duplicate ? record : undefined);
-      setBundle(prev => ({ ...prev, [category]: [...prev[category], added] })); setSelected(bundle[category].length); setSearch(''); setDirty(true);
+      setBundle(prev => {
+        const next = { ...prev, [category]: [...prev[category], added] };
+        if (!duplicate || !related || !record) return next;
+        const rows = prev[related.collection].filter(row => row[related.parentKey] === record.code).map(row => ({ ...row, [related.parentKey]: added.code }));
+        return replaceRelatedRows(next, related, added.code, rows);
+      });
+      setSelected(bundle[category].length); setSearch(''); setDirty(true);
     } catch (error) { toast.error(error instanceof Error ? error.message : 'Could not add record.'); }
   }
   async function save(submit = false) {
@@ -189,21 +252,43 @@ function DraftEditor({ draft, enums }: { draft: Draft; enums?: EnumsDto }) {
         return <TabsTrigger key={collection.key} id={'content-group-'+collection.key} data-testid={'content-group-'+collection.key} value={collection.key} onClick={() => { if (categoryGroup[0] === collection.key) chooseCategory(collection.key); }} className="flex-none px-2.5"><Icon name={collection.icon} />{collection.label}<span className="text-xs text-muted-foreground">{bundle[collection.key].length}</span></TabsTrigger>;
       })}</TabsList>
     </Tabs>
-    {categoryGroup.length > 1 && <Tabs value={category} onValueChange={value => chooseCategory(value as CollectionKey)} className="overflow-x-auto border-b bg-muted/20 px-3 [scrollbar-width:thin]">
-      <TabsList variant="line" aria-label="Content table" className="h-10">{categoryGroup.map(key => {
+    {(visibleTabs.length > 1 || settingsTab) && <Tabs value={editingRules ? 'rules' : category} onValueChange={selectContentTab} className="overflow-x-auto border-b bg-muted/20 px-3 [scrollbar-width:thin]">
+      <TabsList variant="line" aria-label="Content table" className="h-10">{visibleTabs.map(key => {
         const collection = collections.find(collection => collection.key === key)!;
         return <TabsTrigger key={key} id={'content-table-'+key} data-testid={'content-table-'+key} value={key} className="flex-none px-2.5"><Icon name={collection.icon} />{collection.label}<span className="text-xs text-muted-foreground">{bundle[key].length}</span></TabsTrigger>;
-      })}</TabsList>
+      })}{settingsTab && <TabsTrigger value="rules" data-testid={'content-rules-' + settingsTab.section} className="flex-none px-2.5">{settingsTab.label}</TabsTrigger>}</TabsList>
     </Tabs>}
-    <div className="sv-content-columns"><aside className="sv-records"><div className="sv-records-heading"><strong>{categoryInfo.label}</strong>{editable && <Button variant="outline" size="icon-sm" title="New record" aria-label="New record" onClick={() => addRecord()} disabled={!!parseError}><Icon name="add" /></Button>}</div>
+    {editingRules && settingsTab ? <div className="space-y-4 p-5">
+      <h2 className="font-semibold">{settingsTab.label}</h2>
+      {settingsTab.section === 'trade' && stockMap &&
+        <label className="block max-w-xs text-sm">Bản đồ bán hàng
+          <NativeSelect className="mt-1 w-full" value={String(stockMap.code)} disabled={!!parseError} onChange={event => setTradeMapCode(event.target.value)}>
+            {stockMaps.map(map => <NativeSelectOption key={String(map.code)} value={String(map.code)}>{String(map.name || map.code)}</NativeSelectOption>)}
+          </NativeSelect>
+        </label>}
+      {(sharedRulesMap || settingsTab.section === 'trade' && stockMap) ?
+        <GameRulesEditor key={settingsTab.section + ':' + (settingsTab.section === 'trade' ? stockMap?.code : 'map01')}
+          section={settingsTab.section} hasSharedRules={!!sharedRulesMap} layout={sharedRulesMap?.layout} stockLayout={stockMap?.layout} savedLayout={savedSharedLayout} savedStockLayout={savedStockLayout} bundle={bundle} editable={editable}
+          onChange={value => changeRuleLayout('map01', value)} onError={setParseError}
+          onStockChange={value => { if (stockMap) changeRuleLayout(String(stockMap.code), value); }} /> :
+        <Empty title="Chưa có bản đồ hỗ trợ trong bản nháp" />}
+    </div> : <div className="sv-content-columns"><aside className="sv-records"><div className="sv-records-heading"><strong>{categoryInfo.label}</strong>{editable && <Button variant="outline" size="icon-sm" title="New record" aria-label="New record" onClick={() => addRecord()} disabled={!!parseError}><Icon name="add" /></Button>}</div>
       <div className="relative mb-4"><Icon name="search" className="absolute top-1/2 left-2.5 -translate-y-1/2 text-muted-foreground" /><Input aria-label="Search content" className="pl-8" placeholder="Search records…" value={search} onChange={event => setSearch(event.target.value)} /></div>
       <div>{bundle[category].map((row, i) => ({ row, i })).filter(({ row }) => `${recordLabel(category, row, bundle)} ${recordIdentity(category, row)}`.toLowerCase().includes(search.toLowerCase())).map(({ row, i }) => <button key={i} className={'sv-record ' + (i === selected ? 'is-active' : '')} onClick={() => { if (!parseError) setSelected(i); }}><span><strong>{recordLabel(category, row, bundle)}</strong><small>{recordIdentity(category, row)}</small></span><Icon name="chevron_right" /></button>)}</div>
-    </aside><div className="sv-record-detail">{record ? <RecordEditor key={category + ':' + selected} collection={category} bundle={bundle} record={record} existing={isExistingRecord(category, record, draft.bundle[category])} editable={editable} enums={enums} serverErrors={Object.fromEntries(Object.entries(serverFields).filter(([key]) => key.startsWith(category + ':' + selected + ':')).map(([key, message]) => [key.split(':').at(-1)!, message]))} onChange={updateRecord} onError={setParseError} /> : <Empty title="No records" description={`Add a record to this version: ${categoryInfo.label.toLowerCase()}.`} />}
+      {category === 'weapons' && <ScriptedWeapons catalog={catalog.data} />}
+      {category === 'weapons' && editable && importedKnife && importedKnifeItem && (!existingKnifeItem || existingKnifeItem.item_type === 'weapon') &&
+        !bundle.weapons.some(weapon => weapon.item_code === 'knife') &&
+        <Button variant="outline" size="sm" className="mt-3" disabled={!!parseError} onClick={addKnife}>Thêm Dao từ Unity</Button>}
+    </aside><div className="sv-record-detail">{category === 'enemy_types' && <MapTwoEnemyReference />}{record ? <RecordEditor key={category + ':' + selected} collection={category} bundle={bundle} savedBundle={draft.bundle} catalog={catalog.data} record={record} savedRecord={savedRecord} existing={isExistingRecord(category, record, draft.bundle[category])} editable={editable} enums={enums} serverErrors={Object.fromEntries(Object.entries(serverFields).filter(([key]) => key.startsWith(category + ':' + selected + ':')).map(([key, message]) => [key.split(':').at(-1)!, message]))} onChange={updateRecord} onRelatedChange={updateRelated} onKnifeCooldownChange={updateKnifeCooldown} onError={setParseError} /> : <Empty title="No records" description={`Add a record to this version: ${categoryInfo.label.toLowerCase()}.`} />}
       {editable && <div className="sv-record-actions">{record ? <><Button variant="outline" disabled={!!parseError} onClick={() => addRecord(true)}><Icon name="content_copy" />Duplicate record</Button><Button variant="destructive" disabled={!!parseError} onClick={async () => {
         if (!await confirm({ title: 'Remove this record?', description: 'Related references must be updated before submitting.', action: 'Remove record', destructive: true })) return;
-        setBundle(prev => ({ ...prev, [category]: prev[category].filter((_, i) => i !== selected) })); setSelected(0); setDirty(true);
+        setBundle(prev => {
+          const next = { ...prev, [category]: prev[category].filter((_, i) => i !== selected) };
+          return related ? replaceRelatedRows(next, related, record.code, []) : next;
+        });
+        setSelected(0); setDirty(true);
       }}><Icon name="delete" />Remove record</Button></> : <Button onClick={() => addRecord()}><Icon name="add" />Add record</Button>}</div>}
-    </div></div>
+    </div></div>}
     <div className={'sv-validation ' + (errors.length || parseError ? 'has-errors' : '')}><Icon name={errors.length || parseError ? 'error' : 'verified'} /><div><strong>{errors.length || parseError ? "Check content before submitting" : "Content is ready for review"}</strong>{(errors.length > 0 || parseError) && <ul>{[...(parseError ? [parseError] : []), ...errors].slice(0, 12).map((error, i) => <li key={i}>{error}</li>)}</ul>}</div></div>
   </div>;
 }
@@ -218,7 +303,7 @@ function StringArrayField({ field, value, disabled, onChange }: { field: FieldDe
   }} /><small className="sv-field-help">Comma-separated values</small></label>;
 }
 
-function RecordEditor({ collection, bundle, record, existing, editable, enums, serverErrors, onChange, onError }: { collection: CollectionKey; bundle: ContentBundle; record: ContentRecord; existing: boolean; editable: boolean; enums?: EnumsDto; serverErrors: Record<string, string>; onChange: (row: ContentRecord) => void; onError: (message: string) => void }) {
+function RecordEditor({ collection, bundle, savedBundle, catalog, record, savedRecord, existing, editable, enums, serverErrors, onChange, onRelatedChange, onKnifeCooldownChange, onError }: { collection: CollectionKey; bundle: ContentBundle; savedBundle: ContentBundle; catalog?: GameCatalog; record: ContentRecord; savedRecord?: ContentRecord; existing: boolean; editable: boolean; enums?: EnumsDto; serverErrors: Record<string, string>; onChange: (row: ContentRecord) => void; onRelatedChange: (rows: ContentRecord[]) => void; onKnifeCooldownChange: (seconds: number) => void; onError: (message: string) => void }) {
   const [raw, setRaw] = useState(() => JSON.stringify(designerRecord(collection, record), null, 2));
   const [formRevision, setFormRevision] = useState(0);
   const fieldErrors = useRef<Record<string, string>>({});
@@ -231,8 +316,23 @@ function RecordEditor({ collection, bundle, record, existing, editable, enums, s
     const next = { ...record, [key]: value }; setRaw(JSON.stringify(designerRecord(collection, next), null, 2)); report('JSON', ''); report(key, ''); onChange(next);
   }
   const definitions = recordEditorFields(collection, isDemoMode ? schemaFields[collection] : apiFields(collection, enums), existing);
-  const visibleDefinitions = designerFields(collection, definitions);
-  const mapEditor = collection === 'maps' || collection === 'map_loot_tables' || collection === 'enemy_placements';
+  const isKnife = collection === 'weapons' && record.item_code === 'knife' && record.weapon_class === 'melee';
+  const visibleDefinitions = designerFields(collection, definitions).filter(field => !isKnife || ['damage', 'effective_range'].includes(field.key));
+  const knifeDefaultInterval = catalog?.weapons.find(weapon => weapon.id === 'knife')?.cooldown_seconds ?? .75;
+  function knifeInterval(version: ContentBundle) {
+    const value = jsonObject(version.items.find(item => item.code === 'knife')?.stats).melee_cooldown_s;
+    return typeof value === 'number' ? value : knifeDefaultInterval;
+  }
+  const related = relatedSection(collection);
+  const structuredEditor = isKnife || related || ['maps', 'map_loot_tables', 'enemy_types', 'enemy_placements'].includes(collection);
+  const runtimeLoot = catalog?.lootTables.some(table => table.code === record.code);
+  const sourceRecipe = collection === 'crafting_recipes' ? catalog?.recipes.find(recipe => recipe.id === record.code) : undefined;
+  const recipeInputs = collection === 'crafting_recipes' ? bundle.crafting_recipe_ingredients.filter(row => row.recipe_code === record.code) : [];
+  const itemName = (code: JsonValue) => String(bundle.items.find(item => item.code === code)?.name ?? code ?? 'Chưa chọn');
+  const lootSources = collection === 'loot_tables' ? [
+    ...bundle.map_loot_tables.filter(row => row.loot_table_code === record.code).map(row => `${bundle.maps.find(map => map.code === row.map_code)?.name ?? row.map_code} · ${row.container_tag}`),
+    ...bundle.enemy_types.filter(row => row.loot_table_code === record.code && String(row.code).startsWith('m1_')).map(row => row.name),
+  ] : [];
   const mapCode = typeof record.code === 'string' ? record.code : '';
   const graph = jsonObject(record.nav_graph);
   const graphNodeCount = Array.isArray(graph.nodes) ? graph.nodes.length : 0;
@@ -240,35 +340,58 @@ function RecordEditor({ collection, bundle, record, existing, editable, enums, s
   return <><div className="sv-record-title"><div><span className="sv-eyebrow">{(collections.find(item => item.key === collection)?.label || '')}</span><h2>{recordLabel(collection, record, bundle)}</h2></div><span className="sv-mono">{recordIdentity(collection, record)}</span></div>
     {editable && existing && <p className="sv-key-lock-note sv-field-help"><Icon name="lock" />Key fields are locked for existing records.</p>}
     {collection === 'maps' && Object.hasOwn(bundledLayoutPresets, mapCode) &&
-      <MapDifficultyEditor key={mapCode} mapCode={mapCode} layout={record.layout} editable={editable}
+      <MapDifficultyEditor key={mapCode} mapCode={mapCode} layout={record.layout} savedLayout={savedRecord?.layout} editable={editable}
         onChange={value => field('layout', value)} onError={report} errors={serverErrors} />}
     {collection === 'maps' && <h3 className="mt-5 font-semibold">Thông tin map</h3>}
+    {collection === 'crafting_recipes' && <>
+      <div className="my-4 space-y-2 rounded-lg border p-4 text-sm">
+        <p className="font-medium">{recipeInputs.map(row => `${row.quantity} × ${itemName(row.item_code)}`).join(' + ') || 'Chưa có nguyên liệu'} <span aria-label="tạo ra">→</span> {String(record.output_quantity ?? '—')} × {itemName(record.output_item_code)}</p>
+        {catalog && <p className="text-muted-foreground">{sourceRecipe
+          ? [sourceRecipe.benchAvailable ? 'Bàn chế tạo' : null, sourceRecipe.fieldAvailable ? 'Chế tạo dã chiến' : null].filter(Boolean).join(' · ') || 'Chưa có trong menu chế tạo của Unity.'
+          : 'Công thức mới cần được gắn vào giao diện chế tạo Unity.'}</p>}
+      </div>
+      <h3 className="mt-5 font-semibold">Thành phẩm đầu ra &amp; thông tin công thức</h3>
+    </>}
+    {collection === 'loot_tables' && <div className="my-4 space-y-1 rounded-lg border p-4 text-sm">
+      {lootSources.length > 0 ? <p>Sử dụng tại {lootSources.join(' · ')}</p> : <p>{runtimeLoot ? 'Bảng rơi dùng trong Unity.' : 'Chưa thấy gán bảng này cho hòm hoặc túi lính Map 1 trong bản nháp.'}</p>}
+      <p className="text-muted-foreground">Map 1 chọn bậc trước, rồi chọn vật phẩm theo trọng số trong bậc. Xác suất cơ sở chưa tính hỗ trợ thiếu đạn hoặc máu. Nhiều lượt có thể trùng vật phẩm. Bậc 5 được nhận một lần ngoài các lượt quay.</p>
+    </div>}
+    {collection === 'quests' && <p className="my-4 rounded-lg border p-4 text-sm text-muted-foreground">Tên, mô tả và phần thưởng ở đây thuộc bản nội dung trên web. Trình tự, điều kiện và hành vi nhiệm vụ chạy theo Unity. Điểm nhận trong game chỉnh ở tab Điểm nhiệm vụ.</p>}
+    {collection === 'enemy_types' && <EnemyDetails row={record} bundle={bundle} />}
+    {isKnife && <p className="my-4 rounded-lg border p-4 text-sm">Cận chiến · Các thông số áp dụng cho đòn đánh thường. Kết liễu lén và các đoạn nhiệm vụ dùng quy tắc của Unity.</p>}
     <div className="sv-field-grid sv-form">{visibleDefinitions.filter(definition => definition.type !== 'json' && !['content_version_id', 'created_at', 'updated_at'].includes(definition.key)).map(definition => {
       const value = Object.hasOwn(record, definition.key) ? record[definition.key] : definition.defaultValue ?? null;
-      const disabled = !editable || definition.readOnly || collection === 'maps' && existing && definition.key === 'scene_key';
-      if (definition.type === 'number') return <NumericControl key={definition.key + ':' + formRevision} label={definition.label} serverError={serverErrors[definition.key]} value={typeof value === 'number' ? value : null} disabled={disabled} nullable={definition.nullable}
-        min={definition.min} max={definition.max} step={definition.step} sliderMin={definition.sliderMin} sliderMax={definition.sliderMax} unit={definition.unit}
+      const disabled = !editable || definition.readOnly || collection === 'maps' && existing && definition.key === 'scene_key' || collection === 'enemy_types' && enemyReadOnly(mapCode, definition.key);
+      const label = isKnife ? definition.key === 'damage' ? 'Sát thương mỗi đòn' : 'Tầm đánh' : structuredEditor ? detailLabel(definition) : definition.label;
+      const savedValue = savedRecord?.[definition.key];
+      if (definition.type === 'number') return <NumericControl key={definition.key + ':' + formRevision} label={label} serverError={serverErrors[definition.key]} value={typeof value === 'number' ? value : null} savedValue={!disabled ? (typeof savedValue === 'number' ? savedValue : null) : undefined} disabled={disabled} nullable={definition.nullable}
+        min={definition.min} max={definition.max} step={definition.step} sliderMin={definition.sliderMin} sliderMax={isKnife ? definition.key === 'damage' ? 100 : 5 : definition.sliderMax} unit={isKnife ? definition.key === 'damage' ? 'HP' : 'm' : definition.unit}
         onChange={value => field(definition.key, value)} onError={message => report(definition.label, message)} />;
       if (definition.type === 'string-array') return <StringArrayField key={definition.key + ':' + formRevision} field={definition} value={value} disabled={!!disabled} onChange={value => field(definition.key, value)} />;
       if (definition.type === 'enum' || definition.type === 'boolean' || definition.type === 'reference') {
-        const options = definition.type === 'reference' ? referenceOptions(definition, bundle) : definition.type === 'boolean' ? [{ value: 'true', label: 'Yes' }, { value: 'false', label: 'No' }] : (definition.options ?? []).filter(option => collection !== 'items' || definition.key !== 'item_type' || option !== 'armor' || record.item_type === 'armor').map(value => ({ value, label: value.replaceAll('_', ' ').replace(/^./, char => char.toUpperCase()) }));
+        let options = definition.type === 'reference' ? referenceOptions(definition, bundle) : definition.type === 'boolean' ? [{ value: 'true', label: 'Yes' }, { value: 'false', label: 'No' }] : (definition.options ?? []).filter(option => collection !== 'items' || definition.key !== 'item_type' || option !== 'armor' || record.item_type === 'armor').map(value => ({ value, label: value.replaceAll('_', ' ').replace(/^./, char => char.toUpperCase()) }));
+        if (collection === 'crafting_recipes' && definition.key === 'output_item_code') {
+          const inputs = new Set(recipeInputs.map(row => row.item_code));
+          options = options.filter(option => option.value === value || !inputs.has(option.value));
+        }
         const selected = value === null ? '' : String(value);
-        return <label key={definition.key}>{definition.label}<NativeSelect className="w-full" data-testid={'field-'+collection+'-'+definition.key} aria-invalid={!!serverErrors[definition.key]} disabled={disabled} value={selected} onChange={event => field(definition.key, definition.type === 'boolean' ? event.target.value === 'true' : event.target.value || null)}>
-          {definition.type !== 'boolean' && <NativeSelectOption value="">{definition.nullable ? 'None' : 'Choose ' + definition.label}</NativeSelectOption>}
+        return <label key={definition.key}>{label}<NativeSelect className="w-full" data-testid={'field-'+collection+'-'+definition.key} aria-invalid={!!serverErrors[definition.key]} disabled={disabled} value={selected} onChange={event => field(definition.key, definition.type === 'boolean' ? event.target.value === 'true' : event.target.value || null)}>
+          {definition.type !== 'boolean' && <NativeSelectOption value="">{collection === 'enemy_types' && definition.key === 'loot_table_code' ? 'Dùng bảng gốc trong Unity' : definition.nullable ? 'None' : 'Choose ' + definition.label}</NativeSelectOption>}
           {selected && !options.some(option => option.value === selected) && <NativeSelectOption value={selected}>{selected} · missing reference</NativeSelectOption>}
           {options.map(option => <NativeSelectOption key={option.value} value={option.value}>{option.label}{definition.type === 'reference' ? ` (${option.value})` : ''}</NativeSelectOption>)}
         </NativeSelect><small role="alert">{serverErrors[definition.key]}</small></label>;
       }
-      return <label key={definition.key}>{definition.label}<Input aria-invalid={!!serverErrors[definition.key]} type="text" value={String(value ?? '')} disabled={disabled} required={definition.required} pattern={definition.pattern} maxLength={definition.maxLength} onChange={event => field(definition.key, definition.nullable && !event.target.value ? null : event.target.value)} /><small role="alert">{serverErrors[definition.key]}</small></label>;
-    })}</div>
-    {collection === 'maps' && <>
-      <p className="mb-4 text-sm text-muted-foreground">Sơ đồ đường đi · {graphNodeCount} nút · quản lý trong Unity</p>
-      <GameRulesEditor mapCode={mapCode} layout={record.layout} bundle={bundle} editable={editable}
-        onChange={value => field('layout', value)} onError={report} />
-    </>}
+      return <label key={definition.key}>{label}<Input aria-invalid={!!serverErrors[definition.key]} type="text" value={String(value ?? '')} disabled={disabled} required={definition.required} pattern={definition.pattern} maxLength={definition.maxLength} onChange={event => field(definition.key, definition.nullable && !event.target.value ? null : event.target.value)} /><small role="alert">{serverErrors[definition.key]}</small></label>;
+    })}{isKnife && <NumericControl label="Thời gian giữa hai đòn" unit="s" value={knifeInterval(bundle)} savedValue={editable ? savedRecord ? knifeInterval(savedBundle) : null : undefined}
+      disabled={!editable} min={.1} max={5} step={.01} sliderMax={2} onError={message => report('Thời gian giữa hai đòn', message)}
+      onChange={value => { if (value !== null) onKnifeCooldownChange(value); }} />}</div>
+    {collection === 'maps' &&
+      <p className="mb-4 text-sm text-muted-foreground">Sơ đồ đường đi · {graphNodeCount} nút · quản lý trong Unity</p>}
     {collection === 'enemy_placements' &&
       <p className="text-sm text-muted-foreground">Tuyến tuần tra · {routePointCount} điểm · {record.spawn_condition ? 'Có điều kiện xuất hiện' : 'Chưa đặt điều kiện xuất hiện'}</p>}
-    {!mapEditor && <details className="sv-json-editor"><summary>Advanced JSON {visibleDefinitions.some(field => field.type === 'json') ? ' · ' + visibleDefinitions.filter(field => field.type === 'json').map(field => field.label).join(', ') : ''}</summary><Textarea className="min-h-72 rounded-none border-0 border-t font-mono text-xs" aria-label="Record JSON" spellCheck={false} disabled={!editable} value={raw} onChange={event => {
+    {collection === 'quests' && <QuestObjectives value={record.objectives} editable={editable} onChange={value => field('objectives', value)} />}
+    {related && <RelatedRows section={related} code={record.code} bundle={bundle} savedBundle={savedBundle} catalog={catalog} editable={editable} forRuntimeLoot={runtimeLoot || lootSources.length > 0} outputItem={record.output_item_code} rollsMax={record.rolls_max} onChange={onRelatedChange} onError={report} />}
+    {!structuredEditor && <details className="sv-json-editor"><summary>Advanced JSON {visibleDefinitions.some(field => field.type === 'json') ? ' · ' + visibleDefinitions.filter(field => field.type === 'json').map(field => field.label).join(', ') : ''}</summary><Textarea className="min-h-72 rounded-none border-0 border-t font-mono text-xs" aria-label="Record JSON" spellCheck={false} disabled={!editable} value={raw} onChange={event => {
       const value = event.target.value; setRaw(value);
       try {
         const parsed: unknown = JSON.parse(value);
