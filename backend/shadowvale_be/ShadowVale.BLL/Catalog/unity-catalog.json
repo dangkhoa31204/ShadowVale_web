@@ -1,12 +1,12 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-11-22T14:12:38.328Z",
-  "unityCommit": "e09caff9b2eba70d6f3e93a4b5e2750437b5b473",
-  "sourceHash": "6531c1b76ca6c2807f02da03cecfdd97acedc1176ce4e061bb68bc56b8ebe8b4",
+  "generatedAt": "2026-11-23T04:20:50.615Z",
+  "unityCommit": "380dafb8d515e9c5900e793545b8668d50a2f254",
+  "sourceHash": "0441bd9195672990545f50ec5f34524643e13f3231f3ebc880a9a4a32428caff",
   "sources": [
     {
       "path": "_Project/Map01/Generated/Map01Content.json",
-      "sha256": "d3f71b80281bc5c0ceae88785ccd85625c95dbbd901c86872c255e23061d25ab"
+      "sha256": "9a03b17d64ee1b19f70814014d756a46c7c5037484862d3ad536bf3140077b65"
     },
     {
       "path": "_Project/Map01/Map01Balance.json",
@@ -14,7 +14,7 @@
     },
     {
       "path": "_Project/Map01/Resources/Loot/Map01Loot.json",
-      "sha256": "b8fc105fb8090b4d34b4d9c3f7b2ce3eb70a23d05eff7d42ea51b442e06ef633"
+      "sha256": "26f1975d48ec88e89eec66fbfbd8c1ff5e650c43c3a70754257b6e4441cfa157"
     },
     {
       "path": "_Project/Map01/Resources/Story/Map02Chapter.json",
@@ -26,23 +26,23 @@
     },
     {
       "path": "_Project/Map01/Runtime/ForestInventory.cs",
-      "sha256": "4b42623a570c32a8301f347daf88f901f221c197842af947e005aa76143e317e"
+      "sha256": "80f9f5fa04f2781dd5a3d943f40799367a187d7e970aa06acefd6583f02da9ce"
     },
     {
       "path": "_Project/Map01/Runtime/Map01Inventory.Condition.cs",
-      "sha256": "326fc7ca9f34a76c888527341b5b867d5900fb0b48da39f91d255381bd011eab"
+      "sha256": "b3b3ebacf22df6dfecf5070c34fb1a72378b862f9243629fdbc427d56ff7ec64"
     },
     {
       "path": "_Project/Map01/Runtime/Map01Inventory.cs",
-      "sha256": "15af9a60d6d7935a279929a0a5606247c874f5fc20a191b1329c8161e72e3ffd"
+      "sha256": "85e6462104aaa29b94fd906a3ece5539be3f489229d72c2b4520cf4359e9c945"
     },
     {
       "path": "_Project/Map01/Runtime/Map01Inventory.FieldCraft.cs",
-      "sha256": "e86373afea25e17a2f86739838912308222e8347e636adbaada4fa5551be05b4"
+      "sha256": "e5ac62b0f0b9078b60f58bc344583a36c5e79884355be66337da93abdf9dfe01"
     },
     {
       "path": "_Project/Map01/Runtime/Map01Logistics.cs",
-      "sha256": "0d45ec2cd8617338e4508482f337647dc97ca2ae2f05c910b72b636a36542bfb"
+      "sha256": "eb99b1c64eac13ac95455153d274063c52df61462129768969549811e3a7ccb4"
     },
     {
       "path": "_Project/Map01/Runtime/Map01Loot.cs",
@@ -50,15 +50,15 @@
     },
     {
       "path": "_Project/Map01/Runtime/Map01M16.cs",
-      "sha256": "51fd75623db92985be733505d43b1708a9fedb4c80430a2852d9dce4e6d3ebe8"
+      "sha256": "7dd8c99493c41a436e814bd894c92a17f9cc46ced49217fe9ebf398c4c8033a9"
     },
     {
       "path": "_Project/Map01/Runtime/Map01Quest.cs",
-      "sha256": "28c6735b6ddcbfb019b4cb4f64886b31a5f69acca0e69ae516650e969b63b4de"
+      "sha256": "11611c8851332a75635347e6782a7b1944cfbdd0e4fd497ee38969cc6091d8ed"
     },
     {
       "path": "_Project/Map01/Runtime/PublishedContent.cs",
-      "sha256": "24b812a10189e074ba7295c04964daeb256fcaeb6ecca7a303a8ef81a6ee8499"
+      "sha256": "19f1a129dfe0e92e1bafe55eaba1e19d8c536e486eeb18144ce5c5d28dfa099a"
     },
     {
       "path": "_Project/Map02/Runtime/Map02Mission.Telemetry.cs",
@@ -70,7 +70,7 @@
     },
     {
       "path": "_Project/Prefabs/Player/Player.prefab",
-      "sha256": "2eb1bfd9a2a250474f56c0d8fbd1407c3bcc4cc7ef1a6013c80aa0cb7d6ac1e9"
+      "sha256": "26fab5b06e85a2ced82d36445b485d61ea611543b1132a3d2f8928fab1dc2256"
     },
     {
       "path": "_Project/Resources/TacticalGraphs/Map 1.nav_graph.json",
@@ -86,7 +86,7 @@
     },
     {
       "path": "_Project/Scripts/Bootstrap/GameBootstrap.cs",
-      "sha256": "89163466f01f6d8249ad02fc5e72aef70b6f1d7d65dc62d2d8f68cfe04f6dc56"
+      "sha256": "2fe0e01fa1f583c3bf4a033b6eafc7f91c8e0460424d33f9f1573338efc404b8"
     },
     {
       "path": "Resources/Skills/SkillBalance.json",
@@ -113,7 +113,7 @@
       },
       {
         "code": "ammo_556",
-        "name": "Đạn 5,56×45 mm",
+        "name": "Đạn M16",
         "description": null,
         "item_type": "ammo",
         "rarity": "common",
@@ -149,37 +149,13 @@
       },
       {
         "code": "ammo_rifle",
-        "name": "Đạn súng trường",
+        "name": "Đạn AK",
         "description": null,
         "item_type": "ammo",
         "rarity": "common",
         "max_stack": 99,
         "weight": 0.02,
         "base_value": 1,
-        "icon_key": null,
-        "stats": {}
-      },
-      {
-        "code": "ammo_shotgun",
-        "name": "Đạn shotgun",
-        "description": null,
-        "item_type": "ammo",
-        "rarity": "common",
-        "max_stack": 99,
-        "weight": 0.05,
-        "base_value": 0,
-        "icon_key": null,
-        "stats": {}
-      },
-      {
-        "code": "ammo_smg",
-        "name": "Đạn tiểu liên",
-        "description": null,
-        "item_type": "ammo",
-        "rarity": "common",
-        "max_stack": 99,
-        "weight": 0.01,
-        "base_value": 0,
         "icon_key": null,
         "stats": {}
       },
@@ -449,18 +425,6 @@
         }
       },
       {
-        "code": "river_documents",
-        "name": "Tài liệu",
-        "description": null,
-        "item_type": "quest_item",
-        "rarity": "common",
-        "max_stack": 64,
-        "weight": 0.2,
-        "base_value": 0,
-        "icon_key": null,
-        "stats": {}
-      },
-      {
         "code": "scope_lens",
         "name": "Kính ngắm",
         "description": null,
@@ -516,18 +480,6 @@
         "rarity": "common",
         "max_stack": 64,
         "weight": 0.3,
-        "base_value": 0,
-        "icon_key": null,
-        "stats": {}
-      },
-      {
-        "code": "supplies",
-        "name": "Hàng tiếp tế",
-        "description": null,
-        "item_type": "quest_item",
-        "rarity": "common",
-        "max_stack": 64,
-        "weight": 2,
         "base_value": 0,
         "icon_key": null,
         "stats": {}
@@ -846,14 +798,6 @@
       },
       {
         "loot_table_code": "loot_tier_1",
-        "item_code": "ammo_smg",
-        "tier": 1,
-        "weight": 20,
-        "min_qty": 10,
-        "max_qty": 25
-      },
-      {
-        "loot_table_code": "loot_tier_1",
         "item_code": "scrap_metal",
         "tier": 1,
         "weight": 25,
@@ -875,14 +819,6 @@
         "weight": 10,
         "min_qty": 1,
         "max_qty": 1
-      },
-      {
-        "loot_table_code": "loot_tier_2",
-        "item_code": "ammo_shotgun",
-        "tier": 2,
-        "weight": 30,
-        "min_qty": 4,
-        "max_qty": 8
       },
       {
         "loot_table_code": "loot_tier_2",
@@ -19460,7 +19396,7 @@
       },
       {
         "code": "assemble_ammo_ak",
-        "name": "Craft: Đạn súng trường",
+        "name": "Craft: Đạn AK",
         "output_item_code": "ammo_rifle",
         "output_quantity": 10,
         "craft_time_s": 5,
@@ -19500,7 +19436,7 @@
       },
       {
         "code": "craft_ammo_rifle",
-        "name": "Craft: Đạn súng trường",
+        "name": "Craft: Đạn AK",
         "output_item_code": "ammo_rifle",
         "output_quantity": 10,
         "craft_time_s": 5,
@@ -19510,7 +19446,7 @@
       },
       {
         "code": "craft_ammo_556",
-        "name": "Craft: Đạn 5,56×45 mm",
+        "name": "Craft: Đạn M16",
         "output_item_code": "ammo_556",
         "output_quantity": 10,
         "craft_time_s": 5,
@@ -20616,7 +20552,6 @@
   },
   "importNotes": [
     "Scripted knife is reference-only: omitted from editable rows because numeric weapon stats are not defined in the source.",
-    "Unimplemented weapon definitions are reference-only and excluded from database authoring: smg_compact, shotgun_pump, carbine_scout. Generated enemy links to these definitions are cleared; review prototype enemy metadata before publish.",
     "Missing local stack/weight/value uses schema defaults; inspect item metadata before publish. Consumable use times and generic effects are not inferred.",
     "Map game_rules contains trade stock, tier/adaptive/repair/logistics and field crafting in existing maps.layout JSON. No new tables.",
     "Enemy perception uses the corresponding grunt/commander archetype where only loot enemy metadata exists; review before publish.",
@@ -20662,7 +20597,7 @@
     },
     {
       "code": "ammo_556",
-      "name": "Đạn 5,56×45 mm",
+      "name": "Đạn M16",
       "type": "ammo",
       "maxStack": 99,
       "weight": 0.02,
@@ -20710,7 +20645,7 @@
     },
     {
       "code": "ammo_rifle",
-      "name": "Đạn súng trường",
+      "name": "Đạn AK",
       "type": "ammo",
       "maxStack": 99,
       "weight": 0.02,
@@ -20723,26 +20658,6 @@
         "baseValue": 1,
         "weight": 0.02
       }
-    },
-    {
-      "code": "ammo_shotgun",
-      "name": "Đạn shotgun",
-      "type": "ammo",
-      "maxStack": 99,
-      "weight": 0.05,
-      "baseValue": null,
-      "inRuntimeInventory": false,
-      "loot": null
-    },
-    {
-      "code": "ammo_smg",
-      "name": "Đạn tiểu liên",
-      "type": "ammo",
-      "maxStack": 99,
-      "weight": 0.01,
-      "baseValue": null,
-      "inRuntimeInventory": false,
-      "loot": null
     },
     {
       "code": "ammo_sniper",
@@ -20775,16 +20690,6 @@
         "baseValue": 20,
         "weight": 0.4
       }
-    },
-    {
-      "code": "carbine_scout",
-      "name": "Scout Carbine",
-      "type": "weapon",
-      "maxStack": null,
-      "weight": null,
-      "baseValue": null,
-      "inRuntimeInventory": false,
-      "loot": null
     },
     {
       "code": "cloth",
@@ -21096,22 +21001,6 @@
       }
     },
     {
-      "code": "river_documents",
-      "name": "Tài liệu",
-      "type": "questitem",
-      "maxStack": null,
-      "weight": 0.2,
-      "baseValue": 0,
-      "inRuntimeInventory": true,
-      "loot": {
-        "code": "river_documents",
-        "type": "QuestItem",
-        "rarity": "Common",
-        "baseValue": 0,
-        "weight": 0.2
-      }
-    },
-    {
       "code": "scope_lens",
       "name": "Kính ngắm",
       "type": "material",
@@ -21142,26 +21031,6 @@
         "baseValue": 3,
         "weight": 0.5
       }
-    },
-    {
-      "code": "shotgun_pump",
-      "name": "Pump Shotgun",
-      "type": "weapon",
-      "maxStack": null,
-      "weight": null,
-      "baseValue": null,
-      "inRuntimeInventory": false,
-      "loot": null
-    },
-    {
-      "code": "smg_compact",
-      "name": "Compact SMG",
-      "type": "weapon",
-      "maxStack": null,
-      "weight": null,
-      "baseValue": null,
-      "inRuntimeInventory": false,
-      "loot": null
     },
     {
       "code": "smoke_bomb",
@@ -21209,22 +21078,6 @@
         "rarity": "Common",
         "baseValue": 0,
         "weight": 0.3
-      }
-    },
-    {
-      "code": "supplies",
-      "name": "Hàng tiếp tế",
-      "type": "questitem",
-      "maxStack": null,
-      "weight": 2,
-      "baseValue": 0,
-      "inRuntimeInventory": true,
-      "loot": {
-        "code": "supplies",
-        "type": "QuestItem",
-        "rarity": "Common",
-        "baseValue": 0,
-        "weight": 2
       }
     },
     {
@@ -21280,40 +21133,6 @@
       "playable": true
     },
     {
-      "id": "smg_compact",
-      "display_name": "Compact SMG",
-      "class": "smg",
-      "damage": 14,
-      "fire_rate": 11,
-      "range": 22,
-      "ammo_type": "ammo_smg",
-      "magazine_size": 35,
-      "reload_seconds": 1.8,
-      "durability_max": 90,
-      "durability_per_shot": 0.1,
-      "noise_radius": 14,
-      "suppressed": false,
-      "name": "Compact SMG",
-      "playable": false
-    },
-    {
-      "id": "shotgun_pump",
-      "display_name": "Pump Shotgun",
-      "class": "shotgun",
-      "damage": 60,
-      "fire_rate": 1.2,
-      "range": 12,
-      "ammo_type": "ammo_shotgun",
-      "magazine_size": 6,
-      "reload_seconds": 3,
-      "durability_max": 120,
-      "durability_per_shot": 0.4,
-      "noise_radius": 24,
-      "suppressed": false,
-      "name": "Pump Shotgun",
-      "playable": false
-    },
-    {
       "id": "pistol_k54",
       "display_name": "K-54 Pistol",
       "class": "pistol",
@@ -21346,23 +21165,6 @@
       "suppressed": false,
       "name": "Súng Mosin ống ngắm PU",
       "playable": true
-    },
-    {
-      "id": "carbine_scout",
-      "display_name": "Scout Carbine",
-      "class": "carbine",
-      "damage": 20,
-      "fire_rate": 5,
-      "range": 32,
-      "ammo_type": "ammo_rifle",
-      "magazine_size": 20,
-      "reload_seconds": 2,
-      "durability_max": 100,
-      "durability_per_shot": 0.1,
-      "noise_radius": 16,
-      "suppressed": false,
-      "name": "Scout Carbine",
-      "playable": false
     },
     {
       "id": "knife",
@@ -24288,14 +24090,6 @@
         "base_value": 1
       },
       {
-        "code": "ammo_shotgun",
-        "max_stack": 99
-      },
-      {
-        "code": "ammo_smg",
-        "max_stack": 99
-      },
-      {
         "code": "ammo_sniper",
         "max_stack": 99,
         "base_value": 4
@@ -24373,10 +24167,6 @@
         "base_value": 60
       },
       {
-        "code": "river_documents",
-        "base_value": 0
-      },
-      {
         "code": "scope_lens",
         "max_stack": 64,
         "base_value": 25
@@ -24398,10 +24188,6 @@
       },
       {
         "code": "stone",
-        "base_value": 0
-      },
-      {
-        "code": "supplies",
         "base_value": 0
       },
       {
@@ -26147,7 +25933,7 @@
     "Snapshot of checked-out Unity sources, not proof of the configuration a running player loaded. Published values can override local defaults at scene load.",
     "Import creates editable database rows. Updated Unity builds apply prices and maps.layout.game_rules for trade, adaptive loot, repair and field crafting after publish. Mission flow and scene geometry remain in Unity.",
     "Loot chance is per random roll before adaptive boosts, guard ammo replacement and medkit pity. Tier 5 entries are guaranteed per container; multiple rolls can repeat items.",
-    "Weapon definitions include unused catalog weapons. Playable marks the inventory whitelist; scripted knife stats are intentionally absent.",
+    "Playable marks the inventory whitelist. The scripted knife has no editable numeric stats.",
     "Tutorial objectives and scene geometry are not exported. Database retention decisions describe the source model; live row counts are recorded separately in the Supabase audit report."
   ]
 }

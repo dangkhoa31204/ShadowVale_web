@@ -1,2 +1,5 @@
 # Local secrets (see backend/shadowvale_be/.env.example)
 .env
+
+# Local test outputs, recordings, and data snapshots
+/output/

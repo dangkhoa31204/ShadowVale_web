@@ -70,7 +70,7 @@ node tools/sync-unity-catalog.mjs --unity G:/game/Capstone/ShadowVale/Assets --c
 node --test tools/tests/unity-catalog.test.mjs tools/tests/unity-authoring.test.mjs
 ```
 
-CLI import trực tiếp chỉ dành cho vận hành được ủy quyền. Chạy `npm install --prefix tools` để cài driver `pg` và `npm ci --prefix frontend/shadowvale_fe` cho dependency validation. Dùng `ConnectionStrings__Default` hoặc `.env` backend. Mặc định chỉ in kế hoạch; `--write` mới tạo một Draft mới trong transaction. Công cụ không update version cũ hoặc DROP/publish. `--pg-module <absolute path to pg/lib/index.js>` hỗ trợ driver đã cài ở vị trí khác. Có thể truyền `--ca <certificate>`; khi không truyền, kết nối tuân theo SSL Mode của backend, không thay cấu hình máy chủ.
+CLI import trực tiếp chỉ dành cho vận hành được ủy quyền. Chạy `npm install --prefix tools` để cài driver `pg` và `npm ci --prefix frontend/shadowvale_fe` cho dependency validation. Dùng `ConnectionStrings__Default` hoặc `.env` backend. Mặc định chỉ in kế hoạch; `--write` mới tạo một Draft mới trong transaction. Công cụ không update version cũ hoặc DROP/publish. `--pg-module <absolute path to pg/lib/index.js>` hỗ trợ driver đã cài ở vị trí khác. Dùng `--catalog <catalog.json>` để chọn bản xuất đã duyệt và `--designer <username>` để chỉ định Designer đang hoạt động khi có nhiều tài khoản. Có thể truyền `--ca <certificate>`; khi không truyền, kết nối tuân theo SSL Mode của backend, không thay cấu hình máy chủ.
 
 ```powershell
 node tools/supabase-content-sync.mjs

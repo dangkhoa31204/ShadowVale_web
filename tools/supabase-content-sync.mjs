@@ -19,7 +19,15 @@ const caFile = process.argv.includes('--ca') ? option('--ca') : config.rootcerti
 const client = new pg.Client({host:config.host,port:Number(config.port||5432),database:config.database,user:config.username||config.userid,password:config.password,
   ssl: caFile ? {ca:fs.readFileSync(caFile),rejectUnauthorized:true} : {rejectUnauthorized:!/^require$/i.test(config.sslmode??'')},connectionTimeoutMillis:15000,
   application_name:'shadowvale-unity-draft-import'});
-const catalog=JSON.parse(fs.readFileSync(path.join(root,'backend/shadowvale_be/ShadowVale.BLL/Catalog/unity-catalog.json')));
+const catalogFile = process.argv.includes('--catalog') ? option('--catalog') : null;
+if (process.argv.includes('--catalog') && (!catalogFile || catalogFile.startsWith('--')))
+  throw new Error('--catalog requires a Unity catalog JSON file.');
+const catalogPath = catalogFile ? path.resolve(catalogFile) :
+  path.join(root,'backend/shadowvale_be/ShadowVale.BLL/Catalog/unity-catalog.json');
+const catalog=JSON.parse(fs.readFileSync(catalogPath));
+const designer = process.argv.includes('--designer') ? option('--designer') : null;
+if (process.argv.includes('--designer') && (!designer || designer.startsWith('--')))
+  throw new Error('--designer requires an active Designer username.');
 const b=catalog.authoringBundle;
 const require=createRequire(import.meta.url);
 const Ajv=require('../frontend/shadowvale_fe/node_modules/ajv');
@@ -41,7 +49,7 @@ try {
   const existing=(await client.query('SELECT id,version_no,status FROM shadowvale.content_versions WHERE changelog LIKE $1',['%'+marker+'%'])).rows;
   if(existing.length) {await client.query('ROLLBACK');transaction=false;console.log(JSON.stringify({created:false,existing}));}
   else {
-    const authors=(await client.query("SELECT id FROM shadowvale.users WHERE is_active AND role='Designer'")).rows;
+    const authors=(await client.query("SELECT id FROM shadowvale.users WHERE is_active AND role='Designer' AND ($1::text IS NULL OR username=$1)",[designer])).rows;
     if(authors.length!==1)throw new Error('Import requires exactly one active Designer. Sign in as a Designer and import through the web when several authors exist.');
     const liveBefore=(await client.query("SELECT id,bundle_checksum,revision FROM shadowvale.content_versions WHERE status='Published'")).rows;
     const versionId=crypto.randomUUID();
