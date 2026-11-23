@@ -179,6 +179,18 @@ public sealed class ContentBundleValidator : IContentBundleValidator
             CollectErrors(evaluation, issues);
             errors.AddRange(issues.Select(e => new ContentValidationIssue(prefix + e.Path, e.Message)));
             if (!evaluation.IsValid) continue;
+            if (rules["difficulty"]?["levels"] is JsonObject levels)
+            {
+                var mapCode = maps[index]?["code"]?.GetValue<string>() ?? "";
+                var presets = GameCatalogService.LayoutPresetsFor(mapCode);
+                foreach (var (level, profile) in levels)
+                {
+                    var preset = profile!["layout_preset_id"]!.GetValue<string>();
+                    if (!presets.Contains(preset))
+                        errors.Add(new(prefix + "/difficulty/levels/" + level + "/layout_preset_id",
+                            "Choose a layout preset available for this map."));
+                }
+            }
             var seen = new HashSet<string>();
             foreach (var offer in rules["trade_offers"] as JsonArray ?? [])
             {

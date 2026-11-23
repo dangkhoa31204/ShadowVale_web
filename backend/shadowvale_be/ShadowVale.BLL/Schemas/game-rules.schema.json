@@ -1,6 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#", "type": "object", "additionalProperties": false,
   "properties": {
+    "difficulty": {"type":"object","additionalProperties":false,"required":["active_level","levels"],"properties":{"active_level":{"enum":["easy","normal","hard"]},"levels":{"type":"object","additionalProperties":false,"required":["easy","normal","hard"],"properties":{"easy":{"$ref":"#/definitions/difficultyLevel"},"normal":{"$ref":"#/definitions/difficultyLevel"},"hard":{"$ref":"#/definitions/difficultyLevel"}}}}},
     "trade_offers": {"type":"array","maxItems":100,"items":{"type":"object","additionalProperties":false,"required":["gun","ammo","rounds"],"properties":{"gun":{"type":"string"},"ammo":{"type":"string"},"rounds":{"type":"integer","minimum":1,"maximum":9999}}}},
     "tier_odds": {"type":"array","minItems":4,"maxItems":4,"items":{"type":"number","minimum":0,"maximum":100000}},
     "adaptive": {"type":"object","additionalProperties":false,"properties":{"lowAmmo":{"type":"integer","minimum":0},"ammoBoost":{"type":"number","exclusiveMinimum":0},"lowHealth":{"type":"number","minimum":0,"maximum":1},"medkitBoost":{"type":"number","exclusiveMinimum":0},"medkitPity":{"type":"integer","minimum":1}}},
@@ -8,5 +9,5 @@
     "logistics": {"type":"object","additionalProperties":false,"properties":{"turnInFloor":{"type":"number","minimum":0,"maximum":1},"turnInCeiling":{"type":"number","minimum":0,"maximum":1},"operationCredit":{"type":"array","minItems":4,"maxItems":4,"items":{"type":"integer","minimum":0}},"materialTrade":{"type":"array","items":{"$ref":"#/definitions/credit"}},"mapTwoRewards":{"type":"array","items":{"$ref":"#/definitions/credit"}}}},
     "field_crafting": {"type":"object","additionalProperties":{"type":"object","additionalProperties":false,"required":["seconds","max_batch"],"properties":{"seconds":{"type":"number","minimum":0,"maximum":600},"max_batch":{"type":"integer","minimum":1,"maximum":1000}}}}
   },
-  "definitions": {"credit":{"type":"object","additionalProperties":false,"required":["id","points"],"properties":{"id":{"type":"string","minLength":1},"points":{"type":"integer","minimum":0,"maximum":1000000}}}}
+  "definitions": {"difficultyLevel":{"type":"object","additionalProperties":false,"required":["guard_damage_percent","guard_vision_percent","layout_preset_id"],"properties":{"guard_damage_percent":{"type":"integer","minimum":50,"maximum":150},"guard_vision_percent":{"type":"integer","minimum":50,"maximum":150},"layout_preset_id":{"type":"string","pattern":"^[a-z][a-z0-9_]*$"}}},"credit":{"type":"object","additionalProperties":false,"required":["id","points"],"properties":{"id":{"type":"string","minLength":1},"points":{"type":"integer","minimum":0,"maximum":1000000}}}}
 }

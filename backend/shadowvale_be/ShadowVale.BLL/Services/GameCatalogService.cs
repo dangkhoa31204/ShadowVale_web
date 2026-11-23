@@ -7,6 +7,13 @@ namespace ShadowVale.BLL.Services;
 public class GameCatalogService(IGameContentRepository content)
 {
     private static readonly string Snapshot = ReadSnapshot();
+    private static readonly Dictionary<string, HashSet<string>> LayoutPresets =
+        (GetSnapshot()["layoutPresets"] as JsonObject ?? new JsonObject()).ToDictionary(entry => entry.Key,
+            entry => entry.Value!.AsArray().Select(preset => preset!["id"]!.GetValue<string>()).ToHashSet(StringComparer.Ordinal));
+    private static readonly HashSet<string> EmptyPresets = new(StringComparer.Ordinal);
+
+    internal static IReadOnlySet<string> LayoutPresetsFor(string mapCode) =>
+        LayoutPresets.GetValueOrDefault(mapCode) ?? EmptyPresets;
     private static readonly Dictionary<string, string[]> Keys = new()
     {
         ["items"] = ["code"], ["weapons"] = ["item_code"], ["loot_tables"] = ["code"],

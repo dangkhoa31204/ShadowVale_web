@@ -112,6 +112,73 @@ public class ContentApiTests(ApiFixture api) : IntegrationTest(api)
     }
 
     [DbFact]
+    public async Task MapDifficultyIsIndependentPerMapAndChangesOnlyAfterPublication()
+    {
+        var designer = await Api.CreateUserClientAsync(UserRole.Designer);
+        var admin = await Api.CreateUserClientAsync(UserRole.Admin);
+        var game = Api.CreateGameClient();
+        var first = await CreateVersion(designer, "Map difficulty baseline");
+        await FillAsync(designer, first.Id);
+
+        static JsonElement Layout(string active, string preset) => JsonSerializer.SerializeToElement(new
+        {
+            game_rules = new
+            {
+                difficulty = new
+                {
+                    active_level = active,
+                    levels = new
+                    {
+                        easy = new { guard_damage_percent = 80, guard_vision_percent = 85, layout_preset_id = preset },
+                        normal = new { guard_damage_percent = 100, guard_vision_percent = 100, layout_preset_id = "original" },
+                        hard = new { guard_damage_percent = 120, guard_vision_percent = 110, layout_preset_id = preset }
+                    }
+                }
+            },
+            authored_metadata = "kept"
+        });
+
+        foreach (var (code, scene, preset) in new[] { ("map01", "Map 1", "forest_north"), ("map02", "Map 2", "canal_south") })
+            await Read<MapDto>(await designer.PostAsJsonAsync($"{Versions}/{first.Id}/maps",
+                new CreateMapRequest { Code = code, Name = scene, SceneKey = scene, Layout = Layout("normal", preset) }), HttpStatusCode.Created);
+        await ValidateAndSubmit(designer, first.Id);
+        await ApproveAndPublish(admin, first.Id);
+
+        var second = await CreateVersion(designer, "Map difficulty changes", first.Id);
+        var route = $"{Versions}/{second.Id}/maps";
+        var summaries = await Read<List<MapSummaryDto>>(await designer.GetAsync(route));
+        foreach (var (code, level, preset) in new[] { ("map01", "hard", "forest_north"), ("map02", "easy", "canal_south") })
+        {
+            var map = summaries.Single(m => m.Code == code);
+            var request = new SaveMapRequest { Name = map.Name, SceneKey = map.SceneKey, Layout = Layout(level, preset) };
+            (await admin.PutAsJsonAsync($"{route}/{map.Id}", request)).StatusCode.ShouldBe(HttpStatusCode.Forbidden);
+            await Read<MapDto>(await designer.PutAsJsonAsync($"{route}/{map.Id}", request));
+        }
+
+        await AssertPublished("normal", "normal");
+        await ValidateAndSubmit(designer, second.Id);
+        await ApproveAndPublish(admin, second.Id);
+        await AssertPublished("hard", "easy");
+
+        async Task AssertPublished(string mapOneLevel, string mapTwoLevel)
+        {
+            var bundle = await game.GetFromJsonAsync<JsonElement>("/api/game/content/bundle");
+            foreach (var (code, level) in new[] { ("map01", mapOneLevel), ("map02", mapTwoLevel) })
+            {
+                var map = bundle.GetProperty("maps").EnumerateArray().Single(m => m.GetProperty("code").GetString() == code);
+                var layout = map.GetProperty("layout");
+                layout.GetProperty("authored_metadata").GetString().ShouldBe("kept");
+                var rules = layout.GetProperty("game_rules").GetProperty("difficulty");
+                rules.GetProperty("active_level").GetString().ShouldBe(level);
+                var profile = rules.GetProperty("levels").GetProperty(level);
+                profile.GetProperty("guard_damage_percent").GetInt32().ShouldBe(level == "hard" ? 120 : level == "easy" ? 80 : 100);
+                var preset = level == "normal" ? "original" : code == "map01" ? "forest_north" : "canal_south";
+                profile.GetProperty("layout_preset_id").GetString().ShouldBe(preset);
+            }
+        }
+    }
+
+    [DbFact]
     public async Task Designer_AuthorsReviewedAndAdminPublishes_GameServesTheBundle()
     {
         var designer = await Api.CreateUserClientAsync(UserRole.Designer);
