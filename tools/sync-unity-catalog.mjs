@@ -137,7 +137,7 @@ export function buildCatalog(assets) {
       'Snapshot of checked-out Unity sources, not proof of the configuration a running player loaded. Published values can override local defaults at scene load.',
       'Import creates editable database rows. Updated Unity builds apply prices and maps.layout.game_rules for trade, adaptive loot, repair and field crafting after publish. Mission flow and scene geometry remain in Unity.',
       'Loot chance is per random roll before adaptive boosts, guard ammo replacement and medkit pity. Tier 5 entries are guaranteed per container; multiple rolls can repeat items.',
-      'Weapon definitions include unused catalog weapons. Playable marks the inventory whitelist; scripted knife stats are intentionally absent.',
+      'Playable marks the inventory whitelist. The scripted knife has no editable numeric stats.',
       'Tutorial objectives and scene geometry are not exported. Database retention decisions describe the source model; live row counts are recorded separately in the Supabase audit report.'
     ] };
 }

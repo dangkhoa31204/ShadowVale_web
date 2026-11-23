@@ -5,7 +5,7 @@ export function authoringBundle({ items, content, loot, balance, skills, recipes
   const notes = ['Scripted knife is reference-only: omitted from editable rows because numeric weapon stats are not defined in the source.'];
   const activeWeapons = new Set(playable.filter(code => code !== 'knife'));
   const referenceOnly = new Set(content.weapons.filter(w => !activeWeapons.has(w.id)).map(w => w.id));
-  notes.push(`Unimplemented weapon definitions are reference-only and excluded from database authoring: ${[...referenceOnly].join(', ')}. Generated enemy links to these definitions are cleared; review prototype enemy metadata before publish.`);
+  if (referenceOnly.size) notes.push(`Unimplemented weapon definitions are reference-only and excluded from database authoring: ${[...referenceOnly].join(', ')}. Generated enemy links to these definitions are cleared; review prototype enemy metadata before publish.`);
   const rows = items.filter(i => i.code !== 'knife' && !referenceOnly.has(i.code)).map(i => ({
     code: i.code, name: i.name, description: null, item_type: i.type === 'questitem' ? 'quest_item' : i.type,
     rarity: (i.loot?.rarity ?? 'common').toLowerCase(), max_stack: i.maxStack ?? (i.type === 'weapon' ? 1 : i.type === 'ammo' ? 99 : 64),
