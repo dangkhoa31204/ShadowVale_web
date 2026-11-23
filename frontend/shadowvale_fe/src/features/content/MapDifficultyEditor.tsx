@@ -21,8 +21,8 @@ function LayoutPreview({ preset, mapCode }: { preset: LayoutPreset; mapCode: str
   </div>;
 }
 
-export function MapDifficultyEditor({ mapCode, layout, editable, onChange, onError, errors }: {
-  mapCode: string; layout: JsonValue | undefined; editable: boolean;
+export function MapDifficultyEditor({ mapCode, layout, savedLayout, editable, onChange, onError, errors }: {
+  mapCode: string; layout: JsonValue | undefined; savedLayout?: JsonValue; editable: boolean;
   onChange: (value: JsonValue) => void; onError: (key: string, message: string) => void;
   errors: Record<string, string>;
 }) {
@@ -33,6 +33,7 @@ export function MapDifficultyEditor({ mapCode, layout, editable, onChange, onErr
   });
   const presets = data?.layoutPresets?.[mapCode];
   const difficulty = readDifficulty(layout);
+  const saved = savedLayout === undefined ? null : readDifficulty(savedLayout);
   const [selected, setSelected] = useState<DifficultyLevel>(difficulty.active_level);
   const [resetCounts, setResetCounts] = useState({ easy: 0, normal: 0, hard: 0 });
   const numericFields = ['guard_damage_percent', 'guard_vision_percent'] as const;
@@ -63,7 +64,7 @@ export function MapDifficultyEditor({ mapCode, layout, editable, onChange, onErr
           <legend className="mb-3 text-sm font-medium">Đang chỉnh mức {difficultyLabels[level]}</legend>
           <div className="mb-4 grid gap-3 md:grid-cols-2">
             {numericFields.map(field => <NumericControl key={field + ':' + resetCounts[level]}
-              label={difficultyFields[field]} value={profile[field]} unit="%" disabled={!editable}
+              label={difficultyFields[field]} value={profile[field]} savedValue={editable ? saved?.levels[level][field] ?? null : undefined} unit="%" disabled={!editable}
               min={50} max={150} sliderMin={50} sliderMax={150} step={1}
               serverError={errors[level + '.' + field]}
               onError={message => onError(difficultyLabels[level] + ' · ' + difficultyFields[field], message)}

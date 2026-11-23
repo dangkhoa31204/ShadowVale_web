@@ -1,9 +1,11 @@
 import { useId, useState } from 'react';
+import { NumericComparison } from './NumericComparison';
 import { parseNumericInput, sliderBounds, sliderValue, type NumericRules } from './numericRules';
 
 interface NumericControlProps extends NumericRules {
   label: string;
   value: number | null;
+  savedValue?: number | null;
   unit?: string;
   disabled?: boolean;
   serverError?: string;
@@ -11,7 +13,7 @@ interface NumericControlProps extends NumericRules {
   onError: (message: string) => void;
 }
 
-export function NumericControl({ label, value, unit, disabled, serverError, onChange, onError, ...rules }: NumericControlProps) {
+export function NumericControl({ label, value, savedValue, unit, disabled, serverError, onChange, onError, ...rules }: NumericControlProps) {
   const id = useId();
   const [edit, setEdit] = useState({ value, text: value === null ? '' : String(value), error: '' });
   if (edit.value !== value) setEdit({ value, text: value === null ? '' : String(value), error: '' });
@@ -32,6 +34,7 @@ export function NumericControl({ label, value, unit, disabled, serverError, onCh
       <input id={id} className="sv-numeric-value" type="text" inputMode={range.step < 1 ? 'decimal' : 'numeric'} value={edit.text} disabled={disabled}
         aria-invalid={!!error} aria-describedby={id + '-help'} placeholder={rules.nullable ? "Not set" : 'Value'} onChange={e => input(e.target.value)} />
     </div>
+    {savedValue !== undefined && <NumericComparison before={savedValue} after={value} unit={unit} beforeLabel="Hiện tại (đã lưu)" afterLabel="Đang chỉnh" announce />}
     <div id={id + '-help'} className="sv-numeric-help">{error ? <span role="alert">{error}</span> : <><span>{range.min}</span><span>{value === null ? 'Optional · not set' : range.max}</span></>}</div>
   </div>;
 }

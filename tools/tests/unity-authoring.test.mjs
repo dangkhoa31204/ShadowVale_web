@@ -10,9 +10,12 @@ const schema=JSON.parse(fs.readFileSync(new URL('../../backend/shadowvale_be/Sha
 const rulesSchema=JSON.parse(fs.readFileSync(new URL('../../backend/shadowvale_be/ShadowVale.BLL/Schemas/game-rules.schema.json',import.meta.url)));
 const statsSchema=JSON.parse(fs.readFileSync(new URL('../../backend/shadowvale_be/ShadowVale.BLL/Schemas/loot-item-stats.schema.json',import.meta.url)));
 const ajv=new Ajv({allErrors:true,multipleOfPrecision:8});
-test('importable Unity bundle fits existing schema without inventing knife stats',()=>{
+test('importable Unity bundle includes the knife without gun fields',()=>{
   const validate=ajv.compile(schema);assert.ok(validate(b),JSON.stringify(validate.errors));
-  assert.ok(!b.items.some(i=>i.code==='knife'));assert.ok(b.weapons.some(w=>w.item_code==='rifle_m16'));
+  assert.equal(b.items.find(i=>i.code==='knife').stats.melee_cooldown_s,.75);
+  const knife = b.weapons.find(w=>w.item_code==='knife');
+  assert.deepEqual([knife.weapon_class, knife.ammo_item_code, knife.magazine_size, knife.reload_time_s], ['melee', null, null, null]);
+  assert.ok(b.weapons.some(w=>w.item_code==='rifle_m16'));
 });
 test('the Unity catalog and import omit retired equipment and keep one medkit',()=>{
   const active=catalog.weapons.filter(w=>w.playable&&!w.scripted).map(w=>w.id).sort();
@@ -29,7 +32,7 @@ test('the Unity catalog and import omit retired equipment and keep one medkit',(
 test('every normalized relation resolves inside the imported version',()=>{
   const codes=key=>new Set(b[key].map(r=>r.code));
   const items=codes('items'),loot=codes('loot_tables'),maps=codes('maps'),recipes=codes('crafting_recipes');
-  for(const w of b.weapons){assert.ok(items.has(w.item_code));assert.ok(items.has(w.ammo_item_code));}
+  for(const w of b.weapons){assert.ok(items.has(w.item_code));if(w.weapon_class!=='melee')assert.ok(items.has(w.ammo_item_code));}
   for(const e of b.loot_table_entries){assert.ok(loot.has(e.loot_table_code));assert.ok(items.has(e.item_code));}
   for(const i of b.crafting_recipe_ingredients){assert.ok(recipes.has(i.recipe_code));assert.ok(items.has(i.item_code));}
   for(const m of b.map_loot_tables){assert.ok(maps.has(m.map_code));assert.ok(loot.has(m.loot_table_code));}

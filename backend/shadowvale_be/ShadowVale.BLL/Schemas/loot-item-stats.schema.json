@@ -1,6 +1,7 @@
 {
   "$schema":"http://json-schema.org/draft-07/schema#","type":"object","additionalProperties":true,
   "properties":{
+    "melee_cooldown_s":{"type":"number","minimum":0.1,"maximum":5,"multipleOf":0.01},
     "found_min":{"type":"number","minimum":0,"maximum":1},
     "found_max":{"type":"number","minimum":0,"maximum":1},
     "salvage_good":{"type":"number","minimum":0,"maximum":1},

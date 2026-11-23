@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-11-23T15:32:10.865Z",
+  "generatedAt": "2026-11-23T16:57:29.216Z",
   "unityCommit": "58cdbd5cceea8872b0430aa29408d91cd142de7c",
-  "sourceHash": "c2bf710cd31120809427854a69c2e6d0137ac75b6fa557b55feafceee5249807",
+  "sourceHash": "bd4dc2f0e83fcdcf78f3360cf15e7502d0e5566384db4129245b0571bc1e931b",
   "sources": [
     {
       "path": "_Project/Map01/Generated/Map01Content.json",
@@ -67,6 +67,10 @@
     {
       "path": "_Project/Prefabs/Items/W_AK47.prefab",
       "sha256": "96668357915ff30053047de49ce60098fd81dce1be29118f00032daa21d283cb"
+    },
+    {
+      "path": "_Project/Prefabs/Items/W_Knife.prefab",
+      "sha256": "12a2ac47c7acb4a5ca905768c2df5ee7a0e382dc494cc9cec205fbc6c499e287"
     },
     {
       "path": "_Project/Prefabs/Player/Player.prefab",
@@ -258,6 +262,20 @@
         "base_value": 3,
         "icon_key": null,
         "stats": {}
+      },
+      {
+        "code": "knife",
+        "name": "Dao",
+        "description": null,
+        "item_type": "weapon",
+        "rarity": "common",
+        "max_stack": 1,
+        "weight": 0.4,
+        "base_value": 10,
+        "icon_key": null,
+        "stats": {
+          "melee_cooldown_s": 0.75
+        }
       },
       {
         "code": "m1_supply_cargo",
@@ -564,6 +582,22 @@
         "max_durability": 110,
         "durability_per_use": 1,
         "noise_radius": 30,
+        "is_suppressed": false
+      },
+      {
+        "item_code": "knife",
+        "item_type": "weapon",
+        "weapon_class": "melee",
+        "damage": 45,
+        "fire_rate": 1.33,
+        "effective_range": 2,
+        "magazine_size": null,
+        "reload_time_s": null,
+        "ammo_item_code": null,
+        "ammo_type": "ammo",
+        "max_durability": 100,
+        "durability_per_use": 0,
+        "noise_radius": 0,
         "is_suppressed": false
       }
     ],
@@ -20555,7 +20589,7 @@
     "quest_rewards": []
   },
   "importNotes": [
-    "Scripted knife is reference-only: omitted from editable rows because numeric weapon stats are not defined in the source.",
+    "Knife balance comes from the Unity prefab and applies to ordinary swings. Special takedowns follow their existing rules.",
     "Missing local stack/weight/value uses schema defaults; inspect item metadata before publish. Consumable use times and generic effects are not inferred.",
     "Map game_rules contains trade stock, tier/adaptive/repair/logistics and field crafting in existing maps.layout JSON. No new tables.",
     "Enemy perception uses the corresponding grunt/commander archetype where only loot enemy metadata exists; review before publish.",
@@ -21172,9 +21206,13 @@
     },
     {
       "id": "knife",
+      "class": "melee",
+      "damage": 45,
+      "range": 2,
+      "cooldown_seconds": 0.75,
+      "fire_rate": 1.33,
       "name": "Dao",
-      "playable": true,
-      "scripted": true
+      "playable": true
     }
   ],
   "lootTables": [
@@ -24758,6 +24796,13 @@
         "base_value": 3
       },
       {
+        "code": "knife",
+        "stats": {
+          "melee_cooldown_s": 0.75
+        },
+        "base_value": 10
+      },
+      {
         "code": "m1_supply_cargo",
         "base_value": 0
       },
@@ -24828,8 +24873,8 @@
       {
         "item_code": "rifle_standard",
         "damage": 30,
-        "fire_rate": 10,
         "effective_range": 120,
+        "fire_rate": 10,
         "magazine_size": 30,
         "reload_time_s": 2.4,
         "ammo_item_code": "ammo_rifle",
@@ -24841,8 +24886,8 @@
       {
         "item_code": "rifle_m16",
         "damage": 22,
-        "fire_rate": 10,
         "effective_range": 80,
+        "fire_rate": 10,
         "magazine_size": 30,
         "reload_time_s": 2.4,
         "ammo_item_code": "ammo_556",
@@ -24854,8 +24899,8 @@
       {
         "item_code": "pistol_k54",
         "damage": 22,
-        "fire_rate": 3,
         "effective_range": 25,
+        "fire_rate": 3,
         "magazine_size": 8,
         "reload_time_s": 1.8,
         "ammo_item_code": "ammo_pistol",
@@ -24867,8 +24912,8 @@
       {
         "item_code": "rifle_mosin",
         "damage": 200,
-        "fire_rate": 0.7,
         "effective_range": 200,
+        "fire_rate": 0.7,
         "magazine_size": 5,
         "reload_time_s": 5,
         "ammo_item_code": "ammo_sniper",
@@ -24876,6 +24921,11 @@
         "durability_per_use": 1,
         "noise_radius": 30,
         "is_suppressed": false
+      },
+      {
+        "item_code": "knife",
+        "damage": 45,
+        "effective_range": 2
       }
     ],
     "loot_tables": [
@@ -26561,7 +26611,7 @@
     "Snapshot of checked-out Unity sources, not proof of the configuration a running player loaded. Published values can override local defaults at scene load.",
     "Import creates editable database rows. Updated Unity builds apply prices and maps.layout.game_rules for trade, adaptive loot, repair and field crafting after publish. Mission flow and scene geometry remain in Unity.",
     "Loot chance is per random roll before adaptive boosts, guard ammo replacement and medkit pity. Tier 5 entries are guaranteed per container; multiple rolls can repeat items.",
-    "Playable marks the inventory whitelist. The scripted knife has no editable numeric stats.",
+    "Knife defaults come from the prefab. Published damage, range and attack interval affect ordinary swings; special takedowns remain scripted.",
     "Tutorial objectives and scene geometry are not exported. Database retention decisions describe the source model; live row counts are recorded separately in the Supabase audit report."
   ]
 }

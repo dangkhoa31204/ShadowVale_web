@@ -15,6 +15,12 @@ function constant(text, name) {
   if (!match || Number(match[1]) <= 0) throw new Error(`Missing positive M16 constant ${name}`);
   return Number(match[1]);
 }
+export function resolveKnifeRuntime(prefab) {
+  const weapon = component(prefab, 'ShadowVale.Gameplay.Combat.Weapon');
+  const cooldown = scalar(weapon, 'cooldown');
+  return { id: 'knife', class: 'melee', damage: scalar(weapon, 'damage'), range: scalar(weapon, 'range'),
+    cooldown_seconds: cooldown, fire_rate: Number((1 / cooldown).toFixed(2)) };
+}
 export function resolveWeaponRuntime(content, akPrefab, playerPrefab, m16Source) {
   const weapon = component(akPrefab, 'ShadowVale.Gameplay.Combat.Weapon');
   const combat = component(playerPrefab, 'ShadowVale.Gameplay.Combat.PlayerCombat');

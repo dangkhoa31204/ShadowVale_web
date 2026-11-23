@@ -4,7 +4,7 @@ import crypto from 'node:crypto';
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { authoringBundle } from './unity-authoring-bundle.mjs';
-import { resolveWeaponRuntime } from './unity-weapon-runtime.mjs';
+import { resolveKnifeRuntime, resolveWeaponRuntime } from './unity-weapon-runtime.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const hash = value => crypto.createHash('sha256').update(value).digest('hex');
@@ -62,6 +62,8 @@ export function buildCatalog(assets) {
   const m16 = read('_Project/Map01/Runtime/Map01M16.cs');
   const runtimeWeapons = resolveWeaponRuntime(content, read('_Project/Prefabs/Items/W_AK47.prefab'), read('_Project/Prefabs/Player/Player.prefab'), m16);
   content = runtimeWeapons.content;
+  const knife = resolveKnifeRuntime(read('_Project/Prefabs/Items/W_Knife.prefab'));
+  content = { ...content, weapons: [...content.weapons.filter(weapon => weapon.id !== knife.id), knife] };
   const m16Constants = Object.fromEntries([...m16.matchAll(/(\w+)\s*=\s*"([^"]+)"/g)].map(m => [`Map01M16.${m[1]}`, m[2]]));
   const trader = read('_Project/Map01/Runtime/CampTrader.cs');
   for (const source of ['Map01Loot.cs', 'Map01Logistics.cs', 'Map01Inventory.Condition.cs', 'PublishedContent.cs']) read(`_Project/Map01/Runtime/${source}`);
@@ -78,7 +80,7 @@ export function buildCatalog(assets) {
   });
   const itemByCode = Object.fromEntries(items.map(i => [i.code, i]));
   const weapons = content.weapons.map(w => ({ ...w, name: itemByCode[w.id].name, playable: playable.includes(w.id) }));
-  // Knife is scripted. Preserve absence of numeric stats rather than inventing damage/range.
+  // Preserve reference-only entries for playable weapons that have no editable runtime profile.
   for (const code of playable) if (!weapons.some(w => w.id === code)) weapons.push({ id: code, name: names[code] ?? code, playable: true, scripted: true });
   const lootTables = loot.lootTables.map(t => ({ ...t, source: 'runtime', entries: t.entries.map((e, i) => ({ ...e,
     baselineChance: baselineProbabilities(t.entries, loot.tierOdds)[i], guaranteed: e.tier === 5 })) }));
@@ -124,8 +126,9 @@ export function buildCatalog(assets) {
     }))];
   }));
   const projection = {
-    items: items.map(i => ({ code: i.code, ...(i.maxStack == null ? {} : { max_stack: i.maxStack }), ...(i.baseValue == null ? {} : { base_value: i.baseValue }) })),
-    weapons: content.weapons.map(w => ({ item_code: w.id, damage: w.damage, fire_rate: w.fire_rate, effective_range: w.range, magazine_size: w.magazine_size, reload_time_s: w.reload_seconds, ammo_item_code: w.ammo_type, max_durability: w.durability_max, durability_per_use: w.durability_per_shot, noise_radius: w.noise_radius, is_suppressed: w.suppressed })),
+    items: items.map(i => ({ code: i.code, ...(i.code === knife.id ? { stats: { melee_cooldown_s: knife.cooldown_seconds } } : {}), ...(i.maxStack == null ? {} : { max_stack: i.maxStack }), ...(i.baseValue == null ? {} : { base_value: i.baseValue }) })),
+    weapons: content.weapons.map(w => ({ item_code: w.id, damage: w.damage, effective_range: w.range,
+      ...(w.class === 'melee' ? {} : { fire_rate: w.fire_rate, magazine_size: w.magazine_size, reload_time_s: w.reload_seconds, ammo_item_code: w.ammo_type, max_durability: w.durability_max, durability_per_use: w.durability_per_shot, noise_radius: w.noise_radius, is_suppressed: w.suppressed }) })),
     loot_tables: loot.lootTables.map(t => ({ code: t.code, rolls_min: t.rollsMin, rolls_max: t.rollsMax })),
     loot_table_entries: loot.lootTables.flatMap(t => t.entries.map(e => ({ loot_table_code: t.code, item_code: e.item, tier: e.tier, weight: e.weight, min_qty: e.min, max_qty: e.max }))),
     crafting_recipes: recipes.map(r => ({ code: r.id, output_item_code: r.output_item_id, output_quantity: r.output_count, craft_time_s: r.craft_seconds })),
@@ -151,7 +154,7 @@ export function buildCatalog(assets) {
       'Snapshot of checked-out Unity sources, not proof of the configuration a running player loaded. Published values can override local defaults at scene load.',
       'Import creates editable database rows. Updated Unity builds apply prices and maps.layout.game_rules for trade, adaptive loot, repair and field crafting after publish. Mission flow and scene geometry remain in Unity.',
       'Loot chance is per random roll before adaptive boosts, guard ammo replacement and medkit pity. Tier 5 entries are guaranteed per container; multiple rolls can repeat items.',
-      'Playable marks the inventory whitelist. The scripted knife has no editable numeric stats.',
+      'Knife defaults come from the prefab. Published damage, range and attack interval affect ordinary swings; special takedowns remain scripted.',
       'Tutorial objectives and scene geometry are not exported. Database retention decisions describe the source model; live row counts are recorded separately in the Supabase audit report.'
     ] };
 }
