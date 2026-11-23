@@ -2,7 +2,7 @@ import { axiosClient } from '../../services/api/axiosClient';
 import { storageService } from '../../services/storage/storageService';
 import { errorMessage } from '../../services/api/errors';
 import type { ContentVersionDto, ContentVersionDetailsDto, EnumsDto, ContentValidationResultDto, ContentComparisonDto, ContentPublicationDto } from '../../services/api/contracts';
-import { resources, draftFromApi, editorToEntities, entitiesToEditor, importToVersion, validateEditor, type Entity, type EntitySet } from './apiModel';
+import { resources, draftFromApi, editorToEntities, entitiesToEditor, emptyBundle, importToVersion, validateEditor, type Entity, type EntitySet } from './apiModel';
 import { planSave, runSavePlan, payload } from './savePlan';
 import type { Command, ContentBundle, Draft, Workspace } from './types';
 export interface Page<T> { items:T[]; page:number; pageSize:number; totalCount:number; totalPages:number }
@@ -11,6 +11,7 @@ export async function allPages<T>(read:(page:number)=>Promise<Page<T>>):Promise<
   for(;;){const result=await read(page);rows.push(...result.items);if(page>=Number(result.totalPages)) return rows;page++;}
 }
 const root='/content-versions';
+const unityImportNote=(hash:string)=>'Imported Unity source '+hash+'. Review before publish.';
 type Snapshot={ version:ContentVersionDto; entities:EntitySet };
 const snapshots=new Map<string,Snapshot>();
 const actor=(id:string|null|undefined)=>id===storageService.getUser()?.id?storageService.getUser()!.callsign:id||'—';
@@ -22,18 +23,40 @@ export class UnityImportError extends Error {
   }
 }
 export const contentApi={
+  async unfinishedUnityImports(source:ContentBundle,sourceHash:string,userId:string):Promise<ContentVersionDto[]>{
+    const drafts=await allPages<ContentVersionDto>(async page=>(await axiosClient.get<Page<ContentVersionDto>>(root,{params:{page,pageSize:100,status:'Draft'}})).data);
+    const candidates=drafts.filter(v=>v.authoredById===userId&&!v.submittedAt&&v.changelog?.includes(unityImportNote(sourceHash)));
+    const results=await Promise.all(candidates.map(async version=>{
+      const {bundle}=await this.details(version.id);
+      const current={...emptyBundle(version),...bundle as Partial<ContentBundle>};
+      return resources.some(([key])=>source[key].some(row=>!current[key].some(saved=>saved.code===row.code)))?version:null;
+    }));
+    return results.filter(version=>version!==null);
+  },
   async importUnity(source:ContentBundle,sourceHash:string,existingId?:string):Promise<string>{
     const errors=validateEditor(source);
     if(errors.length)throw new Error('Unity source is invalid: '+errors.slice(0,5).join('; '));
     let id=existingId;
     try{
-      if(!id) id=(await axiosClient.post<ContentVersionDto>(root,{label:'Unity import '+sourceHash.slice(0,12),changelog:'Imported Unity source '+sourceHash+'. Review before publish.',parentVersionId:null,schemaVersion:'1.0'})).data.id;
-      const current=await this.editor(id);
-      if(current.status!=='draft')throw new Error('Only a Draft can receive this import.');
-      const version=await this.version(id);
-      const bundle=importToVersion(source,version);
-      await this.save(id,bundle,version.label,version.changelog||'');
-      return id;
+      const changelog=unityImportNote(sourceHash);
+      const previous=existingId?await this.details(existingId):null;
+      const version=previous?.version??
+        (await axiosClient.post<ContentVersionDto>(root,{label:'Unity import '+sourceHash.slice(0,12),changelog,parentVersionId:null,schemaVersion:'1.0'})).data;
+      id=version.id;
+      if(version.status!=='Draft'||!version.changelog?.includes(changelog))throw new Error('Choose a Draft created from this Unity catalog.');
+      if(existingId && version.authoredById!==storageService.getUser()?.id)throw new Error('Only the author can resume this Unity import.');
+      const current=editorToEntities({...emptyBundle(version),...previous?.bundle as Partial<ContentBundle>});
+      const imported=editorToEntities(importToVersion(source,version));
+      for(const [key] of resources){
+        const existing=new Set(current[key].map(row=>row.code));
+        imported[key]=[...current[key],...imported[key].filter(row=>!existing.has(row.code))];
+      }
+      const operations=planSave(current,imported);
+      await runSavePlan(operations,async op=>{
+        await axiosClient.post(root+'/'+version.id+'/'+op.route,op.data);
+      });
+      snapshots.delete(version.id);
+      return version.id;
     }catch(error){if(id)throw new UnityImportError(id,error);throw error;}
   },
   enums:async()=> (await axiosClient.get<EnumsDto>('/meta/enums')).data,

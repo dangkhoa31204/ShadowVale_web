@@ -236,7 +236,15 @@ test('Unity import rebinds version identities and resumes a partial Draft withou
  assert.equal(rebound.items[0].content_version_id,undefined);assert.equal(source.items[0].api_id,'old-row-id');
  const data=Object.fromEntries(api.resources.map(([key])=>[key,[]]));let failRifle=true;
  handler=c=>{
-  if(c.url==='/content-versions'&&c.method==='post'){assert.equal(body(c).parentVersionId,null);return ok(c,v,201);}
+  if(c.url==='/content-versions'&&c.method==='post'){
+   assert.equal(body(c).parentVersionId,null);
+   v.changelog=body(c).changelog;
+   return ok(c,v,201);
+  }
+  if(c.url==='/content-versions'&&c.method==='get'){
+   assert.equal(c.params.status,'Draft');
+   return ok(c,{items:[v],totalPages:1});
+  }
   if(c.url==='/content-versions/'+v.id)return ok(c,{version:v,bundle:api.entitiesToEditor(v,data)});
   const match=c.url.match(/\/content-versions\/unity-import-test\/([^/]+)(?:\/(.+))?/);
   const resource=match&&api.resources.find(r=>r[1]===match[1]);
@@ -252,7 +260,14 @@ test('Unity import rebinds version identities and resumes a partial Draft withou
   throw new Error('Unexpected request '+c.method+' '+c.url);
  };
  await assert.rejects(api.contentApi.importUnity(source,'source-hash'),e=>e.draftId===v.id&&/Saved: items\/ammo_small/.test(e.message));
- const id=await api.contentApi.importUnity(source,'source-hash',v.id);
+ assert.deepEqual((await api.contentApi.unfinishedUnityImports(source,'source-hash','another-designer')).map(d=>d.id),[]);
+ const [unfinished]=await api.contentApi.unfinishedUnityImports(source,'source-hash','designer');
+ data.items[0].name='Edited after interrupted import';
+ const id=await api.contentApi.importUnity(source,'source-hash',unfinished.id);
+ assert.equal(data.items[0].name,'Edited after interrupted import');
+ assert.equal(data.items.find(i=>i.code==='rifle').weapon.damage,24);
+ assert.deepEqual(await api.contentApi.unfinishedUnityImports(source,'source-hash','designer'),[]);
+ assert.ok(!calls.some(c=>c.method==='put'||c.method==='delete'));
  assert.equal(id,v.id);assert.equal(calls.filter(c=>c.method==='post'&&c.url==='/content-versions').length,1);
  assert.equal(data.items.filter(i=>i.code==='ammo_small').length,1);
  assert.ok(!calls.some(c=>/\/(validate|submit|approve|publish)$/.test(c.url)));
