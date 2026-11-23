@@ -109,6 +109,20 @@ export function buildCatalog(assets) {
       objectiveCount: quests.filter(q => q.mapCode === code).reduce((sum, q) => sum + q.objectives.length, 0),
       note: 'Nav graph metadata only; scene geometry, actual spawns and NavMesh remain Unity assets.' };
   });
+  const registry = json('_Project/Resources/MapLayoutPresets.json');
+  const layoutPresets = Object.fromEntries(registry.maps.map(map => {
+    const mapDefinition = maps.find(entry => entry.code === map.map_code);
+    if (!mapDefinition || mapDefinition.scene !== map.scene) throw new Error('Invalid layout registry map ' + map.map_code);
+    const all = map.presets.flatMap(preset => preset.hidden);
+    const x = all.map(marker => marker.x), z = all.map(marker => marker.z);
+    const toPoint = marker => [
+      Math.round(8 + 84 * (marker.x - Math.min(...x)) / Math.max(1, Math.max(...x) - Math.min(...x))),
+      Math.round(8 + 84 * (Math.max(...z) - marker.z) / Math.max(1, Math.max(...z) - Math.min(...z)))
+    ];
+    return [map.map_code, map.presets.map(({id, name, description, hidden}) => ({
+      id, name, description, preview: all.filter(marker => !hidden.includes(marker)).map(toPoint)
+    }))];
+  }));
   const projection = {
     items: items.map(i => ({ code: i.code, ...(i.maxStack == null ? {} : { max_stack: i.maxStack }), ...(i.baseValue == null ? {} : { base_value: i.baseValue }) })),
     weapons: content.weapons.map(w => ({ item_code: w.id, damage: w.damage, fire_rate: w.fire_rate, effective_range: w.range, magazine_size: w.magazine_size, reload_time_s: w.reload_seconds, ammo_item_code: w.ammo_type, max_durability: w.durability_max, durability_per_use: w.durability_per_shot, noise_radius: w.noise_radius, is_suppressed: w.suppressed })),
@@ -130,7 +144,7 @@ export function buildCatalog(assets) {
   return { schemaVersion: 1, generatedAt: new Date().toISOString(), unityCommit, sourceHash: hash(JSON.stringify(sourceList)), sources: sourceList,
     authoringBundle: imported.bundle, importNotes: imported.notes, weaponRuntimeOverrides: runtimeWeapons.overrides,
     items, weapons, lootTables, recipes, trade: { offers: tradeOffers, materials: loot.logistics.materialTrade, logistics: loot.logistics },
-    maps, quests, adaptive: loot.adaptive, tierOdds: loot.tierOdds, repair: loot.repair, balance, skills,
+    maps, quests, layoutPresets, adaptive: loot.adaptive, tierOdds: loot.tierOdds, repair: loot.repair, balance, skills,
     enemyTypes: loot.enemyTypes, authoringProjection: projection,
     databaseAudit: JSON.parse(fs.readFileSync(path.join(root, 'tools/database-content-audit.json'), 'utf8')),
     limitations: [
@@ -147,14 +161,18 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
   if (!process.argv.includes('--unity') || !assets) throw new Error('Usage: node tools/sync-unity-catalog.mjs --unity <Unity/Assets> [--check]');
   const output = path.join(root, 'backend/shadowvale_be/ShadowVale.BLL/Catalog/unity-catalog.json');
   const catalog = buildCatalog(path.resolve(assets));
+  const previewOutput = path.join(root, 'frontend/shadowvale_fe/src/features/content/map-layout-presets.json');
+  const preview = JSON.stringify(catalog.layoutPresets) + '\n';
   if (process.argv.includes('--check')) {
     const existing = JSON.parse(fs.readFileSync(output, 'utf8'));
     for (const value of [existing, catalog]) { delete value.generatedAt; delete value.unityCommit; }
     if (JSON.stringify(existing) !== JSON.stringify(catalog)) throw new Error('Unity catalog is stale. Run sync-unity-catalog without --check.');
+    if (fs.readFileSync(previewOutput, 'utf8').replace(/\r\n/g, '\n') !== preview) throw new Error('Map layout previews are stale.');
     console.log('Unity catalog matches source files.');
   } else {
     fs.mkdirSync(path.dirname(output), { recursive: true });
     fs.writeFileSync(output, JSON.stringify(catalog, null, 2) + '\n');
+    fs.writeFileSync(previewOutput, preview);
     console.log(`Exported ${catalog.items.length} items, ${catalog.recipes.length} recipes, ${catalog.quests.reduce((n, q) => n + q.objectives.length, 0)} objectives to ${output}`);
   }
 }

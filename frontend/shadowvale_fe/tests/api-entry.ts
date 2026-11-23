@@ -18,3 +18,4 @@ export { usersApi } from '../src/features/administration/usersApi';
 export { isExistingRecord, recordEditorFields, assertReadOnlyFields } from '../src/features/content/recordFieldPolicy';
 
 export * from '../src/features/content/designerPresentation';
+export { readDifficulty, withDifficulty, bundledLayoutPresets } from '../src/features/content/mapDifficulty';

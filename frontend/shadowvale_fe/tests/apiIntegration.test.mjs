@@ -273,6 +273,29 @@ test('Unity import rebinds version identities and resumes a partial Draft withou
  assert.ok(!calls.some(c=>/\/(validate|submit|approve|publish)$/.test(c.url)));
 });
 
+test('map difficulty keeps all levels and technical fields through a draft save and reload', async () => {
+ const { v, data } = server();
+ const current = await api.contentApi.editor(v.id);
+ const before = current.bundle.maps[0];
+ const normal = api.readDifficulty(before.layout);
+ assert.equal(normal.active_level, 'normal');
+ const levels = {
+  ...normal.levels,
+  easy: {guard_damage_percent:80,guard_vision_percent:90,layout_preset_id:'forest_south'},
+  hard: {guard_damage_percent:120,guard_vision_percent:110,layout_preset_id:'forest_north'},
+ };
+ before.layout = api.withDifficulty(before.layout, {...normal, levels, active_level:'hard'});
+ await api.contentApi.save(v.id, current.bundle, v.label, v.changelog);
+ const after = (await api.contentApi.editor(v.id)).bundle.maps[0];
+ assert.deepEqual(api.readDifficulty(after.layout), {active_level:'hard', levels});
+ assert.deepEqual(after.layout.zones, ['safe']);
+ assert.deepEqual(after.nav_graph, {nodes:[]});
+ assert.equal(data.maps[0].sceneKey, 'Forest');
+ assert.equal(api.bundledLayoutPresets.map01.length, 3);
+ assert.equal(api.bundledLayoutPresets.map02.length, 3);
+ assert.ok(api.bundledLayoutPresets.map01.every(preset=>preset.preview.length>0));
+});
+
 test('all nested child collections round-trip into their parent request without flat foreign columns',()=>{
  const source=entities();
  source.skills=[{id:'skill-id',code:'engineering',name:'Engineering',type:'Engineering',description:null,maxLevel:10,xpCurve:[]}];

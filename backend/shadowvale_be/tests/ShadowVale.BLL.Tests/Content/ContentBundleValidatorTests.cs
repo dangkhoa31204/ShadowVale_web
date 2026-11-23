@@ -12,6 +12,32 @@ public class ContentBundleValidatorTests
         Path.Combine(AppContext.BaseDirectory, "Content", "demo-bundle.json")))!.AsObject();
 
     [Fact]
+    public void Difficulty_validates_profiles_and_layout_ownership()
+    {
+        var bundle = GameCatalogService.GetSnapshot()["authoringBundle"]!.AsObject();
+        var maps = bundle["maps"]!.AsArray();
+        var index = maps.ToList().FindIndex(row => row?["code"]?.GetValue<string>() == "map01");
+        var rules = maps[index]!["layout"]!["game_rules"]!.AsObject();
+        var difficulty = JsonNode.Parse("""
+            {"active_level":"hard","levels":{
+              "easy":{"guard_damage_percent":80,"guard_vision_percent":85,"layout_preset_id":"original"},
+              "normal":{"guard_damage_percent":100,"guard_vision_percent":100,"layout_preset_id":"forest_south"},
+              "hard":{"guard_damage_percent":120,"guard_vision_percent":110,"layout_preset_id":"forest_north"}
+            }}
+            """)!;
+        rules["difficulty"] = difficulty;
+        _validator.Validate(bundle).ShouldBeEmpty();
+
+        difficulty["levels"]!["hard"]!["layout_preset_id"] = "canal_north";
+        _validator.Validate(bundle).ShouldContain(e =>
+            e.Path == $"/maps/{index}/layout/game_rules/difficulty/levels/hard/layout_preset_id");
+
+        difficulty["levels"]!["hard"]!["guard_damage_percent"] = 151;
+        _validator.Validate(bundle).ShouldContain(e =>
+            e.Path.EndsWith("/difficulty/levels/hard/guard_damage_percent"));
+    }
+
+    [Fact]
     public void Frontend_demo_matches_backend_contract() => _validator.Validate(Demo()).ShouldBeEmpty();
 
     // Seed:DemoData=true publishes it, so the game API must serve a bundle that passes the contract

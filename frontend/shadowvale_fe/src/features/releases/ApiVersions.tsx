@@ -19,6 +19,9 @@ import { Modal } from '../shared/Modal';
 import { BundleSnapshot } from '../content/BundleDetails';
 import { ComparisonView, type Change } from '../content/DiffList';
 import { collections } from '../content/types';
+import {
+  bundledLayoutPresets, difficultyFields, difficultyLabels, difficultyLevels, jsonObject, readDifficulty,
+} from '../content/mapDifficulty';
 import type { ContentBundle } from '../content/types';
 import { errorMessage } from '../../services/api/errors';
 import { Empty, Icon, PageHeading, Panel, Status, panelTable } from '../shared/ui';
@@ -40,8 +43,39 @@ async function loadComparison(afterId:string,beforeId?:string,expectedRevision?:
   const bundle=after.bundle as ContentBundle;
   if(!bundle || typeof bundle!=='object')throw new Error('Content is unavailable for this version. Refresh or ask the designer to save the content again.');
   const differences=diff?.differences||collections.flatMap(c=>(bundle[c.key]||[]).map((row,i)=>({path:'/'+c.key+'/'+String(row.code||row.item_code||i+1),before:null,after:row})));
-  const changes:Change[]=differences.map((d,i)=>({key:d.path+':'+i,path:d.path,title:changeName(d.path),kind:d.before===null?'Added':d.after===null?'Removed':'Updated',before:d.before,after:d.after}));
-  return {bundle,changes,revision:Number(after.version.revision)};
+  const ordinaryChanges = differences.filter(d=>!d.path.startsWith('/maps/') || !d.path.split('/').includes('difficulty'));
+  const difficultyChanges: Change[] = [];
+  const includesDifficulty = bundle.maps.some(row => jsonObject(jsonObject(row.layout).game_rules).difficulty) ||
+    differences.some(change => change.path.startsWith('/maps/') && change.path.split('/').includes('difficulty'));
+  const baseline = beforeId && includesDifficulty ? await contentApi.details(beforeId) : undefined;
+  const previous = (baseline?.bundle as ContentBundle | undefined)?.maps ?? [];
+  if (baseline && diff && Number(baseline.version.revision)!==Number(diff.sourceRevision))
+    throw new Error('The baseline version changed. Refresh and review the comparison again.');
+  for (const map of bundle.maps) {
+    const old = previous.find(row=>row.code===map.code);
+    const hasDifficulty = (row: typeof old) => !!jsonObject(jsonObject(row?.layout).game_rules).difficulty;
+    if (!hasDifficulty(map) && !hasDifficulty(old)) continue;
+    const a = readDifficulty(old?.layout), b = readDifficulty(map.layout);
+    const path = '/maps/' + String(map.code) + '/layout/game_rules/difficulty';
+    const mapName = String(map.name || map.code);
+    const add = (field: string, label: string, before: string, after: string) => {
+      if (before === after) return;
+      const key = path + '/' + field;
+      difficultyChanges.push({ key, path: key, title: mapName + ' · ' + label, kind: 'Updated', before, after });
+    };
+    add('active_level', 'Mức áp dụng', difficultyLabels[a.active_level], difficultyLabels[b.active_level]);
+    for (const level of difficultyLevels) {
+      function display(value: ReturnType<typeof readDifficulty>, field: keyof typeof difficultyFields) {
+        const setting = value.levels[level][field];
+        if (typeof setting === 'number') return setting + '%';
+        return bundledLayoutPresets[String(map.code)]?.find(preset=>preset.id===setting)?.name || setting;
+      }
+      for (const field of Object.keys(difficultyFields) as (keyof typeof difficultyFields)[])
+        add(level + '/' + field, difficultyLabels[level] + ' · ' + difficultyFields[field], display(a, field), display(b, field));
+    }
+  }
+  const changes:Change[]=ordinaryChanges.map((d,i)=>({key:d.path+':'+i,path:d.path,title:changeName(d.path),kind:d.before===null?'Added':d.after===null?'Removed':'Updated',before:d.before,after:d.after}));
+  return {bundle,changes:[...difficultyChanges,...changes],revision:Number(after.version.revision)};
 }
 export function ApiCompare({beforeId,afterId,onReady,expectedRevision}: {beforeId?:string;afterId:string;onReady?:(ready:boolean)=>void;expectedRevision?:number}) {
   const comparison=useQuery({queryKey:['content-compare',afterId,beforeId,expectedRevision],queryFn:()=>loadComparison(afterId,beforeId,expectedRevision)});
