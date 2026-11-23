@@ -28,6 +28,8 @@ import { editorFieldErrors } from './apiFieldErrors';
 import type { EnumsDto } from '../../services/api/contracts';
 import { isExistingRecord, recordEditorFields, assertReadOnlyFields } from './recordFieldPolicy';
 import { GameRulesEditor } from './GameRulesEditor';
+import { MapDifficultyEditor } from './MapDifficultyEditor';
+import { bundledLayoutPresets, jsonObject } from './mapDifficulty';
 
 function referenceOptions(field: FieldDefinition, bundle: ContentBundle) {
   if (!field.reference) return [];
@@ -92,6 +94,13 @@ function DraftEditor({ draft, enums }: { draft: Draft; enums?: EnumsDto }) {
     mutationFn: () => contentApi.validate(draft.id, draft.revision),
     onSuccess: async report => {
       if (report.isValid) toast.success('Validation passed.');
+      const codes = bundle.maps.map(row => String(row.code)).sort();
+      setServerFields(Object.fromEntries(report.errors.flatMap(issue => {
+        const path = issue.path.match(/^\/maps\/(\d+)\/layout\/game_rules\/difficulty\/levels\/(\w+)\/(\w+)$/);
+        if (!path) return [];
+        const mapIndex = bundle.maps.findIndex(row => row.code === codes[Number(path[1])]);
+        return mapIndex >= 0 ? [['maps:' + mapIndex + ':' + path[2] + '.' + path[3], issue.message]] : [];
+      })));
       setApiError(report.isValid ? 'Validation passed.' : report.errors.map(i => i.path + ': ' + i.message).join('\n'));
       await reload();
     },
@@ -223,11 +232,20 @@ function RecordEditor({ collection, bundle, record, existing, editable, enums, s
   }
   const definitions = recordEditorFields(collection, isDemoMode ? schemaFields[collection] : apiFields(collection, enums), existing);
   const visibleDefinitions = designerFields(collection, definitions);
+  const mapEditor = collection === 'maps' || collection === 'map_loot_tables' || collection === 'enemy_placements';
+  const mapCode = typeof record.code === 'string' ? record.code : '';
+  const graph = jsonObject(record.nav_graph);
+  const graphNodeCount = Array.isArray(graph.nodes) ? graph.nodes.length : 0;
+  const routePointCount = Array.isArray(record.patrol_route) ? record.patrol_route.length : 0;
   return <><div className="sv-record-title"><div><span className="sv-eyebrow">{(collections.find(item => item.key === collection)?.label || '')}</span><h2>{recordLabel(collection, record, bundle)}</h2></div><span className="sv-mono">{recordIdentity(collection, record)}</span></div>
     {editable && existing && <p className="sv-key-lock-note sv-field-help"><Icon name="lock" />Key fields are locked for existing records.</p>}
+    {collection === 'maps' && Object.hasOwn(bundledLayoutPresets, mapCode) &&
+      <MapDifficultyEditor key={mapCode} mapCode={mapCode} layout={record.layout} editable={editable}
+        onChange={value => field('layout', value)} onError={report} errors={serverErrors} />}
+    {collection === 'maps' && <h3 className="mt-5 font-semibold">Thông tin map</h3>}
     <div className="sv-field-grid sv-form">{visibleDefinitions.filter(definition => definition.type !== 'json' && !['content_version_id', 'created_at', 'updated_at'].includes(definition.key)).map(definition => {
       const value = Object.hasOwn(record, definition.key) ? record[definition.key] : definition.defaultValue ?? null;
-      const disabled = !editable || definition.readOnly;
+      const disabled = !editable || definition.readOnly || collection === 'maps' && existing && definition.key === 'scene_key';
       if (definition.type === 'number') return <NumericControl key={definition.key + ':' + formRevision} label={definition.label} serverError={serverErrors[definition.key]} value={typeof value === 'number' ? value : null} disabled={disabled} nullable={definition.nullable}
         min={definition.min} max={definition.max} step={definition.step} sliderMin={definition.sliderMin} sliderMax={definition.sliderMax} unit={definition.unit}
         onChange={value => field(definition.key, value)} onError={message => report(definition.label, message)} />;
@@ -243,8 +261,14 @@ function RecordEditor({ collection, bundle, record, existing, editable, enums, s
       }
       return <label key={definition.key}>{definition.label}<Input aria-invalid={!!serverErrors[definition.key]} type="text" value={String(value ?? '')} disabled={disabled} required={definition.required} pattern={definition.pattern} maxLength={definition.maxLength} onChange={event => field(definition.key, definition.nullable && !event.target.value ? null : event.target.value)} /><small role="alert">{serverErrors[definition.key]}</small></label>;
     })}</div>
-    {collection==='maps'&&<GameRulesEditor layout={record.layout} bundle={bundle} editable={editable} onChange={value=>field('layout',value)}/>}
-    <details className="sv-json-editor"><summary>Advanced JSON {visibleDefinitions.some(field => field.type === 'json') ? ' · ' + visibleDefinitions.filter(field => field.type === 'json').map(field => field.label).join(', ') : ''}</summary><Textarea className="min-h-72 rounded-none border-0 border-t font-mono text-xs" aria-label="Record JSON" spellCheck={false} disabled={!editable} value={raw} onChange={event => {
+    {collection === 'maps' && <>
+      <p className="mb-4 text-sm text-muted-foreground">Sơ đồ đường đi · {graphNodeCount} nút · quản lý trong Unity</p>
+      <GameRulesEditor mapCode={mapCode} layout={record.layout} bundle={bundle} editable={editable}
+        onChange={value => field('layout', value)} onError={report} />
+    </>}
+    {collection === 'enemy_placements' &&
+      <p className="text-sm text-muted-foreground">Tuyến tuần tra · {routePointCount} điểm · {record.spawn_condition ? 'Có điều kiện xuất hiện' : 'Chưa đặt điều kiện xuất hiện'}</p>}
+    {!mapEditor && <details className="sv-json-editor"><summary>Advanced JSON {visibleDefinitions.some(field => field.type === 'json') ? ' · ' + visibleDefinitions.filter(field => field.type === 'json').map(field => field.label).join(', ') : ''}</summary><Textarea className="min-h-72 rounded-none border-0 border-t font-mono text-xs" aria-label="Record JSON" spellCheck={false} disabled={!editable} value={raw} onChange={event => {
       const value = event.target.value; setRaw(value);
       try {
         const parsed: unknown = JSON.parse(value);
@@ -253,7 +277,7 @@ function RecordEditor({ collection, bundle, record, existing, editable, enums, s
         assertReadOnlyFields(definitions, record, next);
         fieldErrors.current = {}; setFormRevision(revision => revision + 1); onError(''); onChange(next);
       } catch (error) { report('JSON', error instanceof Error ? error.message : 'Invalid JSON.'); }
-    }} /></details></>;
+    }} /></details>}</>;
 }
 
 export function ContentPage({ embedded = false }: { embedded?: boolean }) {
