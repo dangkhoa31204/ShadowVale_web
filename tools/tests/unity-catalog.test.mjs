@@ -50,8 +50,9 @@ test('snapshot resolves trades, loot, recipe inputs and objective prerequisites'
     for (const o of q.objectives) for (const id of o.requires) assert.ok(ids.has(id), id);
   }
 });
-test('scripted knife has no fabricated damage and field crafting preserves bench availability', () => {
-  assert.equal(catalog.weapons.find(w => w.id === 'knife').damage, undefined);
+test('knife defaults come from the prefab and field crafting preserves bench availability', () => {
+  const knife = catalog.weapons.find(w => w.id === 'knife');
+  assert.deepEqual([knife.class, knife.damage, knife.range, knife.cooldown_seconds], ['melee', 45, 2, .75]);
   const recipe = catalog.recipes.find(r => r.id === 'assemble_ammo_ak');
   assert.ok(recipe.benchAvailable && recipe.fieldAvailable);
   assert.equal(recipe.field_seconds, 8);

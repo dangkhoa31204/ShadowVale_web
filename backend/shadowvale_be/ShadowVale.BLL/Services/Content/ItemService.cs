@@ -1,3 +1,4 @@
+using System.Text.Json;
 using ShadowVale.BLL.DTOs.Content;
 using ShadowVale.BLL.Exceptions;
 using ShadowVale.BLL.Interfaces;
@@ -81,6 +82,11 @@ public class ItemService(IContentRepository content, ContentEditor editor) : IIt
             throw new ValidationException(nameof(request.Weapon), "An item of type Weapon needs weapon stats.");
         if (type != ItemType.Consumable && request.Consumable is not null)
             throw new ValidationException(nameof(request.Consumable), "Only an item of type Consumable has consumable stats.");
+        if (item.Code == "knife" && request.Stats is { ValueKind: JsonValueKind.Object } stats &&
+            stats.TryGetProperty("melee_cooldown_s", out var cooldown) &&
+            (cooldown.ValueKind != JsonValueKind.Number || !cooldown.TryGetDecimal(out var seconds) ||
+                seconds < .1m || seconds > 5m || decimal.Round(seconds, 2) != seconds))
+            throw new ValidationException("Stats.MeleeCooldownS", "Knife attack interval must be between 0.10 and 5.00 seconds, with at most two decimal places.");
         if (type == ItemType.Consumable && request.Consumable is null)
             throw new ValidationException(nameof(request.Consumable), "An item of type Consumable needs consumable stats.");
 
