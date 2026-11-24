@@ -62,11 +62,15 @@ export function GameCatalogPage({ embedded = false }: { embedded?: boolean }) {
     {catalog.error ? <Alert variant="destructive"><AlertDescription>{errorMessage(catalog.error)}</AlertDescription></Alert> : !data ? <p role="status">Loading Unity Catalog…</p> : <>
       {canImport&&<Panel title="Import from Unity" description="Import into a draft to edit. Publishing requires Admin review.">
         <div className="flex flex-wrap gap-3 p-6">
+          {data.authoringBundle && <p className="basis-full text-sm text-muted-foreground">
+            Import includes {data.authoringBundle.maps.map(map => map.name).join(', ')} · {data.authoringBundle.crafting_recipes.length} recipes · {data.authoringBundle.crafting_recipe_ingredients.length} ingredient rows.
+          </p>}
           {data.authoringBundle&&unfinished.isPending&&<p role="status">Checking for unfinished imports…</p>}
           {unfinished.error&&<Button variant="outline" onClick={()=>void unfinished.refetch()}>Retry loading drafts</Button>}
           {unfinished.data?.map(draft=><Button key={draft.id} disabled={importDraft.isPending} onClick={()=>importDraft.mutate(draft.id)}>
-            Resume import into Draft #{draft.versionNo}
+            Complete import into Draft #{draft.versionNo}
           </Button>)}
+          {!!unfinished.data?.length && <p className="basis-full text-sm text-muted-foreground">Adds missing records from the current Unity snapshot and keeps existing draft edits.</p>}
           {!unfinished.data?.length&&<Button disabled={importDraft.isPending||!data.authoringBundle||unfinished.isPending||!!unfinished.error} onClick={()=>importDraft.mutate(undefined)}>
             Import Unity as new draft
           </Button>}

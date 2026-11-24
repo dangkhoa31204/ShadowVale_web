@@ -22,7 +22,7 @@ import { NumericControl } from '../shared/NumericControl';
 import { contentNavigation, designerFields, updateDraftMapLayout } from './designerPresentation';
 import { isDemoMode } from '../../config/environment';
 import { apiFields, validateEditor } from './apiModel';
-import { contentApi } from './contentApi';
+import { contentApi, isUnityImport, missingUnityContent } from './contentApi';
 import { errorMessage } from '../../services/api/errors';
 import { editorFieldErrors } from './apiFieldErrors';
 import type { EnumsDto } from '../../services/api/contracts';
@@ -131,6 +131,9 @@ function DraftEditor({ draft, enums }: { draft: Draft; enums?: EnumsDto }) {
   const categoryInfo = collections.find(collection => collection.key === category)!;
   const categoryGroup = contentNavigation.find(group => group.records.some(record => record.key === category))!;
   const catalog = useQuery({ queryKey: ['game-catalog'], queryFn: ({ signal }) => gameCatalogApi.get(signal), staleTime: 60_000, enabled: !isDemoMode });
+  const unitySource = catalog.data;
+  const importMissing = draft.status === 'draft' && owner && !draft.submitted_at && unitySource?.authoringBundle &&
+    isUnityImport(draft.changelog, unitySource.sourceHash) ? missingUnityContent(unitySource.authoringBundle, draft.bundle) : [];
   const related = relatedSection(category);
   const visibleTabs = categoryGroup.records;
   const settingsTab = categoryGroup.rules;
@@ -238,6 +241,13 @@ function DraftEditor({ draft, enums }: { draft: Draft; enums?: EnumsDto }) {
     </div></div>
     <div className="grid gap-3 px-5 pt-4 empty:hidden">
       {apiError && (apiError === 'Validation passed.' ? <Alert role="status"><AlertDescription className="text-success">{apiError}</AlertDescription></Alert> : <Alert variant="destructive"><AlertDescription className="whitespace-pre-wrap">{apiError}</AlertDescription></Alert>)}
+      {importMissing.length > 0 && <Alert>
+        <AlertTitle>Unity import is incomplete</AlertTitle>
+        <AlertDescription>
+          <p>{importMissing.length} missing entries · {importMissing.slice(0, 4).join(', ')}{importMissing.length > 4 && '…'}</p>
+          <Link className="underline" to="/admin/content?view=unity">Complete this draft from Unity Catalog</Link>
+        </AlertDescription>
+      </Alert>}
       {!isDemoMode && draft.status === 'rejected' && <Alert><AlertDescription>Change a content record and save to return to Draft, or clone this version.</AlertDescription></Alert>}
       {editable && showValidation && submitErrors.length > 0 && <Alert ref={validationRef} id="content-submit-errors" variant="destructive" tabIndex={-1}><AlertTitle>Check this content before sending</AlertTitle><AlertDescription><ul className="list-disc pl-5">{submitErrors.map((error, index) => <li key={index}>{error}</li>)}</ul></AlertDescription></Alert>}
       {!!draft.validation_errors?.length && <Alert variant="destructive"><AlertTitle>BE validation</AlertTitle><AlertDescription>{draft.validation_errors.map((message,i)=><p key={i}>{message}</p>)}</AlertDescription></Alert>}

@@ -509,3 +509,53 @@ test('skill table edits keep legacy effects and validate Unity thresholds and mo
   const saved = { items: [], skills: [legacy] };
   assert.deepEqual(api.structuredContentErrors({ ...saved, skills: [{ ...legacy, name: 'Renamed' }] }, saved), []);
 });
+
+test('a partial Unity draft recovers Map 2, all recipes and ingredients across snapshot versions', async () => {
+  const catalog = JSON.parse(await fs.readFile('../../backend/shadowvale_be/ShadowVale.BLL/Catalog/unity-catalog.json', 'utf8'));
+  const source = catalog.authoringBundle;
+  const draft = { ...version, id: 'partial-unity', changelog: `Imported Unity source ${'a'.repeat(64)}. Review before publish.` };
+  const all = api.editorToEntities(source);
+  const stored = Object.fromEntries(api.resources.map(([key]) => [key, all[key].map(row => ({ ...row, id: `${key}-${row.code}` }))]));
+  stored.maps = stored.maps.filter(row => row.code !== 'map02');
+  stored.maps.find(row => row.code === 'map01').name = 'Designer Map 1';
+  stored.crafting_recipes = [{ ...stored.crafting_recipes[0], ingredients: [] }];
+  stored.quests = [];
+  let mapWrites = 0;
+  handler = c => {
+    if (c.url === '/content-versions') {
+      assert.equal(c.method, 'get');
+      return ok(c, { items: [draft], totalPages: 1 });
+    }
+    if (c.url === `/content-versions/${draft.id}`) return ok(c, { version: draft, bundle: api.entitiesToEditor(draft, stored) });
+    const [, route, id] = c.url.match(/^\/content-versions\/partial-unity\/([^/]+)(?:\/([^/]+))?$/) ?? [];
+    const [key] = api.resources.find(row => row[1] === route);
+    const input = body(c);
+    if (c.method === 'put') {
+      assert.equal(key, 'crafting_recipes');
+      const recipe = stored[key].find(row => row.id === id);
+      Object.assign(recipe, input);
+      return ok(c, recipe);
+    }
+    assert.equal(c.method, 'post');
+    assert.ok(!stored[key].some(row => row.code === input.code));
+    const row = { ...input, id: `${key}-${input.code}` };
+    stored[key].push(row);
+    if (input.code === 'map02') {
+      mapWrites++;
+      return fail(c, 503, { message: 'Response lost after Map 2 was saved' });
+    }
+    return ok(c, row, 201);
+  };
+  const pending = await api.contentApi.unfinishedUnityImports(source, catalog.sourceHash, 'designer');
+  assert.deepEqual(pending.map(row => row.id), [draft.id]);
+  assert.equal(await api.contentApi.importUnity(source, catalog.sourceHash, draft.id), draft.id);
+  assert.equal(mapWrites, 1);
+  const saved = api.entitiesToEditor(draft, stored);
+  assert.deepEqual(saved.maps.map(map => map.code), ['map00_tutorial', 'map01', 'map02']);
+  assert.equal(saved.maps[1].name, 'Designer Map 1');
+  assert.deepEqual(saved.maps[2].nav_graph, source.maps.find(map => map.code === 'map02').nav_graph);
+  assert.deepEqual(saved.crafting_recipe_ingredients, source.crafting_recipe_ingredients);
+  assert.equal(saved.crafting_recipes.length, 10);
+  assert.equal(saved.quests.length, 2);
+  assert.deepEqual(await api.contentApi.unfinishedUnityImports(source, catalog.sourceHash, 'designer'), []);
+});
