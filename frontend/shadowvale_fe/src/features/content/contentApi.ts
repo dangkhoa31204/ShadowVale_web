@@ -1,9 +1,9 @@
 import { axiosClient } from '../../services/api/axiosClient';
 import { storageService } from '../../services/storage/storageService';
-import { errorMessage } from '../../services/api/errors';
+import { errorMessage, statusOf } from '../../services/api/errors';
 import type { ContentVersionDto, ContentVersionDetailsDto, EnumsDto, ContentValidationResultDto, ContentComparisonDto, ContentPublicationDto } from '../../services/api/contracts';
 import { resources, draftFromApi, editorToEntities, entitiesToEditor, emptyBundle, importToVersion, validateEditor, type Entity, type EntitySet } from './apiModel';
-import { planSave, runSavePlan, payload } from './savePlan';
+import { canonical, planSave, runSavePlan, payload } from './savePlan';
 import type { Command, ContentBundle, Draft, Workspace } from './types';
 export interface Page<T> { items:T[]; page:number; pageSize:number; totalCount:number; totalPages:number }
 export async function allPages<T>(read:(page:number)=>Promise<Page<T>>):Promise<T[]> {
@@ -12,6 +12,27 @@ export async function allPages<T>(read:(page:number)=>Promise<Page<T>>):Promise<
 }
 const root='/content-versions';
 const unityImportNote=(hash:string)=>'Imported Unity source '+hash+'. Review before publish.';
+export function isUnityImport(changelog: string | null | undefined, sourceHash: string) {
+  return !!changelog && (changelog.includes(unityImportNote(sourceHash)) ||
+    /(?:^|\r?\n)Imported Unity source [a-f0-9]{64}\. Review before publish\.(?=\r?\n|$)/i.test(changelog));
+}
+
+export function missingUnityContent(source: ContentBundle, draft: ContentBundle) {
+  const missing = resources.flatMap(([key]) => source[key]
+    .filter(row => !draft[key]?.some(saved => saved.code === row.code))
+    .map(row => key + '/' + row.code));
+  const recipesWithIngredients = new Set(source.crafting_recipe_ingredients.map(row => row.recipe_code));
+  for (const recipe of draft.crafting_recipes ?? []) {
+    if (recipesWithIngredients.has(recipe.code) && !draft.crafting_recipe_ingredients?.some(row => row.recipe_code === recipe.code))
+      missing.push('crafting_recipe_ingredients/' + recipe.code);
+  }
+  return missing;
+}
+
+function recipeIngredients(bundle: ContentBundle, code: string) {
+  return bundle.crafting_recipe_ingredients.filter(row => row.recipe_code === code)
+    .map(row => [row.item_code, row.quantity]).sort(([left], [right]) => String(left).localeCompare(String(right)));
+}
 type Snapshot={ version:ContentVersionDto; entities:EntitySet };
 const snapshots=new Map<string,Snapshot>();
 const actor=(id:string|null|undefined)=>id===storageService.getUser()?.id?storageService.getUser()!.callsign:id||'—';
@@ -25,11 +46,11 @@ export class UnityImportError extends Error {
 export const contentApi={
   async unfinishedUnityImports(source:ContentBundle,sourceHash:string,userId:string):Promise<ContentVersionDto[]>{
     const drafts=await allPages<ContentVersionDto>(async page=>(await axiosClient.get<Page<ContentVersionDto>>(root,{params:{page,pageSize:100,status:'Draft'}})).data);
-    const candidates=drafts.filter(v=>v.authoredById===userId&&!v.submittedAt&&v.changelog?.includes(unityImportNote(sourceHash)));
+    const candidates=drafts.filter(v=>v.authoredById===userId&&!v.submittedAt&&isUnityImport(v.changelog,sourceHash));
     const results=await Promise.all(candidates.map(async version=>{
       const {bundle}=await this.details(version.id);
       const current={...emptyBundle(version),...bundle as Partial<ContentBundle>};
-      return resources.some(([key])=>source[key].some(row=>!current[key].some(saved=>saved.code===row.code)))?version:null;
+      return missingUnityContent(source,current).length ? version : null;
     }));
     return results.filter(version=>version!==null);
   },
@@ -43,19 +64,47 @@ export const contentApi={
       const version=previous?.version??
         (await axiosClient.post<ContentVersionDto>(root,{label:'Unity import '+sourceHash.slice(0,12),changelog,parentVersionId:null,schemaVersion:'1.0'})).data;
       id=version.id;
-      if(version.status!=='Draft'||!version.changelog?.includes(changelog))throw new Error('Choose a Draft created from this Unity catalog.');
+      if(version.status!=='Draft'||version.submittedAt||!isUnityImport(version.changelog,sourceHash))throw new Error('Choose an unsubmitted Draft created from Unity Catalog.');
       if(existingId && version.authoredById!==storageService.getUser()?.id)throw new Error('Only the author can resume this Unity import.');
       const current=editorToEntities({...emptyBundle(version),...previous?.bundle as Partial<ContentBundle>});
       const imported=editorToEntities(importToVersion(source,version));
+      const sourceRecipes = new Map(imported.crafting_recipes.map(recipe => [recipe.code, recipe]));
       for(const [key] of resources){
         const existing=new Set(current[key].map(row=>row.code));
-        imported[key]=[...current[key],...imported[key].filter(row=>!existing.has(row.code))];
+        const retained = key !== 'crafting_recipes' ? current[key] : current[key].map(recipe => {
+          const defaults = sourceRecipes.get(recipe.code);
+          return defaults && defaults.outputItemCode === recipe.outputItemCode && Array.isArray(defaults.ingredients) &&
+            (!Array.isArray(recipe.ingredients) || recipe.ingredients.length === 0)
+            ? { ...recipe, ingredients: defaults.ingredients } : recipe;
+        });
+        imported[key]=[...retained,...imported[key].filter(row=>!existing.has(row.code))];
       }
       const operations=planSave(current,imported);
       await runSavePlan(operations,async op=>{
-        await axiosClient.post(root+'/'+version.id+'/'+op.route,op.data);
+        const route = root+'/'+version.id+'/'+op.route;
+        const write = () => op.method === 'put' ? axiosClient.put(route+'/'+op.id,op.data) : axiosClient.post(route,op.data);
+        try { await write(); }
+        catch (error) {
+          // A lost response may follow a successful write. Read the draft before retrying.
+          const status = statusOf(error);
+          if (status !== undefined && ![502,503,504].includes(status)) throw error;
+          const latest = await this.details(version.id);
+          if (latest.version.status !== 'Draft' || latest.version.submittedAt) throw error;
+          const persisted = {...emptyBundle(latest.version),...latest.bundle as Partial<ContentBundle>};
+          const row = persisted[op.resource].find(row => row.code === op.code);
+          const saved = op.method === 'post' ? !!row : persisted.crafting_recipe_ingredients.some(row => row.recipe_code === op.code);
+          if (saved) return;
+          await write();
+        }
       });
       snapshots.delete(version.id);
+      const persisted = await this.details(version.id);
+      const completed = {...emptyBundle(persisted.version),...persisted.bundle as Partial<ContentBundle>};
+      const missing = missingUnityContent(source,completed);
+      if (missing.length) throw new Error('Draft is still missing: '+missing.join(', '));
+      const incompleteRecipes = operations.filter(op => op.resource === 'crafting_recipes' &&
+        canonical(recipeIngredients(source, op.code)) !== canonical(recipeIngredients(completed, op.code)));
+      if (incompleteRecipes.length) throw new Error('Could not verify ingredients for: '+incompleteRecipes.map(op => op.code).join(', '));
       return version.id;
     }catch(error){if(id)throw new UnityImportError(id,error);throw error;}
   },
