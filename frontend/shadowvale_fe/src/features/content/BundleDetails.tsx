@@ -4,6 +4,7 @@ import { compareBundles } from './validation';
 import { Empty } from '../shared/ui';
 import { ComparisonView, type Change } from './DiffList';
 import { displayValue } from '../shared/format';
+import { emptyBundle } from './apiModel';
 
 const metadata = ['/version_no', '/label', '/changelog', '/content_version_id', '/checksum', '/published_at'];
 function changeLabel(path: string, before: ContentBundle | undefined, after: ContentBundle) {
@@ -33,9 +34,10 @@ export function BundleSnapshot({ bundle, section }: { bundle: ContentBundle; sec
   })}</div>;
 }
 
-export function BundleDetails({ before, after }: { before?: ContentBundle; after: ContentBundle }) {
-  const changes: Change[] | undefined = before && compareBundles(before, after)
+export function BundleDetails({ before, after, compact = false }: { before?: ContentBundle; after: ContentBundle; compact?: boolean }) {
+  const baseline = before ?? (compact ? emptyBundle() : undefined);
+  const changes: Change[] | undefined = baseline && compareBundles(baseline, after)
     .filter(d => !metadata.includes(d.path) && !['api_id', 'content_version_id', 'created_at', 'updated_at'].includes(d.path.split('/').at(-1) || ''))
     .map(d => ({ key: d.path, path: d.path, title: changeLabel(d.path, before, after), kind: d.before === undefined ? 'Added' : d.after === undefined ? 'Removed' : 'Updated', before: d.before, after: d.after }));
-  return <ComparisonView changes={changes} beforeLabel={'Before · Version #' + (before?.version_no ?? '')} afterLabel={'After · Version #' + after.version_no} content={section => <BundleSnapshot bundle={after} section={section} />} />;
+  return <ComparisonView compact={compact} changes={changes} beforeLabel={before ? 'Before · Version #' + before.version_no : 'Before · First release'} afterLabel={'After · Version #' + after.version_no} content={section => <BundleSnapshot bundle={after} section={section} />} />;
 }

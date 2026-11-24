@@ -92,9 +92,6 @@
 .sv-record-title .sv-mono { font-size: 9px; color: #617c8b; }
 .sv-field-grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 18px; }
 .sv-field-grid label { text-transform: capitalize; }
-.sv-json-editor { margin: 24px 0 15px; border: 1px solid var(--sv-border); border-radius: 6px; }
-.sv-json-editor summary { font-size: 11px; color: #9bb2c1; padding: 12px 15px; cursor: pointer; }
-.sv-json-editor textarea { display: block; width: 100%; min-height: 280px; border: 0; border-top: 1px solid var(--sv-border); border-radius: 0 0 6px 6px; font-family: 'JetBrains Mono', monospace; font-size: 11px; line-height: 1.8; padding: 16px; }
 .sv-validation { display: flex; align-items: flex-start; gap: 13px; padding: 18px 24px; border-top: 1px solid #2c4336; background: #1c2b23; color: #b7d7c0; }
 .sv-validation .sv-icon { margin-top: 3px; }
 .sv-validation strong { font-size: 12px; font-weight: 500; }

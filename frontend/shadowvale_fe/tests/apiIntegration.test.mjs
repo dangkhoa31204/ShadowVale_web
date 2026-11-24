@@ -398,11 +398,6 @@ test('existing weapon keys are locked even when the child has no API GUID; stats
  for(const key of ['damage','fire_rate','effective_range','magazine_size','reload_time_s','weapon_class']) {
   assert.equal(fields.find(f=>f.key===key).readOnly,false,key);
  }
- const changes={...weapon,damage:42};
- assert.doesNotThrow(()=>api.assertReadOnlyFields(fields,weapon,changes));
- assert.throws(()=>api.assertReadOnlyFields(fields,weapon,{...weapon,item_code:'other_weapon'}),/Weapon item is read-only/);
- assert.throws(()=>api.assertReadOnlyFields(fields,weapon,{...weapon,ammo_item_code:null}),/Ammo item is read-only/);
- assert.throws(()=>api.assertReadOnlyFields(fields,weapon,{...weapon,api_id:'forged-id'}),/API resource ID/);
 });
 
 test('primary, composite and foreign keys use the same locks across content tables',()=>{
@@ -426,7 +421,6 @@ test('new record keys remain selectable until saved, including nullable weapon a
  const fields=api.recordEditorFields('weapons',api.apiFields('weapons'),false);
  assert.equal(fields.find(f=>f.key==='item_code').readOnly,false);
  assert.equal(fields.find(f=>f.key==='ammo_item_code').readOnly,false);
- assert.doesNotThrow(()=>api.assertReadOnlyFields(fields,fresh,{...fresh,item_code:'chosen_weapon',ammo_item_code:'ammo_small'}));
  assert.equal(api.isExistingRecord('weapons',fresh,[...saved,fresh]),true);
  assert.equal(api.recordEditorFields('items',api.apiFields('items'),false).find(f=>f.key==='code').readOnly,false);
 });
@@ -439,30 +433,22 @@ test('designer presentation keeps every collection and preserves hidden values i
     consumable: { healHp: 25, restoreStamina: 7, useTimeSeconds: 2, cures: ['bleeding'], extraEffects: { duration: 4 } } });
   const bundle = api.entitiesToEditor(version, data);
   const current = bundle.consumables[0];
-  const shown = api.designerRecord('consumables', current);
-  assert.equal(Object.hasOwn(shown, 'restore_stamina'), false);
-  assert.equal(Object.hasOwn(shown, 'cures'), false);
-  assert.equal(Object.hasOwn(shown, 'extra_effects'), false);
-  assert.equal(Object.hasOwn(current, 'cures'), true);
-  bundle.consumables[0] = api.restoreDesignerFields('consumables', current, { ...shown, heal_hp: 40 });
+  const shown = api.designerFields('consumables', api.apiFields('consumables')).map(field => field.key);
+  for (const field of ['restore_stamina', 'cures', 'extra_effects']) assert.ok(!shown.includes(field));
+  bundle.consumables[0] = { ...current, heal_hp: 40 };
   const saved = api.editorToEntities(bundle).items.find(i => i.code === 'medkit').consumable;
   assert.deepEqual(saved, { healHp: 40, restoreStamina: 7, useTimeSeconds: 2, cures: ['bleeding'], extraEffects: { duration: 4 } });
 });
-test('hidden settings survive JSON edits without adding absent keys or allowing hidden overwrites', () => {
-  const examples = [
-    ['crafting_recipes', { code: 'recipe', name: 'Before', required_skill_code: 'engineering', required_skill_level: 2, station: 'workbench' }],
-    ['quests', { code: 'quest', title: 'Before', reward_xp: 50, prerequisites: ['intro'], is_main: true, sort_order: 8 }],
-    ['enemy_types', { code: 'guard', name: 'Before', accuracy: 0.7, fsm_params: { search: 8 } }],
-  ];
-  for (const [collection, current] of examples) {
-    const visible = api.designerRecord(collection, current);
-    const editableKey = collection === 'quests' ? 'title' : 'name';
-    assert.deepEqual(api.restoreDesignerFields(collection, current, { ...visible, [editableKey]: 'After' }), { ...current, [editableKey]: 'After' });
+test('technical settings stay out of the Designer form', () => {
+  const hidden = {
+    crafting_recipes: ['required_skill_code', 'required_skill_level', 'station'],
+    quests: ['reward_xp', 'prerequisites', 'is_main', 'sort_order'],
+    enemy_types: ['accuracy', 'fsm_params'],
+  };
+  for (const [collection, fields] of Object.entries(hidden)) {
+    const visible = api.designerFields(collection, api.apiFields(collection)).map(field => field.key);
+    for (const field of fields) assert.ok(!visible.includes(field), field);
   }
-  assert.deepEqual(api.restoreDesignerFields('consumables', { item_code: 'medkit', heal_hp: 5 }, { item_code: 'medkit', heal_hp: 10 }), { item_code: 'medkit', heal_hp: 10 });
-  assert.throws(() => api.restoreDesignerFields('enemy_types', examples[2][1], { ...api.designerRecord('enemy_types', examples[2][1]), accuracy: 0.1 }), /not available/);
-  assert.throws(() => api.restoreDesignerFields('items', { code: 'new', item_type: 'material' }, { code: 'new', item_type: 'armor' }), /Armor/);
-  assert.equal(api.restoreDesignerFields('items', { code: 'old', item_type: 'armor' }, { code: 'old', item_type: 'armor' }).item_type, 'armor');
 });
 
 test('loot preview matches Unity tier fallback and ignores guarantee rows for random rolls', () => {
@@ -499,4 +485,27 @@ test('knife saves exact attack intervals and its melee profile in a single item 
   assert.equal(op.data.weapon.ammoItemCode, null);
   const reloaded = api.entitiesToEditor(version, payload);
   assert.equal(reloaded.items.find(item => item.code === 'knife').stats.melee_cooldown_s, .86);
+});
+
+test('item stat edits retain technical data and reject reversed durability or salvage ranges', () => {
+  const before = { found_min: .6, found_max: .75, melee_cooldown_s: .75, custom: { data: 1 }, salvage: [{ item: 'cloth', min: 2, max: 4 }] };
+  const edited = api.patchValue(before, 'found_min', .8);
+  assert.equal(api.itemStatsErrors(edited).length, 1);
+  assert.equal(api.itemStatsErrors({ ...before, salvage: [{ item: 'cloth', min: 4, max: 2 }] }).length, 1);
+  assert.deepEqual(api.patchValue(edited, 'found_min', null), {
+    found_max: .75, melee_cooldown_s: .75, custom: { data: 1 }, salvage: [{ item: 'cloth', min: 2, max: 4 }],
+  });
+});
+
+test('skill table edits keep legacy effects and validate Unity thresholds and modifiers', () => {
+  const record = { code: 'shooting', skill_type: 'shooting', max_level: 5, effects: { technical: { a: true } } };
+  const edited = api.updateSkillLevels(record, { xp_curve: [0, 2, 7], recoil_multipliers: [1, .98, .9653], reload_multipliers: [1, .99, .97515] }, true);
+  assert.deepEqual(edited.effects.technical, { a: true });
+  assert.equal(edited.max_level, 3);
+  assert.deepEqual(api.skillTableErrors(edited), []);
+  assert.equal(api.skillTableErrors({ ...edited, xp_curve: [0, 7, 2] }).length, 1);
+  assert.equal(api.skillTableErrors({ ...edited, effects: { ...edited.effects, reload_multipliers: [1, .9, .95] } }).length, 1);
+  const legacy = { ...edited, xp_curve: [0, 7, 2] };
+  const saved = { items: [], skills: [legacy] };
+  assert.deepEqual(api.structuredContentErrors({ ...saved, skills: [{ ...legacy, name: 'Renamed' }] }, saved), []);
 });

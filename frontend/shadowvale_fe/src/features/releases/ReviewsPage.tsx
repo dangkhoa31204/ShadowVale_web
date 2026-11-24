@@ -44,7 +44,7 @@ function DemoReviewsPage() {
           {draft.changelog && <p className="text-sm">{draft.changelog}</p>}
           {errors.length ? <Alert variant="destructive"><AlertDescription>{errors.join('; ')}</AlertDescription></Alert> : <Alert><AlertDescription className="text-success">Validation passed</AlertDescription></Alert>}
         </div>
-        <BundleDetails key={draft.id} before={baseline?.bundle} after={draft.bundle} />
+        <BundleDetails compact key={draft.id} before={baseline?.bundle} after={draft.bundle} />
         {draft.status === 'in_review' ? <div className="grid gap-4 border-t p-6"><Field><FieldLabel htmlFor="review-note">Review note</FieldLabel><Textarea id="review-note" value={note} onChange={e => setNote(e.target.value)} placeholder="Required when rejecting content" rows={3} /></Field><div className="flex justify-end gap-2"><Button variant="outline" disabled={busy || !note.trim()} onClick={() => review(false)}>Reject content</Button><Button disabled={busy || errors.length > 0} onClick={() => review(true)}>Approve content</Button></div></div>
           : draft.note && <p className="border-t p-6 text-sm text-muted-foreground">{draft.note}</p>}
       </Panel>}

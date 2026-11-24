@@ -19,13 +19,3 @@ export function recordEditorFields(collection: CollectionKey, fields: FieldDefin
     };
   });
 }
-
-/** The raw editor must enforce the same locks as inputs/dropdowns. */
-export function assertReadOnlyFields(fields: FieldDefinition[], current: ContentRecord, next: ContentRecord): void {
-  if (next.api_id !== current.api_id) throw new Error('API resource ID is read-only.');
-  for (const field of fields.filter(field => field.readOnly)) {
-    if (JSON.stringify(next[field.key]) !== JSON.stringify(current[field.key])) {
-      throw new Error(field.label + ' is read-only.');
-    }
-  }
-}

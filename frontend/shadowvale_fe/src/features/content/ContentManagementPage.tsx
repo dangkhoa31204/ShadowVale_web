@@ -17,7 +17,7 @@ export function ContentManagementPage() {
       <TabsList variant="line" aria-label="Content authoring">
         <TabsTrigger value="author">Drafts</TabsTrigger>
         <TabsTrigger value="published">Published</TabsTrigger>
-        <TabsTrigger value="unity">Unity catalog</TabsTrigger>
+        <TabsTrigger value="unity">Unity Catalog</TabsTrigger>
       </TabsList>
     </Tabs>
     {unity ? <GameCatalogPage embedded /> : published ? <ContentVersions embedded /> : <ContentPage embedded />}
