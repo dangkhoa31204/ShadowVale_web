@@ -101,14 +101,14 @@ async function loadComparison(afterId:string,beforeId?:string,expectedRevision?:
   const changes:Change[]=ordinaryChanges.map((d,i)=>({key:d.path+':'+i,path:d.path,...changeInfo(d.path),kind:d.before===null?'Added':d.after===null?'Removed':'Updated',before:d.before,after:d.after}));
   return {bundle,changes:[...difficultyChanges,...changes],revision:Number(after.version.revision)};
 }
-export function ApiCompare({beforeId,afterId,onReady,expectedRevision}: {beforeId?:string;afterId:string;onReady?:(ready:boolean)=>void;expectedRevision?:number}) {
+export function ApiCompare({beforeId,afterId,onReady,expectedRevision,compact=false}: {beforeId?:string;afterId:string;onReady?:(ready:boolean)=>void;expectedRevision?:number;compact?:boolean}) {
   const comparison=useQuery({queryKey:['content-compare',afterId,beforeId,expectedRevision],queryFn:()=>loadComparison(afterId,beforeId,expectedRevision)});
   const ready=comparison.isSuccess&&!comparison.isFetching;
   useEffect(()=>{onReady?.(ready);},[ready,onReady]);
   if(comparison.error)return <Alert variant="destructive" className="m-6 w-auto"><AlertDescription className="flex items-center justify-between gap-4">{errorMessage(comparison.error)}<Button variant="outline" size="sm" onClick={()=>void comparison.refetch()}>Retry</Button></AlertDescription></Alert>;
   if(!comparison.data)return <div role="status" className="flex items-center justify-center gap-2 p-8 text-sm text-muted-foreground"><Spinner/>Loading version and changes…</div>;
   const result=comparison.data;
-  return <ComparisonView summary changes={result.changes} beforeLabel={'Before · '+(beforeId?'Baseline version':'First release')} afterLabel={'After · Version #'+result.bundle.version_no+' · Revision '+result.revision} content={section=><BundleSnapshot bundle={result.bundle} section={section}/>}/>;
+  return <ComparisonView summary compact={compact} changes={result.changes} beforeLabel={'Before · '+(beforeId?'Baseline version':'First release')} afterLabel={'After · Version #'+result.bundle.version_no+' · Revision '+result.revision} content={section=><BundleSnapshot bundle={result.bundle} section={section}/>}/>;
 }
 
 function QueueItem({active,onClick,children}:{active:boolean;onClick:()=>void;children:React.ReactNode}){
@@ -164,7 +164,7 @@ export function ApiReviewsPage(){
           {!valid&&<Alert variant="destructive" role="status"><AlertDescription className="whitespace-pre-wrap">{draft.validation_errors?.join('\n')||'No valid snapshot recorded. The designer must validate this version before it can be approved.'}</AlertDescription></Alert>}
           {error&&<Alert variant="destructive"><AlertDescription className="whitespace-pre-wrap">{error}</AlertDescription></Alert>}
         </div>}
-        <ApiCompare key={draft.id+':'+draft.revision+':'+baseline} beforeId={baseline} afterId={draft.id} expectedRevision={draft.revision} onReady={reviewReady}/>
+        <ApiCompare compact key={draft.id+':'+draft.revision+':'+baseline} beforeId={baseline} afterId={draft.id} expectedRevision={draft.revision} onReady={reviewReady}/>
         {draft.status==='in_review'?<div className="grid gap-4 border-t p-6">
           <div><h3 className="font-medium">Review decision</h3><p className="text-sm text-muted-foreground">Approve to move this version to the publish queue, or return it with a reason.</p></div>
           <Field><FieldLabel htmlFor="review-note">Feedback to designer</FieldLabel><Textarea id="review-note" rows={2} maxLength={2000} value={note} onChange={e=>setNote(e.target.value)} placeholder="Explain what needs changing. Required when returning a submission."/></Field>
