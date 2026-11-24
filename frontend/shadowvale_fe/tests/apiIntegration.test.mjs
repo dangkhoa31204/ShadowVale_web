@@ -483,6 +483,8 @@ test('knife saves exact attack intervals and its melee profile in a single item 
   assert.deepEqual(op.data.stats, { melee_cooldown_s: .86, custom: 1 });
   assert.equal(op.data.weapon.fireRate, 1.16);
   assert.equal(op.data.weapon.ammoItemCode, null);
+  assert.equal(op.data.weapon.magazineSize, null);
+  assert.equal(op.data.weapon.reloadTimeSeconds, null);
   const reloaded = api.entitiesToEditor(version, payload);
   assert.equal(reloaded.items.find(item => item.code === 'knife').stats.melee_cooldown_s, .86);
 });
@@ -516,6 +518,7 @@ test('a partial Unity draft recovers Map 2, all recipes and ingredients across s
   const draft = { ...version, id: 'partial-unity', changelog: `Imported Unity source ${'a'.repeat(64)}. Review before publish.` };
   const all = api.editorToEntities(source);
   const stored = Object.fromEntries(api.resources.map(([key]) => [key, all[key].map(row => ({ ...row, id: `${key}-${row.code}` }))]));
+  stored.items = stored.items.filter(row => row.code !== 'knife');
   stored.maps = stored.maps.filter(row => row.code !== 'map02');
   stored.maps.find(row => row.code === 'map01').name = 'Designer Map 1';
   stored.crafting_recipes = [{ ...stored.crafting_recipes[0], ingredients: [] }];
@@ -537,6 +540,10 @@ test('a partial Unity draft recovers Map 2, all recipes and ingredients across s
       return ok(c, recipe);
     }
     assert.equal(c.method, 'post');
+    if (input.code === 'knife' && (input.weapon.class !== 'Melee' ||
+      [input.weapon.ammoItemCode, input.weapon.magazineSize, input.weapon.reloadTimeSeconds].some(value => value !== null))) {
+      return fail(c, 400, { message: 'Weapon: A melee weapon has no ammo, magazine or reload time.' });
+    }
     assert.ok(!stored[key].some(row => row.code === input.code));
     const row = { ...input, id: `${key}-${input.code}` };
     stored[key].push(row);
@@ -550,6 +557,7 @@ test('a partial Unity draft recovers Map 2, all recipes and ingredients across s
   assert.deepEqual(pending.map(row => row.id), [draft.id]);
   assert.equal(await api.contentApi.importUnity(source, catalog.sourceHash, draft.id), draft.id);
   assert.equal(mapWrites, 1);
+  assert.ok(stored.items.some(row => row.code === 'knife'));
   const saved = api.entitiesToEditor(draft, stored);
   assert.deepEqual(saved.maps.map(map => map.code), ['map00_tutorial', 'map01', 'map02']);
   assert.equal(saved.maps[1].name, 'Designer Map 1');

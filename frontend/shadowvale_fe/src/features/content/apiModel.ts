@@ -79,6 +79,10 @@ export function editorToEntities(b: ContentBundle): EntitySet {
   for (const item of out.items) {
     const weapon = b.weapons.find(r => r.item_code === item.code), consumable = b.consumables.find(r => r.item_code === item.code);
     item.weapon = weapon ? unflatten(weapon,'weapons','WeaponRequest') : null;
+    if (item.weapon && weapon?.weapon_class === 'melee') {
+      // These fields belong to ranged weapons. Form defaults must not fill them for melee.
+      item.weapon = { ...item.weapon as ContentRecord, ammoItemCode: null, magazineSize: null, reloadTimeSeconds: null };
+    }
     item.consumable = consumable ? unflatten(consumable,'consumables','ConsumableRequest') : null;
   }
   for (const table of out.loot_tables) table.entries = b.loot_table_entries.filter(r => r.loot_table_code === table.code).map(r => unflatten(r,'loot_table_entries','LootEntryRequest'));
