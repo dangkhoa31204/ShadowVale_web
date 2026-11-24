@@ -64,7 +64,7 @@
 .portal .sv-record.is-active { background: var(--sv-accent-dark) !important; color: var(--sv-accent-text) !important; }
 .portal .sv-record small, .portal .sv-editor-toolbar .sv-mono, .portal .sv-editor-meta small { color: var(--sv-subtle); font-size: 10px; }
 .portal .sv-records-heading button { color: var(--sv-accent); }
-.portal .sv-record-title > .sv-mono, .portal .sv-json-editor summary { color: var(--sv-accent); }
+.portal .sv-record-title > .sv-mono { color: var(--sv-accent); }
 .portal .sv-validation { border-color: var(--sv-border); background: #4ade800a; color: var(--sv-success); }
 .portal .sv-validation.has-errors { background: #f8717110; color: var(--sv-error); }
 .portal .sv-validation p { color: var(--sv-muted); }

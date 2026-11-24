@@ -19,14 +19,16 @@ import { validateBundle } from './workspaceService';
 import { Empty, Icon, PageHeading, Status } from '../shared/ui';
 import { useConfirm } from '../shared/confirmContext';
 import { NumericControl } from '../shared/NumericControl';
-import { contentGroups, designerFields, designerRecord, restoreDesignerFields, ruleTab, updateDraftMapLayout } from './designerPresentation';
+import { contentNavigation, designerFields, updateDraftMapLayout } from './designerPresentation';
 import { isDemoMode } from '../../config/environment';
 import { apiFields, validateEditor } from './apiModel';
 import { contentApi } from './contentApi';
 import { errorMessage } from '../../services/api/errors';
 import { editorFieldErrors } from './apiFieldErrors';
 import type { EnumsDto } from '../../services/api/contracts';
-import { isExistingRecord, recordEditorFields, assertReadOnlyFields } from './recordFieldPolicy';
+import { isExistingRecord, recordEditorFields } from './recordFieldPolicy';
+import { ItemStatsEditor, SkillLevelsEditor } from './StructuredContentEditors';
+import { skillColumns, structuredContentErrors } from './structuredContent';
 import { GameRulesEditor } from './GameRulesEditor';
 import { gameCatalogApi, type GameCatalog } from './gameCatalogApi';
 import { QuestObjectives, RelatedRows } from './RelatedContentEditor';
@@ -111,7 +113,8 @@ function DraftEditor({ draft, enums }: { draft: Draft; enums?: EnumsDto }) {
     },
     onError: e => setApiError(errorMessage(e)),
   });
-  const errors = [...(!label.trim() ? ['Enter a version label.'] : []), ...(isDemoMode ? validateBundle(bundle) : validateEditor(bundle))];
+  const structuredErrors = structuredContentErrors(bundle, draft.bundle);
+  const errors = [...(!label.trim() ? ['Enter a version label.'] : []), ...(isDemoMode ? validateBundle(bundle) : validateEditor(bundle)), ...structuredErrors];
   const submitErrors = [...(parseError ? [parseError] : []), ...errors];
   const [showValidation, setShowValidation] = useState(false);
   const validationRef = useRef<HTMLDivElement>(null);
@@ -126,11 +129,11 @@ function DraftEditor({ draft, enums }: { draft: Draft; enums?: EnumsDto }) {
   const record = bundle[category][selected];
   const savedRecord = record && draft.bundle[category].find(row => recordIdentity(category, row) === recordIdentity(category, record));
   const categoryInfo = collections.find(collection => collection.key === category)!;
-  const categoryGroup = contentGroups.find(group => group.includes(category))!;
+  const categoryGroup = contentNavigation.find(group => group.records.some(record => record.key === category))!;
   const catalog = useQuery({ queryKey: ['game-catalog'], queryFn: ({ signal }) => gameCatalogApi.get(signal), staleTime: 60_000, enabled: !isDemoMode });
   const related = relatedSection(category);
-  const visibleTabs = categoryGroup.filter(key => key !== relatedSection(categoryGroup[0])?.collection);
-  const settingsTab = ruleTab(categoryGroup[0]);
+  const visibleTabs = categoryGroup.records;
+  const settingsTab = categoryGroup.rules;
   const sharedRulesMap = bundle.maps.find(map => map.code === 'map01');
   const stockMaps = bundle.maps.filter(map => map.code === 'map01' || map.code === 'map02');
   const stockMap = stockMaps.find(map => map.code === tradeMapCode) ?? stockMaps[0];
@@ -211,7 +214,7 @@ function DraftEditor({ draft, enums }: { draft: Draft; enums?: EnumsDto }) {
     }
     if (parseError) { toast.error(parseError); return; }
     if (!label.trim()) { toast.error('Enter a version label.'); return; }
-    if (!isDemoMode && errors.length) { setApiError(errors.join('\n')); return; }
+    if ((!isDemoMode && errors.length) || structuredErrors.length) { setApiError(errors.join('\n')); return; }
     setApiError(''); setServerFields({});
     try {
       let current = draft;
@@ -246,17 +249,15 @@ function DraftEditor({ draft, enums }: { draft: Draft; enums?: EnumsDto }) {
       <div className="sv-version-number"><small>Version number</small><strong>#{draft.version_no}</strong></div><div><small>Schema version</small><strong>{bundle.schema_version}</strong></div>
       <label className="sv-changelog">Changelog<Textarea rows={2} maxLength={4000} aria-invalid={!!serverFields['meta:changelog']} value={changelog} disabled={!editable} placeholder="What changed in this version?" onChange={event => { setChangelog(event.target.value); setBundle({ ...bundle, changelog: event.target.value }); setDirty(true); }} /><small role="alert">{serverFields['meta:changelog']}</small></label>
     </div>
-    <Tabs value={categoryGroup[0]} onValueChange={value => chooseCategory(value as CollectionKey)} className="overflow-x-auto border-b px-3 [scrollbar-width:thin]">
-      <TabsList variant="line" aria-label="Content groups" className="h-12">{contentGroups.map(group => {
-        const collection = collections.find(collection => collection.key === group[0])!;
-        return <TabsTrigger key={collection.key} id={'content-group-'+collection.key} data-testid={'content-group-'+collection.key} value={collection.key} onClick={() => { if (categoryGroup[0] === collection.key) chooseCategory(collection.key); }} className="flex-none px-2.5"><Icon name={collection.icon} />{collection.label}<span className="text-xs text-muted-foreground">{bundle[collection.key].length}</span></TabsTrigger>;
-      })}</TabsList>
+    <Tabs value={categoryGroup.key} onValueChange={value => chooseCategory(value as CollectionKey)} className="overflow-x-auto border-b px-3 [scrollbar-width:thin]">
+      <TabsList variant="line" aria-label="Content groups" className="h-12">{contentNavigation.map(collection =>
+        <TabsTrigger key={collection.key} id={'content-group-'+collection.key} data-testid={'content-group-'+collection.key} value={collection.key} onClick={() => { if (categoryGroup.key === collection.key) chooseCategory(collection.key); }} className="flex-none px-2.5"><Icon name={collection.icon} />{collection.label}<span className="text-xs text-muted-foreground">{bundle[collection.key].length}</span></TabsTrigger>
+      )}</TabsList>
     </Tabs>
     {(visibleTabs.length > 1 || settingsTab) && <Tabs value={editingRules ? 'rules' : category} onValueChange={selectContentTab} className="overflow-x-auto border-b bg-muted/20 px-3 [scrollbar-width:thin]">
-      <TabsList variant="line" aria-label="Content table" className="h-10">{visibleTabs.map(key => {
-        const collection = collections.find(collection => collection.key === key)!;
-        return <TabsTrigger key={key} id={'content-table-'+key} data-testid={'content-table-'+key} value={key} className="flex-none px-2.5"><Icon name={collection.icon} />{collection.label}<span className="text-xs text-muted-foreground">{bundle[key].length}</span></TabsTrigger>;
-      })}{settingsTab && <TabsTrigger value="rules" data-testid={'content-rules-' + settingsTab.section} className="flex-none px-2.5">{settingsTab.label}</TabsTrigger>}</TabsList>
+      <TabsList variant="line" aria-label="Content table" className="h-10">{visibleTabs.map(({ key, label, icon }) =>
+        <TabsTrigger key={key} id={'content-table-'+key} data-testid={'content-table-'+key} value={key} className="flex-none px-2.5"><Icon name={icon} />{label}<span className="text-xs text-muted-foreground">{bundle[key].length}</span></TabsTrigger>
+      )}{settingsTab && <TabsTrigger value="rules" data-testid={'content-rules-' + settingsTab.section} className="flex-none px-2.5">{settingsTab.label}</TabsTrigger>}</TabsList>
     </Tabs>}
     {editingRules && settingsTab ? <div className="space-y-4 p-5">
       <h2 className="font-semibold">{settingsTab.label}</h2>
@@ -304,8 +305,6 @@ function StringArrayField({ field, value, disabled, onChange }: { field: FieldDe
 }
 
 function RecordEditor({ collection, bundle, savedBundle, catalog, record, savedRecord, existing, editable, enums, serverErrors, onChange, onRelatedChange, onKnifeCooldownChange, onError }: { collection: CollectionKey; bundle: ContentBundle; savedBundle: ContentBundle; catalog?: GameCatalog; record: ContentRecord; savedRecord?: ContentRecord; existing: boolean; editable: boolean; enums?: EnumsDto; serverErrors: Record<string, string>; onChange: (row: ContentRecord) => void; onRelatedChange: (rows: ContentRecord[]) => void; onKnifeCooldownChange: (seconds: number) => void; onError: (message: string) => void }) {
-  const [raw, setRaw] = useState(() => JSON.stringify(designerRecord(collection, record), null, 2));
-  const [formRevision, setFormRevision] = useState(0);
   const fieldErrors = useRef<Record<string, string>>({});
   function report(key: string, message: string) {
     fieldErrors.current[key] = message;
@@ -313,11 +312,15 @@ function RecordEditor({ collection, bundle, savedBundle, catalog, record, savedR
   }
   function field(key: string, value: JsonValue) {
     if (!editable || definitions.find(field => field.key === key)?.readOnly) return;
-    const next = { ...record, [key]: value }; setRaw(JSON.stringify(designerRecord(collection, next), null, 2)); report('JSON', ''); report(key, ''); onChange(next);
+    if (key === 'skill_type' || key === 'item_type') fieldErrors.current = {};
+    report(key, '');
+    onChange({ ...record, [key]: value });
   }
   const definitions = recordEditorFields(collection, isDemoMode ? schemaFields[collection] : apiFields(collection, enums), existing);
   const isKnife = collection === 'weapons' && record.item_code === 'knife' && record.weapon_class === 'melee';
-  const visibleDefinitions = designerFields(collection, definitions).filter(field => !isKnife || ['damage', 'effective_range'].includes(field.key));
+  const isUnitySkill = collection === 'skills' && Object.keys(skillColumns(record.skill_type)).length > 0;
+  const visibleDefinitions = designerFields(collection, definitions).filter(field =>
+    (!isKnife || ['damage', 'effective_range'].includes(field.key)) && (!isUnitySkill || field.key !== 'max_level'));
   const knifeDefaultInterval = catalog?.weapons.find(weapon => weapon.id === 'knife')?.cooldown_seconds ?? .75;
   function knifeInterval(version: ContentBundle) {
     const value = jsonObject(version.items.find(item => item.code === 'knife')?.stats).melee_cooldown_s;
@@ -356,7 +359,7 @@ function RecordEditor({ collection, bundle, savedBundle, catalog, record, savedR
       {lootSources.length > 0 ? <p>Sử dụng tại {lootSources.join(' · ')}</p> : <p>{runtimeLoot ? 'Bảng rơi dùng trong Unity.' : 'Chưa thấy gán bảng này cho hòm hoặc túi lính Map 1 trong bản nháp.'}</p>}
       <p className="text-muted-foreground">Map 1 chọn bậc trước, rồi chọn vật phẩm theo trọng số trong bậc. Xác suất cơ sở chưa tính hỗ trợ thiếu đạn hoặc máu. Nhiều lượt có thể trùng vật phẩm. Bậc 5 được nhận một lần ngoài các lượt quay.</p>
     </div>}
-    {collection === 'quests' && <p className="my-4 rounded-lg border p-4 text-sm text-muted-foreground">Tên, mô tả và phần thưởng ở đây thuộc bản nội dung trên web. Trình tự, điều kiện và hành vi nhiệm vụ chạy theo Unity. Điểm nhận trong game chỉnh ở tab Điểm nhiệm vụ.</p>}
+    {collection === 'quests' && <p className="my-4 rounded-lg border p-4 text-sm text-muted-foreground">Tên, mô tả và phần thưởng ở đây thuộc bản nội dung trên web. Trình tự, điều kiện và hành vi nhiệm vụ chạy theo Unity. Điểm nhận trong game chỉnh ở tab Mission points.</p>}
     {collection === 'enemy_types' && <EnemyDetails row={record} bundle={bundle} />}
     {isKnife && <p className="my-4 rounded-lg border p-4 text-sm">Cận chiến · Các thông số áp dụng cho đòn đánh thường. Kết liễu lén và các đoạn nhiệm vụ dùng quy tắc của Unity.</p>}
     <div className="sv-field-grid sv-form">{visibleDefinitions.filter(definition => definition.type !== 'json' && !['content_version_id', 'created_at', 'updated_at'].includes(definition.key)).map(definition => {
@@ -364,10 +367,10 @@ function RecordEditor({ collection, bundle, savedBundle, catalog, record, savedR
       const disabled = !editable || definition.readOnly || collection === 'maps' && existing && definition.key === 'scene_key' || collection === 'enemy_types' && enemyReadOnly(mapCode, definition.key);
       const label = isKnife ? definition.key === 'damage' ? 'Sát thương mỗi đòn' : 'Tầm đánh' : structuredEditor ? detailLabel(definition) : definition.label;
       const savedValue = savedRecord?.[definition.key];
-      if (definition.type === 'number') return <NumericControl key={definition.key + ':' + formRevision} label={label} serverError={serverErrors[definition.key]} value={typeof value === 'number' ? value : null} savedValue={!disabled ? (typeof savedValue === 'number' ? savedValue : null) : undefined} disabled={disabled} nullable={definition.nullable}
+      if (definition.type === 'number') return <NumericControl key={definition.key} label={label} serverError={serverErrors[definition.key]} value={typeof value === 'number' ? value : null} savedValue={!disabled ? (typeof savedValue === 'number' ? savedValue : null) : undefined} disabled={disabled} nullable={definition.nullable}
         min={definition.min} max={definition.max} step={definition.step} sliderMin={definition.sliderMin} sliderMax={isKnife ? definition.key === 'damage' ? 100 : 5 : definition.sliderMax} unit={isKnife ? definition.key === 'damage' ? 'HP' : 'm' : definition.unit}
         onChange={value => field(definition.key, value)} onError={message => report(definition.label, message)} />;
-      if (definition.type === 'string-array') return <StringArrayField key={definition.key + ':' + formRevision} field={definition} value={value} disabled={!!disabled} onChange={value => field(definition.key, value)} />;
+      if (definition.type === 'string-array') return <StringArrayField key={definition.key} field={definition} value={value} disabled={!!disabled} onChange={value => field(definition.key, value)} />;
       if (definition.type === 'enum' || definition.type === 'boolean' || definition.type === 'reference') {
         let options = definition.type === 'reference' ? referenceOptions(definition, bundle) : definition.type === 'boolean' ? [{ value: 'true', label: 'Yes' }, { value: 'false', label: 'No' }] : (definition.options ?? []).filter(option => collection !== 'items' || definition.key !== 'item_type' || option !== 'armor' || record.item_type === 'armor').map(value => ({ value, label: value.replaceAll('_', ' ').replace(/^./, char => char.toUpperCase()) }));
         if (collection === 'crafting_recipes' && definition.key === 'output_item_code') {
@@ -391,16 +394,11 @@ function RecordEditor({ collection, bundle, savedBundle, catalog, record, savedR
       <p className="text-sm text-muted-foreground">Tuyến tuần tra · {routePointCount} điểm · {record.spawn_condition ? 'Có điều kiện xuất hiện' : 'Chưa đặt điều kiện xuất hiện'}</p>}
     {collection === 'quests' && <QuestObjectives value={record.objectives} editable={editable} onChange={value => field('objectives', value)} />}
     {related && <RelatedRows section={related} code={record.code} bundle={bundle} savedBundle={savedBundle} catalog={catalog} editable={editable} forRuntimeLoot={runtimeLoot || lootSources.length > 0} outputItem={record.output_item_code} rollsMax={record.rolls_max} onChange={onRelatedChange} onError={report} />}
-    {!structuredEditor && <details className="sv-json-editor"><summary>Advanced JSON {visibleDefinitions.some(field => field.type === 'json') ? ' · ' + visibleDefinitions.filter(field => field.type === 'json').map(field => field.label).join(', ') : ''}</summary><Textarea className="min-h-72 rounded-none border-0 border-t font-mono text-xs" aria-label="Record JSON" spellCheck={false} disabled={!editable} value={raw} onChange={event => {
-      const value = event.target.value; setRaw(value);
-      try {
-        const parsed: unknown = JSON.parse(value);
-        if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) throw new Error('Record must be a JSON object.');
-        const next = restoreDesignerFields(collection, record, parsed as ContentRecord);
-        assertReadOnlyFields(definitions, record, next);
-        fieldErrors.current = {}; setFormRevision(revision => revision + 1); onError(''); onChange(next);
-      } catch (error) { report('JSON', error instanceof Error ? error.message : 'Invalid JSON.'); }
-    }} /></details>}</>;
+    {collection === 'items' && <ItemStatsEditor key={String(record.item_type)} record={record} saved={savedRecord} items={bundle.items} editable={editable}
+      onChange={stats => field('stats', stats)} onError={report} />}
+    {collection === 'skills' && <SkillLevelsEditor key={String(record.skill_type)} record={record} saved={savedRecord} editable={editable}
+      source={catalog?.authoringBundle?.skills.find(skill => skill.skill_type === record.skill_type)} onChange={onChange} onError={report} />}
+  </>;
 }
 
 export function ContentPage({ embedded = false }: { embedded?: boolean }) {

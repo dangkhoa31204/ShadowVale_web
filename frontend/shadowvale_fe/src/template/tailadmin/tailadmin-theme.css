@@ -34,7 +34,7 @@
 .portal .sv-alert-error { color: #fda29b; background: #f0443810; border-color: #f0443840; }
 .portal .sv-empty { padding: 32px 20px; }.portal .sv-empty h3 { color: #98a2b3; font-size: 14px; }
 
-.portal .sv-mono { font-size: 11px; }.portal .sv-json-editor { border-radius: 8px; }.portal .sv-json-editor textarea { font-family: 'JetBrains Mono',monospace; }
+.portal .sv-mono { font-size: 11px; }
 
 .portal .sv-record strong { font: 500 13px Outfit,sans-serif; }.portal .sv-record small { font-size: 10px; }.portal .sv-records-heading { font: 500 13px Outfit,sans-serif; }
 

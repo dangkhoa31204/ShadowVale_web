@@ -15,8 +15,9 @@ export { permissions, navigationForRole, safeRedirect, can } from '../src/featur
 export { compareBundles } from '../src/features/content/validation';
 
 export { usersApi } from '../src/features/administration/usersApi';
-export { isExistingRecord, recordEditorFields, assertReadOnlyFields } from '../src/features/content/recordFieldPolicy';
+export { isExistingRecord, recordEditorFields } from '../src/features/content/recordFieldPolicy';
 
 export * from '../src/features/content/designerPresentation';
 export { readDifficulty, withDifficulty, bundledLayoutPresets } from '../src/features/content/mapDifficulty';
 export { lootChances, relatedSection, replaceRelatedRows, setKnifeAttackInterval } from '../src/features/content/recordDetails';
+export { itemStatsErrors, patchValue, skillTableErrors, structuredContentErrors, updateSkillLevels } from '../src/features/content/structuredContent';

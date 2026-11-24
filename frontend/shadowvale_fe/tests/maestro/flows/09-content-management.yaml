@@ -19,7 +19,7 @@ name: Designer content authoring groups drafts published content and Unity catal
 - tapOn: Published
 - assertVisible: Published content bundles
 - takeScreenshot: content-management-published
-- tapOn: Unity catalog
+- tapOn: Unity Catalog
 - assertVisible: Import from Unity
 - assertVisible: Import Unity as new draft
 - takeScreenshot: content-authoring-unity
