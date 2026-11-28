@@ -57,6 +57,7 @@ public class AnalyticsRepository(ShadowValeDbContext context) : IAnalyticsReposi
             JOIN sessions s ON s.id = e.session_id
             WHERE e.map_code = {sql.Add(mapCode)}
               AND e.event_type = ANY({sql.Add(eventTypes.ToArray())}::text[])
+              AND (e.event_type <> 'player_spotted' OR (e.payload -> 'seen') IS DISTINCT FROM 'false'::jsonb)
               AND e.pos_x IS NOT NULL AND e.pos_y IS NOT NULL
             GROUP BY 1, 2
             ORDER BY 1, 2
