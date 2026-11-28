@@ -1,4 +1,4 @@
-export { contentApi, allPages } from '../src/features/content/contentApi';
+export { contentApi, allPages, missingUnityContent } from '../src/features/content/contentApi';
 export * from '../src/features/content/apiModel';
 export * from '../src/features/content/savePlan';
 export { axiosClient, authClient } from '../src/services/api/axiosClient';

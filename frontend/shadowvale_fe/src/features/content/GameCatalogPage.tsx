@@ -1,6 +1,6 @@
 import { useState, type ReactNode } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { Link } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,10 +10,6 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Empty, Icon, PageHeading, Panel, panelTable } from '../shared/ui';
 import { errorMessage } from '../../services/api/errors';
 import { gameCatalogApi } from './gameCatalogApi';
-import { useAuth } from '../../hooks/useAuth';
-import { can } from '../auth/access';
-import { contentApi } from './contentApi';
-import { useWorkspace } from './workspaceContext';
 import { contentNavigation, ruleTabs, type RuleSection } from './designerPresentation';
 import { BundleSnapshot } from './BundleDetails';
 import { jsonObject } from './mapDifficulty';
@@ -27,7 +23,6 @@ function DataTable({ headers, rows }: { headers: string[]; rows: ReactNode[][] }
 }
 
 export function GameCatalogPage({ embedded = false }: { embedded?: boolean }) {
-  const {user}=useAuth(),{reload}=useWorkspace(),navigate=useNavigate();
   const [section, setSection] = useState<Section>('weapons');
   const [search, setSearch] = useState('');
   const group = contentNavigation.find(group => group.records.some(record => record.key === section) || group.rules?.section === section)!;
@@ -38,17 +33,6 @@ export function GameCatalogPage({ embedded = false }: { embedded?: boolean }) {
   const catalog = useQuery({ queryKey: ['game-catalog'], queryFn: ({ signal }) => gameCatalogApi.get(signal), staleTime: 60_000 });
   const comparison = useQuery({ queryKey: ['game-catalog-comparison'], queryFn: ({ signal }) => gameCatalogApi.compare(signal), staleTime: 30_000 });
   const data = catalog.data;
-  const canImport=!!user&&can(user.role,'author');
-  const unfinished=useQuery({
-    queryKey:['unfinished-unity-imports',data?.sourceHash,user?.id],
-    enabled:canImport&&!!data?.authoringBundle,
-    queryFn:()=>contentApi.unfinishedUnityImports(data!.authoringBundle!,data!.sourceHash,user!.id),
-  });
-  const importDraft=useMutation({mutationFn:async(draftId?:string)=>{
-    if(!data?.authoringBundle)throw new Error('The API does not have an importable Unity bundle yet. Deploy the updated API.');
-    return contentApi.importUnity(data.authoringBundle,data.sourceHash,draftId);
-  },onSuccess:async id=>{await reload();navigate('/admin/content/'+id);},
-  onError:()=>{void unfinished.refetch();}});
   const match = (...values: unknown[]) => values.some(v => String(v ?? '').toLocaleLowerCase().includes(search.trim().toLocaleLowerCase()));
   const sourceBundle = data?.authoringBundle;
   const repair = jsonObject(jsonObject(jsonObject(sourceBundle?.maps.find(map => map.code === 'map01')?.layout).game_rules).repair);
@@ -57,42 +41,15 @@ export function GameCatalogPage({ embedded = false }: { embedded?: boolean }) {
   const item = (code: string) => <span>{name(code)}<code className="block text-xs text-muted-foreground">{code}</code></span>;
   const refresh = <Button variant="outline" disabled={catalog.isFetching || comparison.isFetching} onClick={() => { void catalog.refetch(); void comparison.refetch(); }}>Refresh</Button>;
   return <div className="sv-page">
-    {!embedded && <PageHeading title="Unity Catalog" description="Compare Unity source data or import it into a draft for editing." action={refresh} />}
-    {embedded && <div className="flex justify-end">{refresh}</div>}
+    {!embedded && <PageHeading title="Unity Catalog" description="Browse the current Unity source snapshot." />}
     {catalog.error ? <Alert variant="destructive"><AlertDescription>{errorMessage(catalog.error)}</AlertDescription></Alert> : !data ? <p role="status">Loading Unity Catalog…</p> : <>
-      {canImport&&<Panel title="Import from Unity" description="Import into a draft to edit. Publishing requires Admin review.">
-        <div className="flex flex-wrap gap-3 p-6">
-          {data.authoringBundle && <p className="basis-full text-sm text-muted-foreground">
-            Import includes {data.authoringBundle.maps.map(map => map.name).join(', ')} · {data.authoringBundle.crafting_recipes.length} recipes · {data.authoringBundle.crafting_recipe_ingredients.length} ingredient rows.
-          </p>}
-          {data.authoringBundle&&unfinished.isPending&&<p role="status">Checking for unfinished imports…</p>}
-          {unfinished.error&&<Button variant="outline" onClick={()=>void unfinished.refetch()}>Retry loading drafts</Button>}
-          {unfinished.data?.map(draft=><Button key={draft.id} disabled={importDraft.isPending} onClick={()=>importDraft.mutate(draft.id)}>
-            Complete import into Draft #{draft.versionNo}
-          </Button>)}
-          {!!unfinished.data?.length && <p className="basis-full text-sm text-muted-foreground">Adds missing records from the current Unity snapshot and keeps existing draft edits.</p>}
-          {!unfinished.data?.length&&<Button disabled={importDraft.isPending||!data.authoringBundle||unfinished.isPending||!!unfinished.error} onClick={()=>importDraft.mutate(undefined)}>
-            Import Unity as new draft
-          </Button>}
-          {importDraft.isPending&&<p role="status">Importing Unity content…</p>}
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border bg-muted/15 px-4 py-3">
+        <div>
+          <p className="text-sm font-medium">Unity source snapshot</p>
+          <p className="mt-1 text-xs text-muted-foreground">{data.items.length} items · {data.weapons.filter(weapon => weapon.playable).length} weapons · {data.maps.length} maps · {data.recipes.length} recipes</p>
         </div>
-        {(importDraft.error||unfinished.error)&&<p role="alert" className="px-6 pb-6 text-sm text-destructive">{errorMessage(importDraft.error||unfinished.error)}</p>}
-        {!!data.importNotes?.length&&<details className="px-6 pb-6 text-sm"><summary className="cursor-pointer">Import coverage and defaults to review</summary><ul className="list-disc pl-5 pt-3 space-y-2">{data.importNotes.map(n=><li key={n}>{n}</li>)}</ul></details>}
-      </Panel>}
-      <Panel title="Source snapshot" description="Read-only Unity content. Authoring versions and player telemetry are tracked separately.">
-        <div className="grid gap-3 p-6 text-sm">
-          <p>{data.items.length} items · {data.weapons.filter(w => w.playable).length} playable weapons · {data.recipes.length} recipes · {data.maps.length} maps · {data.quests.reduce((n, q) => n + q.objectives.length, 0)} mission objectives</p>
-          <p>Exported {new Date(data.generatedAt).toLocaleString()} · Unity commit <code>{data.unityCommit?.slice(0, 12) ?? 'unavailable'}</code></p>
-          <details><summary className="cursor-pointer">Provenance and coverage</summary><p className="mt-3 break-all">Source SHA-256: {data.sourceHash}</p><ul className="list-disc space-y-2 pl-5 py-3">{data.limitations.map(n => <li key={n}>{n}</li>)}</ul><ul className="space-y-1">{data.sources.map(s => <li key={s.path}><code className="break-all">{s.path}</code></li>)}</ul></details>
-        </div>
-      </Panel>
-      <Panel title="Published comparison" description="A difference can be an intentional balance change. This comparison never changes the database.">
-        <div className="p-6 text-sm" role="status">{comparison.error ? errorMessage(comparison.error) : !comparison.data ? 'Loading published comparison…' : comparison.data.status === 'nothing_published' ? 'No published version yet.' : comparison.data.status === 'bundle_unavailable' ? 'Published bundle is unavailable. Refresh to try again.' : <>
-          <p>#{comparison.data.versionNo} · {comparison.data.label} · {comparison.data.differences.length} differences in covered fields</p>
-          <p className="mt-2 text-muted-foreground">{comparison.data.scope}</p>
-          {!!comparison.data.differences.length && <details className="mt-3"><summary className="cursor-pointer">Review differences</summary><DataTable headers={['Collection / key', 'Status / field', 'Unity default', 'Published']} rows={comparison.data.differences.map(d => [<span className="break-all">{d.collection}<code className="block">{d.key}</code></span>, `${d.kind}${d.field ? ' · ' + d.field : ''}`, <code className="break-all">{JSON.stringify(d.unity)}</code>, <code className="break-all">{JSON.stringify(d.published)}</code>])} /></details>}
-        </>}</div>
-      </Panel>
+        {refresh}
+      </div>
       <div className="rounded-lg border">
         <Tabs value={group.key} onValueChange={chooseSection} className="overflow-x-auto px-3">
           <TabsList variant="line" aria-label="Unity content groups" className="h-12">{contentNavigation.map(entry =>
@@ -105,7 +62,7 @@ export function GameCatalogPage({ embedded = false }: { embedded?: boolean }) {
           )}{group.rules && <TabsTrigger value={group.rules.section} className="flex-none px-2.5">{group.rules.label}</TabsTrigger>}</TabsList>
         </Tabs>}
       </div>
-      <Input aria-label="Search Unity content" placeholder="Search name, code, map or table…" value={search} onChange={e => setSearch(e.target.value)} />
+      <Input type="search" aria-label="Search Unity content" placeholder={`Search ${group.label.toLowerCase()}…`} value={search} onChange={e => setSearch(e.target.value)} />
       {referenceSection && (sourceBundle ? <BundleSnapshot bundle={{ ...sourceBundle, [referenceSection.key]: (sourceBundle[referenceSection.key] ?? []).filter(row => match(...Object.values(row))) }} section={referenceSection.key} />
         : <Empty title="Unavailable in this Unity snapshot" />)}
       {section === 'weapons' && <Panel title="Implemented weapons" description="Weapons supported by the current game. Knife values come from the Unity prefab. The attack interval applies to normal swings."><DataTable headers={['Weapon', 'Runtime', 'Ammo', 'Damage / range', 'Rate / magazine', 'Reload', 'Durability / shot']} rows={data.weapons.filter(w => w.playable && match(w.id, w.name)).map(w => [item(w.id), <Badge variant="secondary">{w.class === 'melee' ? 'Melee' : 'Playable'}</Badge>, w.ammo_type ? item(w.ammo_type) : '—', `${number(w.damage)} / ${number(w.range)} m`, w.class === "melee" ? `${number(w.cooldown_seconds)} s / swing` : `${number(w.fire_rate)} shots/s / ${number(w.magazine_size)}`, `${number(w.reload_seconds)} s`, `${number(w.durability_max)} / ${number(w.durability_per_shot)}`])} /></Panel>}
@@ -141,6 +98,23 @@ export function GameCatalogPage({ embedded = false }: { embedded?: boolean }) {
           ...row, title: data.quests.find(quest => quest.mapCode === 'map02')?.objectives.find(objective => objective.id === row.id)?.title,
         })).filter(row => match(row.id, row.title)).map(row => [<span>{row.title || row.id}{row.title && <code className="block text-xs text-muted-foreground">{row.id}</code>}</span>, row.points])} />
       </Panel>}
+      <details className="rounded-lg border px-5 py-3">
+        <summary className="cursor-pointer text-sm font-medium">Snapshot details</summary>
+        <div className="mt-3 space-y-3 text-sm">
+          <p>Exported {new Date(data.generatedAt).toLocaleString()} · Unity commit <code>{data.unityCommit?.slice(0, 12) ?? 'unavailable'}</code></p>
+          <p className="break-all">Source SHA-256 <code>{data.sourceHash}</code></p>
+          <ul className="list-disc space-y-1 pl-5">{[...data.limitations, ...(data.importNotes ?? [])].map(note => <li key={note}>{note}</li>)}</ul>
+          <ul className="space-y-1">{data.sources.map(source => <li key={source.path}><code className="break-all">{source.path}</code></li>)}</ul>
+        </div>
+      </details>
+      <details className="rounded-lg border px-5 py-3">
+        <summary className="cursor-pointer text-sm font-medium">Published comparison</summary>
+        <div className="pt-3 text-sm" role="status">{comparison.error ? errorMessage(comparison.error) : !comparison.data ? 'Loading published comparison…' : comparison.data.status === 'nothing_published' ? 'No published version yet.' : comparison.data.status === 'bundle_unavailable' ? 'Published bundle is unavailable. Refresh to try again.' : <>
+          <p>#{comparison.data.versionNo} · {comparison.data.label} · {comparison.data.differences.length} differences in covered fields</p>
+          <p className="mt-2 text-muted-foreground">{comparison.data.scope}</p>
+          {!!comparison.data.differences.length && <details className="mt-3"><summary className="cursor-pointer">Review differences</summary><DataTable headers={['Collection / key', 'Status / field', 'Unity default', 'Published']} rows={comparison.data.differences.map(d => [<span className="break-all">{d.collection}<code className="block">{d.key}</code></span>, `${d.kind}${d.field ? ' · ' + d.field : ''}`, <code className="break-all">{JSON.stringify(d.unity)}</code>, <code className="break-all">{JSON.stringify(d.published)}</code>])} /></details>}
+        </>}</div>
+      </details>
       <details className="rounded-lg border px-5 py-3">
         <summary className="cursor-pointer text-sm font-medium">Database audit</summary>
         <div className="mt-3 grid gap-3">
