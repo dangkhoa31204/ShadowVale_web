@@ -23,7 +23,7 @@ public class ContentVersionServiceTests
 
     private ContentVersion Draft()
     {
-        var version = new ContentVersion { Label = "Draft", VersionNo = 1, Revision = 2,
+        var version = new ContentVersion { Label = "Draft", VersionNo = 1, Revision = 2, AuthoredById = Guid.NewGuid(),
             Bundle = "{}", BundleChecksum = "old", ValidatedAt = TestHelpers.Now };
         _versions.GetByIdAsync(version.Id, Arg.Any<CancellationToken>()).Returns(version);
         _versions.GetSnapshotAsync(version.Id, Arg.Any<CancellationToken>()).Returns(version);
@@ -77,7 +77,7 @@ public class ContentVersionServiceTests
     public async Task Stale_revision_returns_specific_code()
     {
         var version = Draft();
-        var result = await _service.DeleteAsync(version.Id, new() { Revision = 1 });
+        var result = await _service.DeleteAsync(version.Id, new() { Revision = 1 }, version.AuthoredById);
         result.Error.ShouldNotBeNull().Code.ShouldBe("CONTENT_VERSION_CHANGED");
         result.Data.ShouldBeFalse();
     }
@@ -87,7 +87,7 @@ public class ContentVersionServiceTests
     {
         var version = Draft();
         version.Items.Add(new Item { ContentVersionId = version.Id, Code = "ammo", Name = "Ammo" });
-        await _service.DeleteAsync(version.Id, new DeleteContentVersionRequest { Revision = 2 });
+        await _service.DeleteAsync(version.Id, new DeleteContentVersionRequest { Revision = 2 }, version.AuthoredById);
         version.Status.ShouldBe(ContentStatus.Archived);
         version.ArchivedAt.ShouldBe(TestHelpers.Now);
         version.Revision.ShouldBe(3);
@@ -95,6 +95,16 @@ public class ContentVersionServiceTests
         version.Bundle.ShouldBe("{}");
         await _versions.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
         _versions.DidNotReceive().Remove(Arg.Any<ContentVersion>());
+    }
+
+    [Fact]
+    public async Task Delete_cannot_archive_another_designers_draft()
+    {
+        var version = Draft();
+        var result = await _service.DeleteAsync(version.Id, new() { Revision = 2 }, Guid.NewGuid());
+        result.Error.ShouldNotBeNull().Kind.ShouldBe(ServiceErrorKind.NotFound);
+        version.Status.ShouldBe(ContentStatus.Draft);
+        await _versions.DidNotReceive().SaveChangesAsync(Arg.Any<CancellationToken>());
     }
 
     [Theory]
@@ -107,7 +117,7 @@ public class ContentVersionServiceTests
     {
         var version = Draft(); version.Status = status;
         (await _service.DeleteAsync(version.Id,
-            new DeleteContentVersionRequest { Revision = 2 })).Error.ShouldNotBeNull().Kind.ShouldBe(ServiceErrorKind.Conflict);
+            new DeleteContentVersionRequest { Revision = 2 }, version.AuthoredById)).Error.ShouldNotBeNull().Kind.ShouldBe(ServiceErrorKind.Conflict);
         version.ArchivedAt.ShouldBeNull();
         await _versions.DidNotReceive().SaveChangesAsync(Arg.Any<CancellationToken>());
     }
@@ -116,9 +126,9 @@ public class ContentVersionServiceTests
     public async Task Delete_rejects_missing_stale_and_negative_revisions()
     {
         var version = Draft();
-        (await _service.DeleteAsync(version.Id, new())).Error.ShouldNotBeNull().Kind.ShouldBe(ServiceErrorKind.Validation);
-        (await _service.DeleteAsync(version.Id, new() { Revision = -1 })).Error.ShouldNotBeNull().Kind.ShouldBe(ServiceErrorKind.Validation);
-        (await _service.DeleteAsync(version.Id, new() { Revision = 1 })).Error.ShouldNotBeNull().Kind.ShouldBe(ServiceErrorKind.Conflict);
+        (await _service.DeleteAsync(version.Id, new(), version.AuthoredById)).Error.ShouldNotBeNull().Kind.ShouldBe(ServiceErrorKind.Validation);
+        (await _service.DeleteAsync(version.Id, new() { Revision = -1 }, version.AuthoredById)).Error.ShouldNotBeNull().Kind.ShouldBe(ServiceErrorKind.Validation);
+        (await _service.DeleteAsync(version.Id, new() { Revision = 1 }, version.AuthoredById)).Error.ShouldNotBeNull().Kind.ShouldBe(ServiceErrorKind.Conflict);
         version.Status.ShouldBe(ContentStatus.Draft);
         await _versions.DidNotReceive().SaveChangesAsync(Arg.Any<CancellationToken>());
     }
@@ -126,11 +136,11 @@ public class ContentVersionServiceTests
     [Fact]
     public async Task Delete_handles_missing_version_and_concurrent_write()
     {
-        (await _service.DeleteAsync(Guid.NewGuid(), new() { Revision = 0 })).Error.ShouldNotBeNull().Kind.ShouldBe(ServiceErrorKind.NotFound);
+        (await _service.DeleteAsync(Guid.NewGuid(), new() { Revision = 0 }, Guid.NewGuid())).Error.ShouldNotBeNull().Kind.ShouldBe(ServiceErrorKind.NotFound);
         var version = Draft();
         _versions.SaveChangesAsync(Arg.Any<CancellationToken>())
             .Returns<int>(_ => throw new DbUpdateConcurrencyException());
-        (await _service.DeleteAsync(version.Id, new() { Revision = 2 })).Error.ShouldNotBeNull().Kind.ShouldBe(ServiceErrorKind.Conflict);
+        (await _service.DeleteAsync(version.Id, new() { Revision = 2 }, version.AuthoredById)).Error.ShouldNotBeNull().Kind.ShouldBe(ServiceErrorKind.Conflict);
     }
 
     [Fact]

@@ -278,11 +278,12 @@ public class ContentVersionService(IContentVersionRepository versions, IContentB
         return version;
     }
 
-    public async Task<ServiceResult<bool>> DeleteAsync(Guid id, DeleteContentVersionRequest request, CancellationToken ct = default)
+    public async Task<ServiceResult<bool>> DeleteAsync(Guid id, DeleteContentVersionRequest request, Guid actorId, CancellationToken ct = default)
     {
         var editable = await FindEditableAsync(id, request.Revision, ct);
         if (editable.Error is not null) return editable.Error;
         var version = editable.Data!;
+        if (version.AuthoredById != actorId) return Missing(id);
         version.Status = ContentStatus.Archived;
         version.ArchivedAt = time.GetUtcNow().UtcDateTime;
         version.Revision++;

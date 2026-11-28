@@ -19,7 +19,8 @@ import { Modal } from '../shared/Modal';
 import { BundleSnapshot } from '../content/BundleDetails';
 import { ComparisonView, type Change } from '../content/DiffList';
 import { collections } from '../content/types';
-import { schemaFields } from '../content/schemaFields';
+import { recordIdentity, recordLabel, schemaFields } from '../content/schemaFields';
+import { fieldLabel } from '../content/comparisonFields';
 import {
   bundledLayoutPresets, difficultyFields, difficultyLabels, difficultyLevels, jsonObject, readDifficulty,
 } from '../content/mapDifficulty';
@@ -31,7 +32,7 @@ export function Pager({page,setPage,total}: {page:number;setPage:(n:number)=>voi
   const pages=Math.max(1,Math.ceil(total/20));
   return <div className="flex items-center justify-center gap-4 border-t p-4 text-xs text-muted-foreground"><Button variant="outline" size="sm" disabled={page<=1} onClick={()=>setPage(page-1)}>Previous</Button><span>Page {page} / {pages} · {total} records</span><Button variant="outline" size="sm" disabled={page>=pages} onClick={()=>setPage(page+1)}>Next</Button></div>;
 }
-function changeInfo(path:string) {
+function changeInfo(path: string, bundle: ContentBundle, before: unknown, after: unknown) {
   const parts=path.split('/').slice(1).map(p=>p.replaceAll('~1','/').replaceAll('~0','~'));
   const section=collections.find(c=>c.key===parts[0]);
   let identity=parts[1]||'';
@@ -41,10 +42,16 @@ function changeInfo(path:string) {
     if (parts[2] === 'effective_range') return { title: 'Dao · Tầm đánh', unit: 'm' };
     if (parts[2] === 'melee_cooldown_s') return { title: 'Dao · Thời gian giữa hai đòn', unit: 's' };
   }
-  const field = section && parts.length === 3 ? schemaFields[section.key].find(item => item.key === parts[2]) : undefined;
+  const field = section ? schemaFields[section.key].find(item => item.key === parts[2]) : undefined;
+  if (section) {
+    const record = parts.length === 2 ? jsonObject(after ?? before) : undefined;
+    const matching = record ?? bundle[section.key]?.find(row => recordIdentity(section.key, row) === identity);
+    if (matching) identity = recordLabel(section.key, matching, bundle) || identity;
+  }
+  const fields = parts.slice(2).map((key, index) => index === 0 && field ? field.label : fieldLabel(key));
   return {
-    title: [section?.label || parts[0], identity, field?.label || parts.slice(2).join(' · ')].filter(Boolean).join(' · '),
-    unit: field?.unit,
+    title: [section?.label || fieldLabel(parts[0]), identity, ...fields].filter(Boolean).join(' · '),
+    unit: parts.length === 3 ? field?.unit : undefined,
   };
 }
 async function loadComparison(afterId:string,beforeId?:string,expectedRevision?:number){
@@ -61,8 +68,7 @@ async function loadComparison(afterId:string,beforeId?:string,expectedRevision?:
       return [{ ...change, path: knifePath + '/melee_cooldown_s' }];
     if (path === knifePath || path === '/items/["knife"]') {
       const before = jsonObject(change.before), after = jsonObject(change.after);
-      if (path === knifePath)
-        return ['damage', 'effective_range'].map(field => ({ path: knifePath + '/' + field, before: before[field] ?? null, after: after[field] ?? null }));
+      if (path === knifePath) return [change];
       const cooldown = [before, after].map(row => jsonObject(row.stats).melee_cooldown_s ?? null);
       if (cooldown[0] !== cooldown[1]) return [change, { path: knifePath + '/melee_cooldown_s', before: cooldown[0], after: cooldown[1] }];
     }
@@ -98,7 +104,7 @@ async function loadComparison(afterId:string,beforeId?:string,expectedRevision?:
         add(level + '/' + field, difficultyLabels[level] + ' · ' + difficultyFields[field], display(a, field), display(b, field));
     }
   }
-  const changes:Change[]=ordinaryChanges.map((d,i)=>({key:d.path+':'+i,path:d.path,...changeInfo(d.path),kind:d.before===null?'Added':d.after===null?'Removed':'Updated',before:d.before,after:d.after}));
+  const changes:Change[]=ordinaryChanges.map((d,i)=>({key:d.path+':'+i,path:d.path,...changeInfo(d.path, bundle, d.before, d.after),kind:d.before===null?'Added':d.after===null?'Removed':'Updated',before:d.before,after:d.after}));
   return {bundle,changes:[...difficultyChanges,...changes],revision:Number(after.version.revision)};
 }
 export function ApiCompare({beforeId,afterId,onReady,expectedRevision,compact=false}: {beforeId?:string;afterId:string;onReady?:(ready:boolean)=>void;expectedRevision?:number;compact?:boolean}) {

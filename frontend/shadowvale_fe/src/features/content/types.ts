@@ -52,6 +52,7 @@ export interface Workspace {
 export type Command =
   | { type: 'createDraft'; title: string; label?: string; changelog?: string; sourceReleaseId?: string }
   | { type: 'saveDraft'; id: string; revision: number; title: string; label?: string; changelog?: string; bundle: ContentBundle }
+  | { type: 'deleteDraft'; id: string; revision: number }
   | { type: 'editRejectedDraft'; id: string; revision: number }
   | { type: 'submitDraft'; id: string; revision: number }
   | { type: 'reviewDraft'; id: string; revision: number; approve: boolean; note: string }

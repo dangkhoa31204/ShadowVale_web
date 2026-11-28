@@ -36,7 +36,13 @@ export async function applyCommand(state: Workspace, command: Command, actor: Us
     if (!draft) throw new Error('Content version not found.');
     if (draft.revision !== command.revision) throw new Error('This content version has changed. Reload it before saving.');
     target = draft.label;
-    if (command.type === 'editRejectedDraft') {
+    if (command.type === 'deleteDraft') {
+      authorOnly(draft);
+      if (draft.status !== 'draft') throw new Error('Only drafts can be deleted.');
+      draft.status = 'archived';
+      draft.archived_at = at;
+      draft.revision++;
+    } else if (command.type === 'editRejectedDraft') {
       authorOnly(draft);
       if (draft.status !== 'rejected') throw new Error('Only rejected content can return to draft.');
       draft.status = 'draft';

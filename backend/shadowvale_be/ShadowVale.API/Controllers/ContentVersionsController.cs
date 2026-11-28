@@ -76,7 +76,7 @@ public class ContentVersionsController(IContentVersionService service) : Control
     public async Task<IActionResult> Delete(Guid id, [FromBody] DeleteContentVersionRequest request,
         CancellationToken ct)
     {
-        var result = await service.DeleteAsync(id, request, ct);
+        var result = await service.DeleteAsync(id, request, User.GetUserId(), ct);
         if (result.Error is not null) return ErrorResponse(result.Error);
         return NoContent();
     }

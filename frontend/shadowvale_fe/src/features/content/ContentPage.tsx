@@ -94,7 +94,8 @@ function DraftEditor({ draft, enums }: { draft: Draft; enums?: EnumsDto }) {
   const [category, setCategory] = useState<CollectionKey>('weapons'), [selected, setSelected] = useState(0);
   const [editingRules, setEditingRules] = useState(false), [tradeMapCode, setTradeMapCode] = useState('map01');
   const [dirty, setDirty] = useState(false), [parseError, setParseError] = useState(''), [search, setSearch] = useState('');
-  const blocker = useBlocker(({ currentLocation, nextLocation }) => (dirty || !!parseError) && (currentLocation.pathname !== nextLocation.pathname || currentLocation.search !== nextLocation.search));
+  const deletingDraft = useRef(false);
+  const blocker = useBlocker(({ currentLocation, nextLocation }) => !deletingDraft.current && (dirty || !!parseError) && (currentLocation.pathname !== nextLocation.pathname || currentLocation.search !== nextLocation.search));
   const [apiError, setApiError] = useState('');
   const [serverFields, setServerFields] = useState<Record<string, string>>({});
   const validate = useMutation({
@@ -236,12 +237,33 @@ function DraftEditor({ draft, enums }: { draft: Draft; enums?: EnumsDto }) {
       setDirty(false);
     } catch (error) { setApiError(errorMessage(error)); setServerFields(editorFieldErrors(error, bundle)); }
   }
+  async function deleteDraft() {
+    const discard = dirty || !!parseError;
+    const approved = await confirm({
+      title: 'Delete this draft?',
+      description: 'Draft #' + draft.version_no + ' will be removed from Content authoring.' + (discard ? ' Unsaved edits will be discarded.' : ''),
+      action: 'Delete draft',
+      destructive: true,
+    });
+    if (!approved) return;
+
+    deletingDraft.current = true;
+    setApiError('');
+    try {
+      await execute({ type: 'deleteDraft', id: draft.id, revision: draft.revision });
+      navigate('/admin/content', { replace: true });
+    } catch (error) {
+      deletingDraft.current = false;
+      setApiError(errorMessage(error));
+    }
+  }
   return <div className="sv-editor">
     <AlertDialog open={blocker.state === 'blocked'} onOpenChange={open => { if (!open) blocker.reset?.(); }}>
       <AlertDialogContent><AlertDialogHeader><AlertDialogTitle>Leave unsaved changes?</AlertDialogTitle><AlertDialogDescription>Save this version or discard your changes.</AlertDialogDescription></AlertDialogHeader>
         <AlertDialogFooter><AlertDialogCancel>Keep editing</AlertDialogCancel><AlertDialogAction variant="destructive" onClick={() => blocker.proceed?.()}>Discard &amp; leave</AlertDialogAction></AlertDialogFooter></AlertDialogContent>
     </AlertDialog>
     <div className="sv-editor-toolbar"><div><Status value={draft.status} /><span className="sv-mono">Revision {draft.revision}</span>{dirty && <span className="sv-unsaved">Unsaved changes</span>}</div><div>
+      {owner && draft.status === 'draft' && <Button variant="outline" className="text-destructive" disabled={busy || validate.isPending || completeImport.isPending} onClick={() => void deleteDraft()}><Icon name="delete" />Delete draft</Button>}
       {!isDemoMode && draft.status === 'rejected' && owner && <Button variant="outline" disabled={busy} onClick={()=>void execute({type:'createDraft',title:label+' revision',label:label+' revision',sourceReleaseId:draft.id}).then(workspace=>navigate('/admin/content/'+workspace.drafts[0].id)).catch(()=>{})}>Clone returned version</Button>}
       {isDemoMode && draft.status === 'rejected' && owner && <Button disabled={busy} onClick={() => { void execute({ type: 'editRejectedDraft', id: draft.id, revision: draft.revision }).catch(() => {}); }}><Icon name="edit" />Resume draft</Button>}
       {editable && <>{!isDemoMode && <Button variant="outline" disabled={busy || validate.isPending || dirty || !!parseError || draft.status === 'rejected'} onClick={() => validate.mutate()}>{validate.isPending && <Spinner />}Validate saved content</Button>}<Button variant="outline" disabled={busy || !dirty || !!parseError || !label.trim()} onClick={() => save()}><Icon name="save" />Save draft</Button><Button disabled={busy || (!isDemoMode && draft.status === 'rejected' && !dirty)} aria-describedby={showValidation && submitErrors.length ? 'content-submit-errors' : undefined} onClick={() => save(true)}><Icon name="send" />Submit for review</Button></>}
@@ -426,7 +448,8 @@ export function ContentPage({ embedded = false }: { embedded?: boolean }) {
   const { state, execute, busy, reload } = useWorkspace(), { user } = useAuth();
   const { draftId } = useParams(), navigate = useNavigate();
   const [newLabel, setNewLabel] = useState(''), [creating, setCreating] = useState(false);
-  const [resumeId, setResumeId] = useState<string>();
+  const [pendingImportId, setResumeId] = useState<string>();
+  const resumeId = state.drafts.some(draft => draft.id === pendingImportId && draft.status === 'archived') ? undefined : pendingImportId;
   const createDraft = useMutation({
     mutationFn: async (label: string) => {
       if (isDemoMode) {

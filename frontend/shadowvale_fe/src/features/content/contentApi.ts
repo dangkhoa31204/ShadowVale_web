@@ -157,6 +157,9 @@ export const contentApi={
       createdId=(await axiosClient.post<ContentVersionDto>(root,{label:command.label||command.title,changelog:command.changelog||'',parentVersionId:command.sourceReleaseId||published?.id||null,schemaVersion:'1.0'})).data.id;
     }else if(command.type==='saveDraft'){
       await this.save(command.id,command.bundle,command.label||command.title,command.changelog||'');
+    }else if(command.type==='deleteDraft'){
+      await axiosClient.delete(root+'/'+command.id,{data:{revision:command.revision}});
+      snapshots.delete(command.id);
     }else if(['submitDraft','reviewDraft','publishDraft','restoreRelease'].includes(command.type)){
       if(!('id'in command))throw new Error('Missing version.');
       const current=await this.version(command.id);
