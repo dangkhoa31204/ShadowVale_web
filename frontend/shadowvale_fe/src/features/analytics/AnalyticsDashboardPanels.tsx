@@ -4,6 +4,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import type { AiComparisonRowDto, ScalabilityRowDto } from '../../services/api/contracts';
 import { Empty, Panel, panelTable } from '../shared/ui';
 import type { analyticsApi } from './analyticsApi';
+import { CompletionDonut, MissionProgressChart, StealthHistogram } from './TelemetryCharts';
 import { familyNames, mapNames, num, pct } from './analyticsPresentation';
 
 type Gameplay = Awaited<ReturnType<typeof analyticsApi.gameplay>>;
@@ -42,10 +43,16 @@ function Distribution({ rows, ceiling }: { rows: { name: string; value: number; 
 
 export function GameplayPanels({ data, map }: { data: Gameplay; map: string }) {
   const { funnel, weapons, playstyle } = data;
+  const [weaponMetric, setWeaponMetric] = useState<'sessionsUsed' | 'shots' | 'kills'>('sessionsUsed');
   const steps = funnel.objectives.map(step => ({
     ...step, name: [step.mapCode && !map ? mapNames[step.mapCode] ?? step.mapCode : '', step.objectiveCode || 'Objective ' + step.objectiveIndex].filter(Boolean).join(' · '),
   }));
-  const rankedWeapons = [...weapons.weapons].sort((a, b) => Number(b.sessionsUsed) - Number(a.sessionsUsed) || Number(b.shots) - Number(a.shots));
+  const rankedWeapons = [...weapons.weapons].sort((a, b) => Number(b[weaponMetric]) - Number(a[weaponMetric]) || a.weapon.localeCompare(b.weapon));
+  const progress = [
+    { name: 'Started', label: 'Start', sessions: Number(funnel.sessionsStarted) },
+    ...steps.map(step => ({ name: step.name, label: String(step.objectiveIndex), sessions: Number(step.sessions) })),
+    { name: 'Completed', label: 'Finish', sessions: Number(funnel.missionsCompleted) },
+  ];
   return <>
     <MetricTiles items={[
       { label: 'Sessions started', value: num(funnel.sessionsStarted), note: 'Matching the active filters' },
@@ -53,25 +60,38 @@ export function GameplayPanels({ data, map }: { data: Gameplay; map: string }) {
       { label: 'Average stealth ratio', value: pct(playstyle.avgStealthRatio), note: 'Finished sessions with kills' },
       { label: 'Average detections', value: num(playstyle.avgTimesDetected), note: 'Per finished session' },
     ]} />
-    <Panel title="Mission funnel" description={map ? 'Distinct sessions reaching each objective, ordered by telemetry index.' : 'Counts use all matching sessions. Choose a map to follow its objectives.'}>
-      <Distribution ceiling={Number(funnel.sessionsStarted)} rows={[
-        { name: 'Started', value: Number(funnel.sessionsStarted), text: num(funnel.sessionsStarted) },
-        ...(map ? steps.slice(0, 6) : []).map(step => ({ name: step.name, value: Number(step.sessions), text: num(step.sessions) + ' · ' + pct(step.shareOfStarted) })),
-        { name: 'Completed', value: Number(funnel.missionsCompleted), text: num(funnel.missionsCompleted) + ' · ' + pct(funnel.completionRate) },
-      ]} />
-      {!!steps.length && <details className="border-t px-5 py-3 text-sm"><summary className="cursor-pointer font-medium">All recorded objectives ({steps.length})</summary>
-        <MetricsTable headers={['Objective', 'Index', 'Sessions', 'Share of starts']} rows={steps.map(step => [step.name, step.objectiveIndex, num(step.sessions), pct(step.shareOfStarted)])} />
-      </details>}
-    </Panel>
-    <div className="grid items-start gap-4 xl:grid-cols-2">
-      <Panel title="Weapon usage" description={num(weapons.finishedSessions) + ' finished sessions · Share using each weapon'}>
-        <Distribution ceiling={Number(weapons.finishedSessions)} rows={rankedWeapons.slice(0, 6).map(weapon => ({ name: weaponNames[weapon.weapon] ?? weapon.weapon, value: Number(weapon.sessionsUsed), text: pct(weapon.sessionShare) + ' · ' + num(weapon.sessionsUsed) }))} />
-        {!!rankedWeapons.length && <details className="border-t px-5 py-3 text-sm"><summary className="cursor-pointer font-medium">Shots and kills by weapon</summary>
-          <MetricsTable headers={['Weapon', 'Sessions', 'Shots', 'Kills', 'Kills / shot']} rows={rankedWeapons.map(weapon => [weaponNames[weapon.weapon] ?? weapon.weapon, num(weapon.sessionsUsed), num(weapon.shots), num(weapon.kills), num(weapon.killsPerShot)])} />
+    <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+      <Panel title="Mission funnel" description="Sessions reaching each objective in telemetry order.">
+        {!map ? <Empty title="Choose a map to follow its objectives" />
+          : !funnel.objectives.length ? <Empty title="No recorded objectives for these filters" />
+          : <MissionProgressChart steps={progress} started={Number(funnel.sessionsStarted)} />}
+        {!!steps.length && <details className="border-t px-5 py-3 text-sm"><summary className="cursor-pointer font-medium">All recorded objectives ({steps.length})</summary>
+          <MetricsTable headers={['Objective', 'Index', 'Sessions', 'Share of starts']} rows={steps.map(step => [step.name, step.objectiveIndex, num(step.sessions), pct(step.shareOfStarted)])} />
         </details>}
       </Panel>
-      <Panel title="Stealth vs combat" description={num(playstyle.sessionsWithoutKills) + ' sessions without kills · Excluded from the ratio'}>
-        <Distribution rows={playstyle.stealthRatioHistogram.map(bucket => ({ name: pct(bucket.from) + '–' + pct(bucket.to) + ' stealth kills', value: Number(bucket.sessions), text: num(bucket.sessions), tone: 'bg-chart-2' }))} />
+      <Panel title="Mission outcomes" description="Completions as a share of all matching starts.">
+        <CompletionDonut funnel={funnel} />
+      </Panel>
+    </div>
+    <div className="grid items-start gap-4 xl:grid-cols-2">
+      <Panel title="Weapon usage" description={num(weapons.finishedSessions) + ' finished sessions'} action={
+        <NativeSelect aria-label="Weapon usage metric" value={weaponMetric} onChange={event => setWeaponMetric(event.target.value as typeof weaponMetric)}>
+          <NativeSelectOption value="sessionsUsed">Sessions used</NativeSelectOption>
+          <NativeSelectOption value="shots">Attacks</NativeSelectOption>
+          <NativeSelectOption value="kills">Kills</NativeSelectOption>
+        </NativeSelect>
+      }>
+        <Distribution ceiling={weaponMetric === 'sessionsUsed' ? Number(weapons.finishedSessions) : undefined} rows={rankedWeapons.slice(0, 6).map(weapon => ({
+          name: weaponNames[weapon.weapon] ?? weapon.weapon,
+          value: Number(weapon[weaponMetric]),
+          text: weaponMetric === 'sessionsUsed' ? pct(weapon.sessionShare) + ' · ' + num(weapon.sessionsUsed) : num(weapon[weaponMetric]),
+        }))} />
+        {!!rankedWeapons.length && <details className="border-t px-5 py-3 text-sm"><summary className="cursor-pointer font-medium">Attacks and kills by weapon</summary>
+          <MetricsTable headers={['Weapon', 'Sessions', 'Attacks', 'Kills', 'Kills / attack']} rows={rankedWeapons.map(weapon => [weaponNames[weapon.weapon] ?? weapon.weapon, num(weapon.sessionsUsed), num(weapon.shots), num(weapon.kills), num(weapon.killsPerShot)])} />
+        </details>}
+      </Panel>
+      <Panel title="Stealth vs combat" description={'Share of kills by takedown · ' + num(playstyle.sessionsWithoutKills) + ' sessions without kills excluded'}>
+        <StealthHistogram buckets={playstyle.stealthRatioHistogram} />
       </Panel>
     </div>
   </>;

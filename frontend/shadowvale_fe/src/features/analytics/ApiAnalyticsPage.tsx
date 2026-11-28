@@ -17,6 +17,7 @@ import { Empty, Icon, PageHeading, Panel } from '../shared/ui';
 import { NumericControl } from '../shared/NumericControl';
 import { ComparisonPanel, GameplayPanels, MetricTiles, MetricsTable, ScalabilityTable } from './AnalyticsDashboardPanels';
 import { familyNames, mapNames, num } from './analyticsPresentation';
+import { SolverLatencyScatter } from './TelemetryCharts';
 type Gameplay=Awaited<ReturnType<typeof analyticsApi.gameplay>>;
 type Data={gameplay?:Gameplay;heatmap?:HeatmapDto;comparison?:AiComparisonRowDto[]};
 function Heatmap({data}:{data:HeatmapDto}){
@@ -120,7 +121,13 @@ export function ApiAnalyticsPage(){
             <p className="py-3 text-sm text-muted-foreground">Replan latency by agent count and graph size, using the same filters.</p>
             {scalability.isFetching && <p role="status" className="text-sm">Loading scalability metrics…</p>}
             {scalability.error && <Alert variant="destructive"><AlertDescription>{errorMessage(scalability.error)} <Button variant="outline" size="sm" onClick={() => void scalability.refetch()}>Retry</Button></AlertDescription></Alert>}
-            {scalability.data && <ScalabilityTable rows={scalability.data} />}
+            {scalability.data && <>
+              <SolverLatencyScatter rows={scalability.data} />
+              {!!scalability.data.length && <details className="border-t pt-3 text-sm">
+                <summary className="cursor-pointer font-medium">Latency and sample sizes</summary>
+                <ScalabilityTable rows={scalability.data} />
+              </details>}
+            </>}
           </details>
         </>}
       </div>}
