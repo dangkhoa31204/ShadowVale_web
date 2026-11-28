@@ -65,6 +65,7 @@ public class AnalyticsApiTests(ApiFixture api) : IntegrationTest(api)
             Event(TelemetryEventTypes.PlayerDeath, 12, 7),
             Event(TelemetryEventTypes.PlayerDeath, 13, 8),
             Event(TelemetryEventTypes.PlayerSpotted, -1, 2),
+            Event(TelemetryEventTypes.PlayerSpotted, -1, 2, new() { ["seen"] = false }),
             Event(TelemetryEventTypes.ShotFired, 12, 7),
             Event(TelemetryEventTypes.ObjectiveCompleted, payload: new() { ["index"] = 0 }),
             Event(TelemetryEventTypes.ObjectiveCompleted, payload: new() { ["index"] = 1 }),
@@ -87,7 +88,7 @@ public class AnalyticsApiTests(ApiFixture api) : IntegrationTest(api)
     }
 
     [DbFact]
-    public async Task Heatmap_CountsDefaultEventTypesPerCell()
+    public async Task Heatmap_CountsDeathsAndSightingsPerCellWithoutCountingLostSight()
     {
         var heatmap = (await _analyst.GetFromJsonAsync<HeatmapDto>("/api/analytics/heatmap?mapCode=map01&cellSize=5"))!;
 

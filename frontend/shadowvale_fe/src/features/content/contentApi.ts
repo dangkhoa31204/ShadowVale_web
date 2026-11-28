@@ -44,17 +44,7 @@ export class UnityImportError extends Error {
   }
 }
 export const contentApi={
-  async unfinishedUnityImports(source:ContentBundle,sourceHash:string,userId:string):Promise<ContentVersionDto[]>{
-    const drafts=await allPages<ContentVersionDto>(async page=>(await axiosClient.get<Page<ContentVersionDto>>(root,{params:{page,pageSize:100,status:'Draft'}})).data);
-    const candidates=drafts.filter(v=>v.authoredById===userId&&!v.submittedAt&&isUnityImport(v.changelog,sourceHash));
-    const results=await Promise.all(candidates.map(async version=>{
-      const {bundle}=await this.details(version.id);
-      const current={...emptyBundle(version),...bundle as Partial<ContentBundle>};
-      return missingUnityContent(source,current).length ? version : null;
-    }));
-    return results.filter(version=>version!==null);
-  },
-  async importUnity(source:ContentBundle,sourceHash:string,existingId?:string):Promise<string>{
+  async importUnity(source:ContentBundle,sourceHash:string,existingId?:string,label?:string):Promise<string>{
     const errors=validateEditor(source);
     if(errors.length)throw new Error('Unity source is invalid: '+errors.slice(0,5).join('; '));
     let id=existingId;
@@ -62,7 +52,7 @@ export const contentApi={
       const changelog=unityImportNote(sourceHash);
       const previous=existingId?await this.details(existingId):null;
       const version=previous?.version??
-        (await axiosClient.post<ContentVersionDto>(root,{label:'Unity import '+sourceHash.slice(0,12),changelog,parentVersionId:null,schemaVersion:'1.0'})).data;
+        (await axiosClient.post<ContentVersionDto>(root,{label:label?.trim() || 'Unity import '+sourceHash.slice(0,12),changelog,parentVersionId:null,schemaVersion:'1.0'})).data;
       id=version.id;
       if(version.status!=='Draft'||version.submittedAt||!isUnityImport(version.changelog,sourceHash))throw new Error('Choose an unsubmitted Draft created from Unity Catalog.');
       if(existingId && version.authoredById!==storageService.getUser()?.id)throw new Error('Only the author can resume this Unity import.');

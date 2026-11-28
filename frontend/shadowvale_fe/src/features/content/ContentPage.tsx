@@ -22,7 +22,7 @@ import { NumericControl } from '../shared/NumericControl';
 import { contentNavigation, designerFields, updateDraftMapLayout } from './designerPresentation';
 import { isDemoMode } from '../../config/environment';
 import { apiFields, validateEditor } from './apiModel';
-import { contentApi, isUnityImport, missingUnityContent } from './contentApi';
+import { contentApi, isUnityImport, missingUnityContent, UnityImportError } from './contentApi';
 import { errorMessage } from '../../services/api/errors';
 import { editorFieldErrors } from './apiFieldErrors';
 import type { EnumsDto } from '../../services/api/contracts';
@@ -125,7 +125,6 @@ function DraftEditor({ draft, enums }: { draft: Draft; enums?: EnumsDto }) {
     }
   }, [showValidation]);
   const owner = user?.role === 'designer' && draft.authorId === user.id;
-  const editable = (draft.status === 'draft' || (!isDemoMode && draft.status === 'rejected')) && owner;
   const record = bundle[category][selected];
   const savedRecord = record && draft.bundle[category].find(row => recordIdentity(category, row) === recordIdentity(category, record));
   const categoryInfo = collections.find(collection => collection.key === category)!;
@@ -134,6 +133,14 @@ function DraftEditor({ draft, enums }: { draft: Draft; enums?: EnumsDto }) {
   const unitySource = catalog.data;
   const importMissing = draft.status === 'draft' && owner && !draft.submitted_at && unitySource?.authoringBundle &&
     isUnityImport(draft.changelog, unitySource.sourceHash) ? missingUnityContent(unitySource.authoringBundle, draft.bundle) : [];
+  const completeImport = useMutation({
+    mutationFn: async () => {
+      if (!unitySource?.authoringBundle) throw new Error('Unity source content is unavailable.');
+      await contentApi.importUnity(unitySource.authoringBundle, unitySource.sourceHash, draft.id);
+      await reload();
+    },
+  });
+  const editable = (draft.status === 'draft' || (!isDemoMode && draft.status === 'rejected')) && owner && !completeImport.isPending;
   const related = relatedSection(category);
   const visibleTabs = categoryGroup.records;
   const settingsTab = categoryGroup.rules;
@@ -245,14 +252,18 @@ function DraftEditor({ draft, enums }: { draft: Draft; enums?: EnumsDto }) {
         <AlertTitle>Unity import is incomplete</AlertTitle>
         <AlertDescription>
           <p>{importMissing.length} missing entries · {importMissing.slice(0, 4).join(', ')}{importMissing.length > 4 && '…'}</p>
-          <Link className="underline" to="/admin/content?view=unity">Complete this draft from Unity Catalog</Link>
+          <Button variant="outline" size="sm" disabled={busy || dirty || !!parseError || completeImport.isPending} onClick={() => completeImport.mutate()}>
+            {completeImport.isPending ? 'Completing Unity import…' : 'Complete Unity import'}
+          </Button>
+          {dirty && <p>Save your draft edits before completing the import.</p>}
+          {completeImport.error && <p role="alert" className="whitespace-pre-wrap text-destructive">{errorMessage(completeImport.error)}</p>}
         </AlertDescription>
       </Alert>}
       {!isDemoMode && draft.status === 'rejected' && <Alert><AlertDescription>Change a content record and save to return to Draft, or clone this version.</AlertDescription></Alert>}
       {editable && showValidation && submitErrors.length > 0 && <Alert ref={validationRef} id="content-submit-errors" variant="destructive" tabIndex={-1}><AlertTitle>Check this content before sending</AlertTitle><AlertDescription><ul className="list-disc pl-5">{submitErrors.map((error, index) => <li key={index}>{error}</li>)}</ul></AlertDescription></Alert>}
       {!!draft.validation_errors?.length && <Alert variant="destructive"><AlertTitle>BE validation</AlertTitle><AlertDescription>{draft.validation_errors.map((message,i)=><p key={i}>{message}</p>)}</AlertDescription></Alert>}
       {draft.note && <Alert><AlertTitle>Review note</AlertTitle><AlertDescription>{draft.note}</AlertDescription></Alert>}
-      {!editable && <Alert><AlertDescription>{draft.status === 'rejected' && owner ? "Resume this draft to make the requested changes." : "This content version is read-only."}</AlertDescription></Alert>}
+      {!editable && !completeImport.isPending && <Alert><AlertDescription>{draft.status === 'rejected' && owner ? "Resume this draft to make the requested changes." : "This content version is read-only."}</AlertDescription></Alert>}
     </div>
     <div className="sv-editor-meta sv-form">
       <label>Version label<Input maxLength={200} aria-invalid={!!serverFields['meta:label']} value={label} disabled={!editable} onChange={event => { setLabel(event.target.value); setBundle({ ...bundle, label: event.target.value }); setDirty(true); }} /><small role="alert">{serverFields['meta:label']}</small></label>
@@ -412,25 +423,51 @@ function RecordEditor({ collection, bundle, savedBundle, catalog, record, savedR
 }
 
 export function ContentPage({ embedded = false }: { embedded?: boolean }) {
-  const { state, execute, busy } = useWorkspace(), { user } = useAuth();
+  const { state, execute, busy, reload } = useWorkspace(), { user } = useAuth();
   const { draftId } = useParams(), navigate = useNavigate();
   const [newLabel, setNewLabel] = useState(''), [creating, setCreating] = useState(false);
+  const [resumeId, setResumeId] = useState<string>();
+  const createDraft = useMutation({
+    mutationFn: async (label: string) => {
+      if (isDemoMode) {
+        const next = await execute({ type: 'createDraft', title: label, label });
+        return next.drafts[0].id;
+      }
+      const source = await gameCatalogApi.get();
+      if (!source.authoringBundle) throw new Error('Unity source content is unavailable. Try again when the snapshot is ready.');
+      const id = await contentApi.importUnity(source.authoringBundle, source.sourceHash, resumeId, label);
+      setResumeId(id);
+      await reload();
+      return id;
+    },
+    onSuccess: id => {
+      setCreating(false);
+      setNewLabel('');
+      setResumeId(undefined);
+      navigate('/admin/content/' + id);
+    },
+    onError: error => { if (error instanceof UnityImportError) setResumeId(error.draftId); },
+  });
   const drafts = state.drafts.filter(draft => (user?.role === 'admin' || draft.authorId === user?.id) && draft.status !== 'archived');
   const selected = draftId ? drafts.find(draft => draft.id === draftId) : drafts.find(draft => ['draft', 'rejected'].includes(draft.status)) || drafts[0];
-  async function create(event: React.FormEvent) {
+  function create(event: React.FormEvent) {
     event.preventDefault();
-    try {
-      const next = await execute({ type: 'createDraft', title: newLabel, label: newLabel });
-      setCreating(false); setNewLabel(''); navigate('/admin/content/' + next.drafts[0].id);
-    } catch { /* Workspace displays the error. */ }
+    if (!createDraft.isPending && newLabel.trim()) createDraft.mutate(newLabel.trim());
   }
   if (draftId && state.drafts.some(draft => draft.id === draftId && (user?.role === 'admin' || draft.authorId === user?.id) && draft.status === 'archived')) {
     return <Navigate to="/admin/content" replace />;
   }
-  return <div className="sv-page">{embedded ? <div className="flex justify-end"><Button onClick={() => setCreating(!creating)}><Icon name="add" />Create content version</Button></div> : <PageHeading title="Content management" description="Edit game balancing and content tables." action={<Button onClick={() => setCreating(!creating)}><Icon name="add" />Create content version</Button>} />}
-    {creating && <form className="sv-panel flex flex-wrap items-end gap-3 p-5" onSubmit={create}><Field className="min-w-60 flex-1"><FieldLabel htmlFor="new-version-label">Version label</FieldLabel><Input id="new-version-label" required autoFocus value={newLabel} onChange={event => setNewLabel(event.target.value)} placeholder="e.g. Map 02 balance pass" /></Field><Button disabled={busy || !newLabel.trim()}>Clone published version</Button><Button variant="outline" type="button" onClick={() => setCreating(false)}>Cancel</Button></form>}
+  const createAction = <Button disabled={createDraft.isPending} onClick={() => setCreating(!creating)}><Icon name="add" />Create draft</Button>;
+  return <div className="sv-page">{embedded ? <div className="flex justify-end">{createAction}</div> : <PageHeading title="Content management" description="Edit game balancing and content tables." action={createAction} />}
+    {creating && <form className="sv-panel flex flex-wrap items-end gap-3 p-5" onSubmit={create}>
+      <Field className="min-w-60 flex-1"><FieldLabel htmlFor="new-version-label">Draft name</FieldLabel><Input id="new-version-label" required autoFocus maxLength={200} disabled={createDraft.isPending || !!resumeId} value={newLabel} onChange={event => setNewLabel(event.target.value)} placeholder="e.g. Map 02 balance pass" /></Field>
+      <Button disabled={busy || createDraft.isPending || !newLabel.trim()}>{createDraft.isPending ? <><Spinner />{isDemoMode ? 'Creating draft…' : 'Loading Unity content…'}</> : resumeId ? 'Retry import' : 'Create draft'}</Button>
+      <Button variant="outline" type="button" disabled={createDraft.isPending} onClick={() => setCreating(false)}>Close</Button>
+      {!isDemoMode && <p className="basis-full text-sm text-muted-foreground">New drafts start with the current Unity snapshot.</p>}
+      {createDraft.error && <p role="alert" className="basis-full whitespace-pre-wrap text-sm text-destructive">{errorMessage(createDraft.error)}</p>}
+    </form>}
     <div className="sv-draft-picker">{drafts.map(draft => <Link key={draft.id} to={'/admin/content/' + draft.id} className={selected?.id === draft.id ? 'is-active' : ''}><span>#{draft.version_no} · {draft.label || draft.title}</span><Status value={draft.status} /></Link>)}</div>
-    {selected ? isDemoMode ? <DraftEditor key={selected.id + ':' + selected.revision} draft={selected} /> : <ApiDraftEditor key={selected.id + ':' + selected.revision + ':' + selected.status + ':' + selected.updatedAt} id={selected.id} version={selected.revision + ':' + selected.status + ':' + selected.updatedAt} /> : <Empty title={draftId ? "Content version not found" : "Create your first content version"} description="Clone the published version to begin editing." />}
+    {selected ? isDemoMode ? <DraftEditor key={selected.id + ':' + selected.revision} draft={selected} /> : <ApiDraftEditor key={selected.id + ':' + selected.revision + ':' + selected.status + ':' + selected.updatedAt} id={selected.id} version={selected.revision + ':' + selected.status + ':' + selected.updatedAt} /> : <Empty title={draftId ? "Content version not found" : "Create your first draft"} />}
   </div>;
 }
 function ApiDraftEditor({ id, version }: { id: string; version: string }) {

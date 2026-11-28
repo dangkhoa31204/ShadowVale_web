@@ -15,11 +15,11 @@ name: Designer content authoring groups drafts published content and Unity catal
 - assertVisible: Published content bundles
 - assertNotVisible: Versions
 - tapOn: Drafts
-- assertVisible: Create content version
+- assertVisible: Create draft
 - tapOn: Published
 - assertVisible: Published content bundles
 - takeScreenshot: content-management-published
 - tapOn: Unity Catalog
-- assertVisible: Import from Unity
-- assertVisible: Import Unity as new draft
+- assertVisible: Unity source snapshot
+- assertNotVisible: Import Unity as new draft
 - takeScreenshot: content-authoring-unity

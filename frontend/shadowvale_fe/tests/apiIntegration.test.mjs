@@ -238,6 +238,8 @@ test('Unity import rebinds version identities and resumes a partial Draft withou
  handler=c=>{
   if(c.url==='/content-versions'&&c.method==='post'){
    assert.equal(body(c).parentVersionId,null);
+   assert.equal(body(c).label,'Fresh Unity balance pass');
+   v.label=body(c).label;
    v.changelog=body(c).changelog;
    return ok(c,v,201);
   }
@@ -259,14 +261,13 @@ test('Unity import rebinds version identities and resumes a partial Draft withou
   }
   throw new Error('Unexpected request '+c.method+' '+c.url);
  };
- await assert.rejects(api.contentApi.importUnity(source,'source-hash'),e=>e.draftId===v.id&&/Saved: items\/ammo_small/.test(e.message));
- assert.deepEqual((await api.contentApi.unfinishedUnityImports(source,'source-hash','another-designer')).map(d=>d.id),[]);
- const [unfinished]=await api.contentApi.unfinishedUnityImports(source,'source-hash','designer');
+ await assert.rejects(api.contentApi.importUnity(source,'source-hash',undefined,'  Fresh Unity balance pass  '),e=>e.draftId===v.id&&/Saved: items\/ammo_small/.test(e.message));
+ assert.deepEqual(api.missingUnityContent(source,api.entitiesToEditor(v,data)),['items/rifle','maps/map_01']);
  data.items[0].name='Edited after interrupted import';
- const id=await api.contentApi.importUnity(source,'source-hash',unfinished.id);
+ const id=await api.contentApi.importUnity(source,'source-hash',v.id);
  assert.equal(data.items[0].name,'Edited after interrupted import');
  assert.equal(data.items.find(i=>i.code==='rifle').weapon.damage,24);
- assert.deepEqual(await api.contentApi.unfinishedUnityImports(source,'source-hash','designer'),[]);
+ assert.deepEqual(api.missingUnityContent(source,api.entitiesToEditor(v,data)),[]);
  assert.ok(!calls.some(c=>c.method==='put'||c.method==='delete'));
  assert.equal(id,v.id);assert.equal(calls.filter(c=>c.method==='post'&&c.url==='/content-versions').length,1);
  assert.equal(data.items.filter(i=>i.code==='ammo_small').length,1);
@@ -553,8 +554,7 @@ test('a partial Unity draft recovers Map 2, all recipes and ingredients across s
     }
     return ok(c, row, 201);
   };
-  const pending = await api.contentApi.unfinishedUnityImports(source, catalog.sourceHash, 'designer');
-  assert.deepEqual(pending.map(row => row.id), [draft.id]);
+  assert.ok(api.missingUnityContent(source, api.entitiesToEditor(draft, stored)).includes('maps/map02'));
   assert.equal(await api.contentApi.importUnity(source, catalog.sourceHash, draft.id), draft.id);
   assert.equal(mapWrites, 1);
   assert.ok(stored.items.some(row => row.code === 'knife'));
@@ -565,5 +565,5 @@ test('a partial Unity draft recovers Map 2, all recipes and ingredients across s
   assert.deepEqual(saved.crafting_recipe_ingredients, source.crafting_recipe_ingredients);
   assert.equal(saved.crafting_recipes.length, 10);
   assert.equal(saved.quests.length, 2);
-  assert.deepEqual(await api.contentApi.unfinishedUnityImports(source, catalog.sourceHash, 'designer'), []);
+  assert.deepEqual(api.missingUnityContent(source, saved), []);
 });
